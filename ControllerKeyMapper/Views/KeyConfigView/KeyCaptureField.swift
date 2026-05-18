@@ -103,11 +103,25 @@ class KeyCaptureField: NSView {
         self.delegate?.keyCaptureField(self, didCapture: captured)
     }
 
-    /// 单独处理 modifier 自身按下（Shift / Option / Control / Command 不触发 keyDown）。
-    /// 在简易模式里我们暂不录制 modifier 自身，避免与详细模式语义冲突。
+    /// 跟踪上次见到的修饰键状态，用于在 flagsChanged 中区分"按下"与"抬起"。
+    /// flagsChanged 不告诉我们方向，只给当前完整 modifierFlags。
+    private var lastModifierFlags: NSEvent.ModifierFlags = []
+
+    /// 录制单独的修饰键（⌘ / ⌥ / ⌃ / ⇧ / fn）。当用户在简易模式下只按一个修饰键
+    /// 而不组合其它键时，flagsChanged 会被触发；keyDown 不会触发。
+    /// 仅在"该修饰键由 0 → 1 翻转"的瞬间录入，避免抬起时再次写入。
     override func flagsChanged(with event: NSEvent) {
-        // Intentionally ignore: simple mode does not support raw modifier keys.
-        // Falling through to super is unnecessary because there is no text input path.
+        let device = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let added = device.subtracting(self.lastModifierFlags)
+        self.lastModifierFlags = device
+
+        // 没有新增的修饰键（说明这是抬起事件），不处理。
+        guard !added.isEmpty else { return }
+
+        // event.keyCode 给出本次发生变化的物理键的虚拟键码；直接录入。
+        let captured = event.keyCode
+        self.keyCode = Int16(captured)
+        self.delegate?.keyCaptureField(self, didCapture: captured)
     }
 
     // MARK: - Visual

@@ -33,7 +33,7 @@ func getMetaKeyState() -> (shift: Bool, option: Bool, control: Bool, command: Bo
     var option: Bool = false
     var control: Bool = false
     var command: Bool = false
-    
+
     pushedKeyConfigs.forEach {
         let modifiers = NSEvent.ModifierFlags(rawValue: UInt($0.modifiers))
         shift = shift || modifiers.contains(.shift)
@@ -43,6 +43,38 @@ func getMetaKeyState() -> (shift: Bool, option: Bool, control: Bool, command: Bo
     }
 
     return (shift, option, control, command)
+}
+
+/// 计算"当前所有按住的 KeyMap"贡献给后续按键事件的合成修饰键标志。
+///
+/// 包括两类来源：
+/// 1. KeyMap.modifiers 中显式勾选的修饰键（详细模式产物）。
+/// 2. KeyMap.keyCode 本身就是修饰键的情况（简易模式把 ⌘/⌥/⌃/⇧ 映射成
+///    一个普通按键时会出现）—— 这种映射在 buttonPressHandler 走 else 分支
+///    时 `event.flags = 0` 会把当前 modifier 抹掉，导致后续按键无法组合。
+///    在这里把它们也算进合成 flags，调用方就可以 union 进去保住状态。
+func currentSyntheticEventFlags() -> CGEventFlags {
+    var flags: UInt64 = 0
+    pushedKeyConfigs.forEach { config in
+        // 来源 1：显式 modifiers。
+        flags |= UInt64(config.modifiers)
+
+        // 来源 2：keyCode 本身是 modifier。
+        let kc = Int32(config.keyCode)
+        switch kc {
+        case Int32(kVK_Shift), Int32(kVK_RightShift):
+            flags |= UInt64(CGEventFlags.maskShift.rawValue)
+        case Int32(kVK_Option), Int32(kVK_RightOption):
+            flags |= UInt64(CGEventFlags.maskAlternate.rawValue)
+        case Int32(kVK_Control), Int32(kVK_RightControl):
+            flags |= UInt64(CGEventFlags.maskControl.rawValue)
+        case Int32(kVK_Command):
+            flags |= UInt64(CGEventFlags.maskCommand.rawValue)
+        default:
+            break
+        }
+    }
+    return CGEventFlags(rawValue: flags)
 }
 
 /**

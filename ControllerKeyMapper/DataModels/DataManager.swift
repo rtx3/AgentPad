@@ -45,7 +45,12 @@ class DataManager: NSObject {
     init(completion: @escaping (DataManager?) -> Void) {
         self.container = NSPersistentContainer(name: "ControllerKeyMapper")
         super.init()
-        
+
+        self.container.persistentStoreDescriptions.forEach { desc in
+            desc.shouldMigrateStoreAutomatically = true
+            desc.shouldInferMappingModelAutomatically = true
+        }
+
         self.container.loadPersistentStores { [weak self] (storeDescription, error) in
             if let error = error {
                 // Replace this implementation with code to handle the error appropriately.

@@ -53,10 +53,11 @@ extension ViewController: NSTableViewDelegate, NSTableViewDataSource {
         guard let controller = self.selectedController else { return nil }
         guard let col = column else { return nil }
         guard let newView = self.appTableView.makeView(withIdentifier: col.identifier, owner: self) as? AppCellView else { return nil }
-        
+
         if row == 0 {
             newView.appIcon.image = NSImage(named: "GenericApplicationIcon")
             newView.appName.stringValue = "Default"
+            newView.hidePassthroughCheckbox()
         } else {
             guard let appConfig = controller.data.appConfigs?[row - 1] as? AppConfig else { return nil }
             guard let appData = appConfig.app else { return nil }
@@ -66,11 +67,29 @@ extension ViewController: NSTableViewDelegate, NSTableViewDataSource {
             } else {
                 newView.appIcon.image = NSImage(named: "GenericApplicationIcon")
             }
-            
+
             newView.appName.stringValue = self.convertAppName(appData.displayName)
+
+            let cb = newView.ensurePassthroughCheckbox()
+            cb.isHidden = false
+            cb.state = appConfig.passthrough ? .on : .off
+            cb.target = self
+            cb.action = #selector(togglePassthrough(_:))
+            cb.tag = row
         }
-        
+
         return newView
+    }
+
+    @objc func togglePassthrough(_ sender: NSButton) {
+        guard let controller = self.selectedController else { return }
+        let row = sender.tag
+        guard row >= 1 else { return }
+        guard let appConfig = controller.data.appConfigs?[row - 1] as? AppConfig else { return }
+        appConfig.passthrough = (sender.state == .on)
+        _ = self.appDelegate?.dataManager?.save()
+        // 立即重画 KeyMapList，让用户感知"该 App 透传不再有映射意义"。
+        self.configTableView.reloadData()
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {

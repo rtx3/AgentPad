@@ -3,12 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 51;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		93256183A11EAD19ADC85FF9 /* Pods_ControllerKeyMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 480DB1F0DAF805C943A9656A /* Pods_ControllerKeyMapper.framework */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
+		DDC0FEA02497D911009090BE /* PassthroughCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
 		DD05303424272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD05302F24272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld */; };
@@ -18,7 +19,6 @@
 		DD05305024272DAA0091B3C6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303C24272DAA0091B3C6 /* ViewController.swift */; };
 		DD05305124272DAA0091B3C6 /* KeyConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */; };
 		DD05305224272DAA0091B3C6 /* KeyConfigComboBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */; };
-		DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */; };
 		DD05305324272DAA0091B3C6 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05304124272DAA0091B3C6 /* AppSettings.swift */; };
 		DD05305424272DAA0091B3C6 /* AppSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05304224272DAA0091B3C6 /* AppSettingsViewController.swift */; };
 		DD05305524272DAA0091B3C6 /* StickConfigCellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05304424272DAA0091B3C6 /* StickConfigCellView.swift */; };
@@ -40,6 +40,7 @@
 		DD87448E2414B8B400B3AB11 /* ControllerKeyMapperLauncher.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = DD87447A241495A700B3AB11 /* ControllerKeyMapperLauncher.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DDA072B1246699C500F9B80B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = DDA072B3246699C500F9B80B /* Localizable.strings */; };
 		DDAC3B4024151C350022FF32 /* AppNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC3B3F24151C350022FF32 /* AppNotifications.swift */; };
+		DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -60,6 +61,7 @@
 		480DB1F0DAF805C943A9656A /* Pods_ControllerKeyMapper.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ControllerKeyMapper.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE0B679D3FC9AD29E57D0287 /* Pods-ControllerKeyMapper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-ControllerKeyMapper.debug.xcconfig"; path = "Target Support Files/Pods-ControllerKeyMapper/Pods-ControllerKeyMapper.debug.xcconfig"; sourceTree = "<group>"; };
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
+		DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassthroughCoordinator.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
 		DD05303024272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ControllerKeyMapper.xcdatamodel; sourceTree = "<group>"; };
@@ -69,7 +71,6 @@
 		DD05303C24272DAA0091B3C6 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigViewController.swift; sourceTree = "<group>"; };
 		DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigComboBox.swift; sourceTree = "<group>"; };
-		DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyCaptureField.swift; sourceTree = "<group>"; };
 		DD05304124272DAA0091B3C6 /* AppSettings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
 		DD05304224272DAA0091B3C6 /* AppSettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppSettingsViewController.swift; sourceTree = "<group>"; };
 		DD05304424272DAA0091B3C6 /* StickConfigCellView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StickConfigCellView.swift; sourceTree = "<group>"; };
@@ -99,6 +100,7 @@
 		DDA072B2246699C500F9B80B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DDA072B4246699CA00F9B80B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DDAC3B3F24151C350022FF32 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
+		DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyCaptureField.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -145,6 +147,7 @@
 				DD05302E24272D7A0091B3C6 /* GameController.swift */,
 				DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */,
 				DD0389E72497D911009090BE /* MetaKeyState.swift */,
+				DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */,
 			);
 			path = DataModels;
 			sourceTree = "<group>";
@@ -319,7 +322,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1130;
 				LastUpgradeCheck = 1100;
-				ORGANIZATIONNAME = DarkHorse;
+				ORGANIZATIONNAME = rtx3;
 				TargetAttributes = {
 					DD0AE2E022DAB13100B68F05 = {
 						CreatedOnToolsVersion = 10.2.1;
@@ -460,6 +463,7 @@
 				DD05305524272DAA0091B3C6 /* StickConfigCellView.swift in Sources */,
 				DDAC3B4024151C350022FF32 /* AppNotifications.swift in Sources */,
 				DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */,
+				DDC0FEA02497D911009090BE /* PassthroughCoordinator.swift in Sources */,
 				DD05305424272DAA0091B3C6 /* AppSettingsViewController.swift in Sources */,
 				DD05305224272DAA0091B3C6 /* KeyConfigComboBox.swift in Sources */,
 				DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */,
@@ -636,9 +640,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 10;
-				DEVELOPMENT_TEAM = EF37D6UQZ9;
+				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/ControllerKeyMapper/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -662,9 +667,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 10;
-				DEVELOPMENT_TEAM = EF37D6UQZ9;
+				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/ControllerKeyMapper/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -687,7 +693,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = EF37D6UQZ9;
+				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/ControllerKeyMapperLauncher/Info.plist";
@@ -713,7 +719,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = EF37D6UQZ9;
+				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = "$(SRCROOT)/ControllerKeyMapperLauncher/Info.plist";

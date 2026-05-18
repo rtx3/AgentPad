@@ -159,3 +159,9 @@
 "Left Click" = "左クリック";
 "Right Click" = "右クリック";
 "Center Click" = "中クリック";
+
+// Passthrough (M1.5)
+"Keep as controller (don't map)" = "コントローラーのまま（マッピングしない）";
+"This app uses the controller directly. No mapping." = "このアプリではコントローラーを直接利用します。マッピングなし。";
+"Passthrough → %@" = "透過 → %@";
+"Reclaiming controller…" = "コントローラー再取得中…";

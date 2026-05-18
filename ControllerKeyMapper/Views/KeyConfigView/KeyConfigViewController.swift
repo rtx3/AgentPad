@@ -114,16 +114,21 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         self.simpleCaptureField = capture
 
         // 4. 约束
+        //
+        // 关键设计：segmented 放在窗口左下角（与 OK/Cancel 同一水平线），而
+        // 不是叠在标题下方——storyboard 中 Key/Mouse box 紧贴标题，segmented
+        // 放在标题下会盖住 Key/Mouse box 的标签，造成视觉重叠。
+        // 简易容器（仅 Simple 模式可见）占据中间主体。
         NSLayoutConstraint.activate([
-            // 分段控件位于标题下方居中
-            segmented.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 12),
-            segmented.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            // segmented 紧贴左下角，垂直与 OK 按钮居中对齐。
+            segmented.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            segmented.centerYAnchor.constraint(equalTo: (okButton?.centerYAnchor) ?? self.view.bottomAnchor, constant: 0),
 
-            // 简易容器占据中间区域（与 OK/Cancel 之上）
-            container.topAnchor.constraint(equalTo: segmented.bottomAnchor, constant: 16),
+            // 简易容器（仅 Simple 模式可见）从标题下方一直延伸到按钮上方。
+            container.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 12),
             container.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
             container.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
-            container.bottomAnchor.constraint(lessThanOrEqualTo: self.view.bottomAnchor, constant: -65),
+            container.bottomAnchor.constraint(lessThanOrEqualTo: self.view.bottomAnchor, constant: -55),
 
             help.topAnchor.constraint(equalTo: container.topAnchor),
             help.leadingAnchor.constraint(equalTo: container.leadingAnchor),

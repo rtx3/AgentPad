@@ -159,3 +159,9 @@
 "Left Click" = "Left Click";
 "Right Click" = "Right Click";
 "Center Click" = "Center Click";
+
+// Passthrough (M1.5)
+"Keep as controller (don't map)" = "Keep as controller (don't map)";
+"This app uses the controller directly. No mapping." = "This app uses the controller directly. No mapping.";
+"Passthrough → %@" = "Passthrough → %@";
+"Reclaiming controller…" = "Reclaiming controller…";

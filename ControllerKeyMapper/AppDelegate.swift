@@ -23,6 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     let manager: JoyConManager = JoyConManager()
     var dataManager: DataManager?
     var controllers: [GameController] = []
+    var passthroughCoordinator: PassthroughCoordinator?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -54,7 +55,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
                 strongSelf.controllers.append(gameController)
             }
             _ = strongSelf.manager.runAsync()
-            
+            // PassthroughCoordinator 必须在 manager.runAsync() 之后创建，
+            // 否则 manager.runLoop 还未赋值，setSeized 会立即 kIOReturnNotReady。
+            strongSelf.passthroughCoordinator = PassthroughCoordinator(manager: strongSelf.manager)
+
             NSWorkspace.shared.notificationCenter.addObserver(strongSelf, selector: #selector(strongSelf.didActivateApp), name: NSWorkspace.didActivateApplicationNotification, object: nil)
             
             NotificationCenter.default.post(name: .controllerAdded, object: nil)
@@ -288,11 +292,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     @objc func didActivateApp(notification: Notification) {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
             let bundleID = app.bundleIdentifier else { return }
-        
+
         resetMetaKeyState()
-        
+
+        // 任一手柄命中 passthrough 配置即触发全局 passthrough：
+        // JoyConSwift 0.2.1 的 IOHIDManager seize 是全局的，无法 per-device，
+        // 因此所有手柄同进同退。
+        var anyPassthrough = false
         self.controllers.forEach { controller in
-            controller.switchApp(bundleID: bundleID)
+            if controller.switchApp(bundleID: bundleID) {
+                anyPassthrough = true
+            }
+        }
+
+        if anyPassthrough {
+            self.passthroughCoordinator?.requestPassthrough()
+        } else {
+            self.passthroughCoordinator?.requestMapping()
         }
     }
 }

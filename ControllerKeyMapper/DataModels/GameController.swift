@@ -199,12 +199,12 @@ class GameController {
 
             if config.keyCode >= 0 {
                 metaKeyEvent(config: config, keyDown: true)
-                
+
                 if let systemKey = systemDefinedKey[Int(config.keyCode)] {
                     let mousePos = NSEvent.mouseLocation
                     let flags = NSEvent.ModifierFlags(rawValue: 0x0a00)
                     let data1 = Int((systemKey << 16) | 0x0a00)
-                    
+
                     let ev = NSEvent.otherEvent(
                         with: .systemDefined,
                         location: mousePos,
@@ -218,11 +218,17 @@ class GameController {
                     ev?.cgEvent?.post(tap: .cghidEventTap)
                 } else {
                     let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(config.keyCode), keyDown: true)
-                    event?.flags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                    // 叠加：当前所有按住的 KeyMap 贡献的 modifier ∪ 本次 config 自带 modifier。
+                    // 关键修复：之前直接 `event.flags = config.modifiers` 会抹掉系统当前真实
+                    // modifier 状态——例如 A 映射为 ⌘ 单键、B 映射为 1 单键时，按住 A 再按 B，
+                    // B 的事件不带 Cmd flag 会让系统看到"光秃秃的 1"而不是 Cmd+1。
+                    let baseFlags = currentSyntheticEventFlags()
+                    let ownFlags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                    event?.flags = CGEventFlags(rawValue: baseFlags.rawValue | ownFlags.rawValue)
                     event?.post(tap: .cghidEventTap)
                 }
             }
-        
+
             if config.mouseButton >= 0 {
                 let mousePos = NSEvent.mouseLocation
                 let cursorPos = CGPoint(x: mousePos.x, y: NSScreen.main!.frame.maxY - mousePos.y)
@@ -240,7 +246,9 @@ class GameController {
                     event = CGEvent(mouseEventSource: source, mouseType: .otherMouseDown, mouseCursorPosition: cursorPos, mouseButton: .center)
                     self.isCenterDragging = true
                 }
-                event?.flags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                let baseFlags = currentSyntheticEventFlags()
+                let ownFlags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                event?.flags = CGEventFlags(rawValue: baseFlags.rawValue | ownFlags.rawValue)
                 event?.post(tap: .cghidEventTap)
             }
         }
@@ -254,13 +262,13 @@ class GameController {
     func buttonReleaseHandler(config: KeyMap) {
         DispatchQueue.main.async {
             let source = CGEventSource(stateID: .hidSystemState)
-            
+
             if config.keyCode >= 0 {
                 if let systemKey = systemDefinedKey[Int(config.keyCode)] {
                     let mousePos = NSEvent.mouseLocation
                     let flags = NSEvent.ModifierFlags(rawValue: 0x0b00)
                     let data1 = Int((systemKey << 16) | 0x0b00)
-                    
+
                     let ev = NSEvent.otherEvent(
                         with: .systemDefined,
                         location: mousePos,
@@ -274,17 +282,22 @@ class GameController {
                     ev?.cgEvent?.post(tap: .cghidEventTap)
                 } else {
                     let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(config.keyCode), keyDown: false)
-                    event?.flags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                    // 抬起时 metaKeyEvent 还未跑（顺序见下方），currentSyntheticEventFlags
+                    // 仍含本次 config 的贡献——这与标准 CGEvent 行为一致：松开 ⌘ 时
+                    // event.flags 仍带 .maskCommand。其它仍按住的 modifier 也都保留。
+                    let baseFlags = currentSyntheticEventFlags()
+                    let ownFlags = CGEventFlags(rawValue: CGEventFlags.RawValue(config.modifiers))
+                    event?.flags = CGEventFlags(rawValue: baseFlags.rawValue | ownFlags.rawValue)
                     event?.post(tap: .cghidEventTap)
                 }
-                    
+
                 metaKeyEvent(config: config, keyDown: false)
             }
 
             if config.mouseButton >= 0 {
                 let mousePos = NSEvent.mouseLocation
                 let cursorPos = CGPoint(x: mousePos.x, y: NSScreen.main!.frame.maxY - mousePos.y)
-                
+
                 var event: CGEvent?
                 if config.mouseButton == 0 {
                     event = CGEvent(mouseEventSource: source, mouseType: .leftMouseUp, mouseCursorPosition: cursorPos, mouseButton: .left)
@@ -428,22 +441,42 @@ class GameController {
     }
     
     // MARK: -
-    
-    func switchApp(bundleID: String) {
+
+    /// 命中 passthrough 配置时为 true。此状态下 currentConfig 被强制清空，
+    /// 即便仍能收到 HID 事件也不会模拟键盘 / 鼠标。释放 seize 的全局操作由
+    /// AppDelegate 通过 PassthroughCoordinator 统一处理。
+    var isPassthroughActive: Bool = false
+
+    /// `switchApp` 返回值：让上层（AppDelegate）知道该 app 是否选择透传。
+    @discardableResult
+    func switchApp(bundleID: String) -> Bool {
         let appConfig = self.data.appConfigs?.first(where: {
             guard let appConfig = $0 as? AppConfig else { return false }
             return appConfig.app?.bundleID == bundleID
         }) as? AppConfig
-        
+
+        if appConfig?.passthrough == true {
+            self.isPassthroughActive = true
+            // 清空映射，避免在 seize 释放窗口期之间仍模拟键盘。
+            self.currentConfig = [:]
+            self.currentLStickConfig = [:]
+            self.currentRStickConfig = [:]
+            self.currentLStickMode = .None
+            self.currentRStickMode = .None
+            return true
+        }
+
+        self.isPassthroughActive = false
         if let keyConfig = appConfig?.config {
             self.currentConfigData = keyConfig
-            return
+            return false
         }
-        
+
         guard let defaultConfig = self.data.defaultConfig else {
             fatalError("Failed to get defaultConfig")
         }
         self.currentConfigData = defaultConfig
+        return false
     }
     
     func updateKeyMap() {
