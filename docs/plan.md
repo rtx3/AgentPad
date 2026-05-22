@@ -228,13 +228,169 @@ protocol ControllerBackendDiscovery: AnyObject {
 
 ---
 
+## 计划 3：按 App 透传（游戏中保留手柄身份）
+
+### 3.1 现状分析
+
+- `AppDelegate.didActivateApp(notification:)` 监听 `NSWorkspace.didActivateApplicationNotification`，App 切换时调用 `GameController.switchApp(bundleID:)`。
+- `GameController.switchApp(bundleID:)`：在 `data.appConfigs` 中按 `bundleID` 查找 `AppConfig`，命中则用 `appConfig.config`，否则回退 `data.defaultConfig`。
+- **整套架构里所有 `AppConfig` 都是"键映射"**：每条 `KeyMap` 把手柄按键 / 摇杆方向转成键盘 / 鼠标事件。**目前没有"不映射"的选项**。
+- HID 接管模式由 `Pods/JoyConSwift/Source/JoyConManager.swift:200` 决定：
+  ```swift
+  let ret = IOHIDManagerOpen(self.manager, IOOptionBits(kIOHIDOptionsTypeSeizeDevice))
+  ```
+  即 `kIOHIDOptionsTypeSeizeDevice` 全局独占——只要本 App 在运行并连上手柄，**Steam / 任何游戏 / 系统其它进程都看不到这只手柄**。
+- 也就是说：单纯"我们这边不再发键盘事件"并不能让游戏看到手柄，必须**主动释放 seize**，让系统蓝牙 HID 重新可见。
+
+### 3.2 目标
+
+- 用户能为某个特定 App（典型场景：原生支持手柄的 Steam 游戏）配置「保持为手柄」：
+  - 切到该 App 时，**释放本 App 对手柄的独占**，让游戏直接读手柄原生输入；
+  - 离开该 App 时，**自动重新接管**手柄，恢复键盘 / 鼠标映射。
+- **粒度（实施期决策）**：JoyConSwift 0.2.1 的 `IOHIDManager` 用全局 seize，无法 per-device 切换。M1.5 实施时确认**降级为「全局透传」**——任一前台 App 命中 passthrough 配置即释放所有手柄；离开时全部接管。「按单只手柄」放到 plan 2/3 的 backend 抽象层后再考虑。
+- 透传期间 ControllerKeyMapper 本身不产生任何键盘 / 鼠标 / 系统媒体键事件，避免重复输入。
+
+### 3.3 关键约束与风险
+
+- `JoyConManager` 当前用单个 `IOHIDManager` + seize 模式打开**所有**手柄，无法在不改 JoyConSwift 的前提下做"per-device 切换"。
+- 释放 seize 后 Joy-Con 输入回到默认 HID 报告 `0x3F`（无 IMU、按键编码与 setInputMode 后不同）；系统 / Steam 看到的是 Joy-Con 原生协议。这是必然的代价。
+- 重新接管时，如果其它进程仍占用手柄，`IOHIDDeviceOpen(seize)` 会失败；需要 retry 机制。
+- Joy-Con 在闲置一段时间会自动断蓝牙；透传期间断开则需用户重新配对。
+- 透传发生在前台 App 切换的同步路径上，必须保证 reseize / release 不阻塞主线程。
+
+### 3.4 方案设计
+
+#### 3.4.1 数据模型
+
+为 `AppConfig` 增加一个 `passthrough: Bool` 属性：
+
+```xml
+<attribute name="passthrough" optional="YES" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+```
+
+- Lightweight migration：新增 default false 的 Bool 属性，Core Data 自动迁移，老数据零中断。
+- `KeyConfig`（关系字段）保留，方便用户从透传切回映射时配置可恢复。
+
+#### 3.4.2 JoyConSwift 接口扩展（patch 注入）
+
+在 Podfile 的 `post_install` hook 中追加一段对 `Pods/JoyConSwift/Source/Controller.swift` 的 patch（沿用 M1.5 已建立的 Utils.swift patch 机制），向 `Controller` 公共接口注入：
+
+```swift
+public func setSeized(_ seized: Bool) {
+    // 内部对持有的 IOHIDDevice 分别调用：
+    //   true  -> IOHIDDeviceOpen(device, kIOHIDOptionsTypeSeizeDevice)
+    //   false -> IOHIDDeviceClose(device, kIOHIDOptionsTypeSeizeDevice)
+    // 并在重新 seize 时复用既有 setInputMode / enableIMU / 回调注册。
+}
+public var isSeized: Bool { get }
+```
+
+- 优先尝试 `IOHIDDeviceClose / Open`（per-device API），不动 `JoyConManager` 的整 manager seize。
+- 复用现有 patch 校验机制：检测到上游版本已 ≥ 0.3 自带类似 API 时，post_install hook 自动跳过。
+
+#### 3.4.3 业务层 `GameController`
+
+`switchApp(bundleID:)` 拆成两支：
+
+```
+if appConfig.passthrough == true {
+    self.applyPassthrough()
+} else {
+    self.applyMapping(appConfig?.config ?? defaultConfig)
+}
+```
+
+- `applyPassthrough()`：
+  - `currentConfig`、`currentLStickConfig`、`currentRStickConfig` 清空 → 即便 handler 还在收事件也不会发键盘。
+  - `controller.setSeized(false)` 释放该手柄给系统。
+  - 更新菜单状态："Passthrough to [App]"。
+- `applyMapping(...)`：
+  - 调用 `controller.setSeized(true)`；若失败，把请求交给 `PassthroughCoordinator` 入队 retry。
+  - 成功后调用既有 `updateKeyMap()`。
+
+#### 3.4.4 `PassthroughCoordinator`（重接管协调器）
+
+新建 `JoyKeyMapper/DataModels/PassthroughCoordinator.swift`：
+
+```swift
+final class PassthroughCoordinator {
+    private var pending: [GameController: Date] = [:]
+    private var timer: Timer?
+    private let retryInterval: TimeInterval = 2.0
+    private let maxRetryWindow: TimeInterval = 60.0
+
+    func requestReseize(_ controller: GameController) { ... }
+    func cancel(_ controller: GameController) { ... }
+}
+```
+
+- 入队后每 `retryInterval` 秒尝试 reseize；成功则出队；超过 `maxRetryWindow` 则停止并发系统通知"无法重新接管手柄"。
+- 单实例放在 `AppDelegate`，跨所有 `GameController` 共享。
+
+#### 3.4.5 UI
+
+- **AppList 行右侧**新增 ☐「Keep as controller (don't map)」复选框；绑定到 `AppConfig.passthrough`。
+- 勾选后右侧 KeyMapList **整体灰显**并显示 "This app uses the controller directly. No mapping."。
+- **状态栏菜单**每只手柄子菜单加一行状态指示：
+  - 正常映射：`Mapping`
+  - 透传：`Passthrough → [App Name]`
+  - 等待重接管：`Reclaiming…`
+- AppList 行图标右下角加一个小手柄角标，与勾选 checkbox 联动。
+
+#### 3.4.6 本地化
+
+新增 4 条字符串（`Misc/en.lproj/Localizable.strings` + `Misc/ja.lproj/Localizable.strings`）：
+
+- `Keep as controller (don't map)` / `コントローラーのまま（マッピングしない）`
+- `This app uses the controller directly. No mapping.` / `このアプリではコントローラーを直接利用します。マッピングなし。`
+- `Passthrough → %@` / `透過 → %@`
+- `Reclaiming controller…` / `コントローラー再取得中…`
+
+### 3.5 数据模型影响
+
+- `AppConfig.passthrough: Bool` 新增字段，default false。
+- Core Data lightweight migration 自动完成。
+- 老数据（passthrough 缺失）→ 视为 false → 行为与今天一致。
+
+### 3.6 实施步骤
+
+1. **Patch JoyConSwift**：Podfile post_install 注入 `setSeized(_:)` / `isSeized` 到 `Controller.swift`。
+2. **Core Data**：`AppConfig` 加 `passthrough`。
+3. **`PassthroughCoordinator`** 实现 + 接入 `AppDelegate`。
+4. **`GameController.switchApp` / `applyPassthrough` / `applyMapping`** 重构。
+5. **UI**：AppList checkbox、KeyMapList 灰显态、菜单状态文本。
+6. **本地化**：4 条字符串。
+7. **回归**：未勾选 passthrough 的所有 App 行为应与今天一致。
+
+### 3.7 验证点
+
+- 勾选某 App 透传后：
+  - 切到该 App：菜单显示 `Passthrough → [App]`；按手柄按键，系统**没有**任何键盘 / 鼠标事件；游戏 / Steam 能看到手柄。
+  - 切回非透传 App：菜单显示 `Mapping`；映射立即生效；如果手柄此时仍被游戏独占，菜单显示 `Reclaiming…`，2 秒一次 retry，成功后切回 `Mapping`。
+- 60 秒 retry 窗口耗尽：发系统通知"无法重新接管 [手柄名]，请重连"。
+- 单手柄 + 双手柄两种场景下行为一致。
+- 老用户数据库（不含 `passthrough` 字段）首次启动可被 lightweight migration 升级，原有映射继续生效。
+- 透传状态下关闭并重开 App：恢复后默认 `Mapping`（不持久化"上一次是 passthrough"，避免误锁）。
+
+### 3.8 风险与待决项
+
+- **重接管失败**：游戏 / Steam 长期占用手柄时无法 reseize；UI 必须明确告知用户。
+- **JoyConSwift 上游升级**：若 0.3+ 提供原生 seize 切换 API，post_install hook 检测到后跳过 patch；如果上游 API 命名不一致，需要在 `GameController` 层用 protocol 抽象。
+- **macOS 权限提示**：第一次 `IOHIDDeviceOpen(seize)` 可能再次触发蓝牙 / 输入监控权限询问；最好在偏好里加"已知权限"标记，避免反复弹。
+- **与计划 2 的对齐**：未来 `ControllerBackend` 协议要把 `setSeized(_:)` 抽象成可选 capability：`GCControllerBackend` 走 `GameController.framework`，系统层不允许应用主动释放，只能选择"不读"——届时 passthrough 在 GC backend 下退化为"我们不模拟键盘"，但系统层一直能读到手柄。
+- **极端场景**：用户在透传期间断电 / 蓝牙断开 → 手柄会消失，再次连上时按非透传逻辑恢复（命中的 AppConfig.passthrough 决定接管 vs 释放）。
+
+---
+
 ## 里程碑建议
 
 | 里程碑 | 内容 | 预计 |
 | --- | --- | --- |
 | M1 | 计划 1 落地（简易映射模式 + 本地化 + 偏好） | 1 周 |
+| **M1.5** | **计划 3 落地（按 App 透传 + JoyConSwift seize patch + 重接管协调器）** | **1 周** |
 | M2 | 计划 2 阶段一：抽象层 + JoyConBackend 适配 + 数据迁移（行为零变化） | 1.5 周 |
 | M3 | 计划 2 阶段二：GameController.framework backend + UI 适配 | 2 周 |
 | M4 | 回归 + 文档 + App Store 提审 | 0.5 周 |
 
 > 注：里程碑预估仅作排期参考，未计入设计 / 评审 / 反复打磨成本。
+> M1.5 单独排在 M2 之前的原因：透传需求是 macOS 10.14 全版本都需要的，等不到 M3；并且现在做能直接在 JoyConSwift 上 patch 出 per-device API，等做完 M2 抽象层再回头改成本更高。
