@@ -13,10 +13,15 @@ class ControllerView: NSView {
     
     override func draw(_ dirtyRect: NSRect) {
         if self.isSelected {
-            NSColor.alternateSelectedControlColor.setFill()
+            NSColor.selectedContentBackgroundColor.setFill()
         } else {
-            NSColor.white.setFill()
+            NSColor.clear.setFill()
         }
         self.bounds.fill()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        self.needsDisplay = true
     }
 }

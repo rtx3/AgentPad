@@ -185,10 +185,17 @@ class DataManager: NSObject {
     
     // MARK: - AppConfig
     
-    func createAppConfig(type: JoyCon.ControllerType) -> AppConfig {
+    /// 新建 AppConfig。
+    /// - Parameter from: 若传入，则把它深拷贝作为本 AppConfig 的初始 config（"inhibit"语义：默认继承 default 的值）。
+    ///   不传则创建空白 KeyConfig。
+    func createAppConfig(type: JoyCon.ControllerType, from defaultConfig: KeyConfig? = nil) -> AppConfig {
         let appConfig = AppConfig(context: self.container.viewContext)
         appConfig.app = self.createAppData()
-        appConfig.config = self.createKeyConfig(type: type)
+        if let defaultConfig = defaultConfig {
+            appConfig.config = self.cloneKeyConfig(from: defaultConfig)
+        } else {
+            appConfig.config = self.createKeyConfig(type: type)
+        }
 
         return appConfig
     }
@@ -254,8 +261,83 @@ class DataManager: NSObject {
     }
     
     // MARK: - Common
-    
+
     func delete(_ object: NSManagedObject) {
         self.container.viewContext.delete(object)
+    }
+
+    // MARK: - KeyConfig deep copy
+
+    /// 深拷贝一个 KeyConfig（含 keyMaps 与 left/right StickConfig）。
+    /// 用于新建 AppConfig 时把 defaultConfig 作为初始值（"inhibit"语义：默认继承 default）。
+    /// 不能直接 `appConfig.config = defaultConfig` ——那是关系赋值，会让两条路共享同一个 KeyConfig，
+    /// 之后任一处修改都污染对方。
+    func cloneKeyConfig(from source: KeyConfig) -> KeyConfig {
+        let copy = KeyConfig(context: self.container.viewContext)
+        copy.keyMaps = []
+
+        source.keyMaps?.enumerateObjects { (obj, _) in
+            guard let src = obj as? KeyMap else { return }
+            copy.addToKeyMaps(self.cloneKeyMap(from: src))
+        }
+
+        if let srcLeft = source.leftStick {
+            copy.leftStick = self.cloneStickConfig(from: srcLeft)
+        }
+        if let srcRight = source.rightStick {
+            copy.rightStick = self.cloneStickConfig(from: srcRight)
+        }
+
+        return copy
+    }
+
+    private func cloneKeyMap(from source: KeyMap) -> KeyMap {
+        let copy = KeyMap(context: self.container.viewContext)
+        copy.button = source.button
+        copy.isEnabled = source.isEnabled
+        copy.keyCode = source.keyCode
+        copy.modifiers = source.modifiers
+        copy.mouseButton = source.mouseButton
+        return copy
+    }
+
+    private func cloneStickConfig(from source: StickConfig) -> StickConfig {
+        let copy = StickConfig(context: self.container.viewContext)
+        copy.speed = source.speed
+        copy.type = source.type
+
+        source.keyMaps?.enumerateObjects { (obj, _) in
+            guard let src = obj as? KeyMap else { return }
+            copy.addToKeyMaps(self.cloneKeyMap(from: src))
+        }
+
+        return copy
+    }
+
+    /// 删除一条 KeyConfig 时，手动清理它挂着的 keyMaps 与 stickConfigs。
+    /// 模型里 KeyConfig→KeyMap、KeyConfig→StickConfig 的 deletionRule 都是 Nullify，
+    /// 直接 delete(keyConfig) 会留下孤儿 KeyMap / StickConfig 行。
+    func deleteKeyConfigDeeply(_ config: KeyConfig) {
+        config.keyMaps?.enumerateObjects { (obj, _) in
+            if let m = obj as? KeyMap {
+                self.container.viewContext.delete(m)
+            }
+        }
+        if let left = config.leftStick {
+            self.deleteStickConfigDeeply(left)
+        }
+        if let right = config.rightStick {
+            self.deleteStickConfigDeeply(right)
+        }
+        self.container.viewContext.delete(config)
+    }
+
+    private func deleteStickConfigDeeply(_ stick: StickConfig) {
+        stick.keyMaps?.enumerateObjects { (obj, _) in
+            if let m = obj as? KeyMap {
+                self.container.viewContext.delete(m)
+            }
+        }
+        self.container.viewContext.delete(stick)
     }
 }

@@ -7,8 +7,21 @@
 //
 
 import AppKit
+import JoyConSwift
 
 let connected = NSLocalizedString("Connected", comment: "Connected")
+
+func controllerDisplayName(for type: JoyCon.ControllerType) -> String {
+    switch type {
+    case .JoyConL: return "Joy-Con (L)"
+    case .JoyConR: return "Joy-Con (R)"
+    case .ProController: return "Pro Controller"
+    case .SNESController: return "SNES"
+    case .FamicomController1: return "Famicom 1"
+    case .FamicomController2: return "Famicom 2"
+    case .unknown: return NSLocalizedString("Unknown", comment: "Unknown controller")
+    }
+}
 
 extension ViewController: NSCollectionViewDelegate, NSCollectionViewDataSource {
     func collectionView(_ collectionView: NSCollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -28,7 +41,18 @@ extension ViewController: NSCollectionViewDelegate, NSCollectionViewDataSource {
 
         controllerItem.iconView.image = controller.icon
         controllerItem.controller = controller
-        controllerItem.label.stringValue = controller.controller != nil ? connected : ""
+        let modelName = controllerDisplayName(for: controller.type)
+        let label = controllerItem.label!
+        label.stringValue = modelName
+        label.isHidden = false
+        label.isBordered = false
+        label.isBezeled = false
+        label.drawsBackground = false
+        label.isEditable = false
+        label.isSelectable = false
+        label.backgroundColor = .clear
+        label.textColor = .secondaryLabelColor
+        label.toolTip = modelName
         
         return controllerItem
     }

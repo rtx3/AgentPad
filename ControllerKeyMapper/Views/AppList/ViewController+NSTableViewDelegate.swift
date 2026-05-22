@@ -94,6 +94,7 @@ extension ViewController: NSTableViewDelegate, NSTableViewDataSource {
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         self.updateAppAddRemoveButtonState()
+        self.updateSyncButtonState()
         self.configTableView.reloadData()
     }
 }

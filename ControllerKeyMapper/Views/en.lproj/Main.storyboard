@@ -1026,7 +1026,7 @@
                                     <action selector="importKeyMappings:" target="XfG-lQ-9wD" id="VBt-zW-7s9"/>
                                 </connections>
                             </button>
-                            <button verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="UtW-Z2-Xvh">
+                            <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="UtW-Z2-Xvh">
                                 <rect key="frame" x="271" y="13" width="92" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="21" id="C0z-kg-KoQ"/>
@@ -1071,6 +1071,7 @@
                         <outlet property="appTableView" destination="ogj-OG-jIQ" id="6lT-fC-KQ6"/>
                         <outlet property="configTableView" destination="DUf-fb-qNP" id="eR2-68-sRs"/>
                         <outlet property="controllerCollectionView" destination="Nfq-U0-gS2" id="GwI-jv-FDl"/>
+                        <outlet property="optionsButton" destination="wBe-YT-gEt" id="syn-OP-bt1"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

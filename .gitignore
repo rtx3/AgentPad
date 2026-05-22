@@ -39,4 +39,4 @@ dmg/
 Framework/
 *~
 *.swp
-
+.claude/

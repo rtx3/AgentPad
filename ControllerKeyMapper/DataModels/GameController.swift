@@ -86,7 +86,7 @@ class GameController {
         let type = JoyCon.ControllerType(rawValue: data.type ?? "")
         self.type = type ?? JoyCon.ControllerType(rawValue: "unknown")!
 
-        let defaultColor = NSColor(red: 55.0 / 255, green: 55.0 / 255, blue: 55.0 / 255, alpha: 55.0 / 255)
+        let defaultColor = NSColor(red: 55.0 / 255, green: 55.0 / 255, blue: 55.0 / 255, alpha: 1.0)
 
         self.bodyColor = defaultColor
         if let bodyColorData = data.bodyColor {
@@ -548,8 +548,7 @@ class GameController {
             return
         }
         
-        let appConfig = manager.createAppConfig(type: self.type)
-        // appConfig.config = manager.createKeyConfig()
+        let appConfig = manager.createAppConfig(type: self.type, from: self.data.defaultConfig)
 
         let displayName = FileManager.default.displayName(atPath: url.absoluteString)
         let iconFile = info["CFBundleIconFile"] as? String ?? ""
