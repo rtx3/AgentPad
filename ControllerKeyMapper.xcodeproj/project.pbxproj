@@ -10,6 +10,8 @@
 		93256183A11EAD19ADC85FF9 /* Pods_ControllerKeyMapper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 480DB1F0DAF805C943A9656A /* Pods_ControllerKeyMapper.framework */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DDC0FEA02497D911009090BE /* PassthroughCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */; };
+		DDA11B0501010001000A0A0A /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */; };
+		DDA11B0701010001000A0A0A /* AccessibilityOnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
 		DD05303424272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD05302F24272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld */; };
@@ -101,6 +103,8 @@
 		DDA072B4246699CA00F9B80B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DDAC3B3F24151C350022FF32 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
 		DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyCaptureField.swift; sourceTree = "<group>"; };
+		DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
+		DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityOnboardingWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +161,7 @@
 			children = (
 				DD05303724272D920091B3C6 /* Notifications.swift */,
 				DD05303824272D920091B3C6 /* Utils.swift */,
+				DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */,
 				DDA072B3246699C500F9B80B /* Localizable.strings */,
 			);
 			path = Misc;
@@ -172,6 +177,7 @@
 				DD05304324272DAA0091B3C6 /* KeyMapList */,
 				DD05303D24272DAA0091B3C6 /* KeyConfigView */,
 				DD05304024272DAA0091B3C6 /* AppSettings */,
+				DDA11B0801010001000A0A0A /* Onboarding */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -193,6 +199,14 @@
 				DD05304224272DAA0091B3C6 /* AppSettingsViewController.swift */,
 			);
 			path = AppSettings;
+			sourceTree = "<group>";
+		};
+		DDA11B0801010001000A0A0A /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */,
+			);
+			path = Onboarding;
 			sourceTree = "<group>";
 		};
 		DD05304324272DAA0091B3C6 /* KeyMapList */ = {
@@ -467,6 +481,8 @@
 				DD05305424272DAA0091B3C6 /* AppSettingsViewController.swift in Sources */,
 				DD05305224272DAA0091B3C6 /* KeyConfigComboBox.swift in Sources */,
 				DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */,
+				DDA11B0501010001000A0A0A /* AccessibilityPermission.swift in Sources */,
+				DDA11B0701010001000A0A0A /* AccessibilityOnboardingWindowController.swift in Sources */,
 				DD05305E24272DAA0091B3C6 /* ControllerView.swift in Sources */,
 				DD05305C24272DAA0091B3C6 /* ControllerViewItem.swift in Sources */,
 			);

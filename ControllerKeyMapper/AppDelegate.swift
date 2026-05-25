@@ -24,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     var dataManager: DataManager?
     var controllers: [GameController] = []
     var passthroughCoordinator: PassthroughCoordinator?
+    var accessibilityOnboardingWindowController: AccessibilityOnboardingWindowController?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -70,6 +71,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         // Notification settings
         let center = UNUserNotificationCenter.current()
         center.delegate = self
+
+        DispatchQueue.main.async { [weak self] in
+            self?.accessibilityOnboardingWindowController = AccessibilityOnboardingWindowController.presentIfNeeded()
+        }
     }
     
     // MARK: - Menu
