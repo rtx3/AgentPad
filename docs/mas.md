@@ -19,8 +19,8 @@
 
 ### 1.1 账号
 
-- [ ] Apple Developer Program 个人/组织会员（USD 99/年）
-- [ ] Apple ID 启用双重认证
+- [X] Apple Developer Program 个人/组织会员（USD 99/年）
+- [X] Apple ID 启用双重认证
 
 ### 1.2 App 元数据（Info.plist）
 

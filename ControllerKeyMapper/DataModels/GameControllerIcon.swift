@@ -38,29 +38,32 @@ let batteryCharge = NSImage(named: "battery_charge")!
 let stop = NSImage(named: "stop")!
 
 func GameControllerIcon(for controller: GameController) -> NSImage {
-    switch(controller.type) {
-    case .ProController:
+    switch(controller.kind) {
+    case .proController:
         return createProConIcon(for: controller)
-    case .JoyConL:
+    case .joyConL:
         return createJoyConLIcon(for: controller)
-    case .JoyConR:
+    case .joyConR:
         return createJoyConRIcon(for: controller)
-    case .FamicomController1:
+    case .famicomController1:
         return famicon_1
-    case .FamicomController2:
+    case .famicomController2:
         return famicon_2
-    case .SNESController:
+    case .snesController:
         return snescon
-    default:
-        return unknownController
+    case .dualShock4, .dualSense, .xbox, .mfi, .generic, .unknown:
+        // M3 backends don't have body / button colour artwork yet — fall back
+        // to the placeholder icon. Battery overlay still draws on top.
+        return createGenericIcon(for: controller)
     }
 }
 
 private func drawBatteryIcon(for controller: GameController) {
-    guard let controllerData = controller.controller else { return }
+    guard let backend = controller.backend else { return }
+    if !backend.supportsBattery { return }
     let iconRect = NSRect(origin: CGPoint.zero, size: batteryFull.size)
-    
-    switch(controllerData.battery) {
+
+    switch(backend.battery) {
     case .full:
         batteryFull.draw(in: iconRect)
     case .medium:
@@ -71,11 +74,11 @@ private func drawBatteryIcon(for controller: GameController) {
         batteryCritical.draw(in: iconRect)
     case .empty:
         batteryEmpty.draw(in: iconRect)
-    default:
+    case .unknown:
         break
     }
-    
-    if controllerData.isCharging {
+
+    if backend.isCharging {
         batteryCharge.draw(in: iconRect)
     }
 }
@@ -166,12 +169,12 @@ private func createJoyConRIcon(for controller: GameController) -> NSImage {
     controller.bodyColor.set()
     iconRect.fill(using: .sourceAtop)
     joyconRBody.unlockFocus()
-    
+
     joyconRButton.lockFocus()
     controller.buttonColor.set()
     iconRect.fill(using: .sourceAtop)
     joyconRButton.unlockFocus()
-    
+
     icon.lockFocus()
     joyconRBody.draw(in: iconRect)
     joyconRButton.draw(in: iconRect)
@@ -181,5 +184,22 @@ private func createJoyConRIcon(for controller: GameController) -> NSImage {
     }
     icon.unlockFocus()
 
+    return icon
+}
+
+/// Placeholder for non-Nintendo backends (DualShock4 / DualSense / Xbox /
+/// MFi / generic). Vendor-specific artwork is a follow-up; for now we reuse
+/// the unknown-controller image plus the standard battery / disabled overlay
+/// so the icon still updates on connect / state change.
+private func createGenericIcon(for controller: GameController) -> NSImage {
+    guard let icon = unknownController.copy() as? NSImage else {
+        return unknownController
+    }
+    icon.lockFocus()
+    drawBatteryIcon(for: controller)
+    if !controller.isEnabled {
+        drawStopIcon()
+    }
+    icon.unlockFocus()
     return icon
 }

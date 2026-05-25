@@ -21,6 +21,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     var windowController: NSWindowController?
     
     let manager: JoyConManager = JoyConManager()
+    /// Owns the manager + bridges to ControllerBackend for downstream code.
+    /// Created lazily so AppDelegate can keep its existing `manager` reference
+    /// stable for PassthroughCoordinator while we migrate.
+    lazy var joyConDiscovery: JoyConDiscovery = JoyConDiscovery(manager: self.manager)
+    /// macOS 10.15+ adds discovery for PS / Xbox / MFi controllers via
+    /// GameController.framework. nil on 10.14 (the minimum deployment target).
+    var gcDiscovery: ControllerBackendDiscovery?
     var dataManager: DataManager?
     var controllers: [GameController] = []
     var passthroughCoordinator: PassthroughCoordinator?
@@ -40,13 +47,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         self.statusItem.menu = self.menu
 
         // Set controller handlers
-        self.manager.connectHandler = { [weak self] controller in
-            self?.connectController(controller)
+        self.joyConDiscovery.connectHandler = { [weak self] backend in
+            self?.connectBackend(backend)
         }
-        self.manager.disconnectHandler = { [weak self] controller in
-            self?.disconnectController(controller)
+        self.joyConDiscovery.disconnectHandler = { [weak self] backend in
+            self?.disconnectBackend(backend)
         }
-        
+        if #available(macOS 10.15, *) {
+            let gc = GCControllerDiscovery()
+            gc.connectHandler = { [weak self] backend in
+                self?.connectBackend(backend)
+            }
+            gc.disconnectHandler = { [weak self] backend in
+                self?.disconnectBackend(backend)
+            }
+            self.gcDiscovery = gc
+        }
+
         self.dataManager = DataManager() { [weak self] manager in
             guard let strongSelf = self else { return }
             guard let dataManager = manager else { return }
@@ -55,13 +72,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
                 let gameController = GameController(data: data)
                 strongSelf.controllers.append(gameController)
             }
-            _ = strongSelf.manager.runAsync()
+            strongSelf.joyConDiscovery.start()
+            strongSelf.gcDiscovery?.start()
             // PassthroughCoordinator 必须在 manager.runAsync() 之后创建，
             // 否则 manager.runLoop 还未赋值，setSeized 会立即 kIOReturnNotReady。
             strongSelf.passthroughCoordinator = PassthroughCoordinator(manager: strongSelf.manager)
 
             NSWorkspace.shared.notificationCenter.addObserver(strongSelf, selector: #selector(strongSelf.didActivateApp), name: NSWorkspace.didActivateApplicationNotification, object: nil)
-            
+
             NotificationCenter.default.post(name: .controllerAdded, object: nil)
         }
         
@@ -187,7 +205,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
     func applicationWillTerminate(_ aNotification: Notification) {
         self.controllers.forEach { controller in
-            controller.controller?.setHCIState(state: .disconnect)
+            controller.backend?.disconnect()
         }
     }
     
@@ -195,7 +213,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         if let gameController = self.controllers.first(where: {
             $0.data.serialID == controller.serialID
         }) {
-            gameController.controller = controller
+            gameController.backend = JoyConBackend(controller: controller)
             gameController.startTimer()
             NotificationCenter.default.post(name: .controllerConnected, object: gameController)
 
@@ -204,6 +222,57 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             self.addController(controller)
         }
         self.updateControllersMenu()
+    }
+
+    /// Backend-agnostic connect path. Routes JoyConBackend through the
+    /// legacy serialID lookup so existing rows keep matching, and uses the
+    /// namespaced backend identifier for everything else (GameController.framework).
+    func connectBackend(_ backend: ControllerBackend) {
+        if let joyCon = (backend as? JoyConBackend)?.controller {
+            self.connectController(joyCon)
+            return
+        }
+        let identifier = backend.identifier
+        if let gameController = self.controllers.first(where: {
+            $0.data.serialID == identifier
+        }) {
+            gameController.backend = backend
+            gameController.startTimer()
+            NotificationCenter.default.post(name: .controllerConnected, object: gameController)
+            AppNotifications.notifyControllerConnected(gameController)
+        } else {
+            self.addBackend(backend)
+        }
+        self.updateControllersMenu()
+    }
+
+    func disconnectBackend(_ backend: ControllerBackend) {
+        if let joyCon = (backend as? JoyConBackend)?.controller {
+            self.disconnectController(joyCon)
+            return
+        }
+        let identifier = backend.identifier
+        if let gameController = self.controllers.first(where: {
+            $0.data.serialID == identifier
+        }) {
+            gameController.backend = nil
+            gameController.updateControllerIcon()
+            NotificationCenter.default.post(name: .controllerDisconnected, object: gameController)
+            AppNotifications.notifyControllerDisconnected(gameController)
+        }
+        self.updateControllersMenu()
+    }
+
+    func addBackend(_ backend: ControllerBackend) {
+        guard let dataManager = self.dataManager else { return }
+        let controllerData = dataManager.getControllerData(forBackend: backend)
+        let gameController = GameController(data: controllerData)
+        gameController.backend = backend
+        gameController.startTimer()
+        self.controllers.append(gameController)
+
+        NotificationCenter.default.post(name: .controllerAdded, object: gameController)
+        AppNotifications.notifyControllerConnected(gameController)
     }
 
     @objc func disconnectController(sender: Any) {
@@ -218,10 +287,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         if let gameController = self.controllers.first(where: {
             $0.data.serialID == controller.serialID
         }) {
-            gameController.controller = nil
+            gameController.backend = nil
             gameController.updateControllerIcon()
             NotificationCenter.default.post(name: .controllerDisconnected, object: gameController)
-            
+
             AppNotifications.notifyControllerDisconnected(gameController)
         }
         self.updateControllersMenu()
@@ -231,24 +300,24 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         guard let dataManager = self.dataManager else { return }
         let controllerData = dataManager.getControllerData(controller: controller)
         let gameController = GameController(data: controllerData)
-        gameController.controller = controller
+        gameController.backend = JoyConBackend(controller: controller)
         gameController.startTimer()
         self.controllers.append(gameController)
-        
+
         NotificationCenter.default.post(name: .controllerAdded, object: gameController)
-        
+
         AppNotifications.notifyControllerConnected(gameController)
     }
-    
+
     func removeController(_ controller: JoyConSwift.Controller) {
         guard let gameController = self.controllers.first(where: {
             $0.data.serialID == controller.serialID
         }) else { return }
         self.removeController(gameController: gameController)
     }
-    
+
     func removeController(gameController controller: GameController) {
-        controller.controller?.setHCIState(state: .disconnect)
+        controller.backend?.disconnect()
 
         self.dataManager?.delete(controller.data)
         self.controllers.removeAll(where: { $0 === controller })

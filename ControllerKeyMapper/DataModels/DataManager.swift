@@ -158,7 +158,20 @@ class DataManager: NSObject {
         let controller = ControllerData(context: self.container.viewContext)
         controller.appConfigs = []
         controller.defaultConfig = self.createKeyConfig(type: type)
-        
+
+        return controller
+    }
+
+    /// Backend-agnostic factory used for non-JoyCon controllers (GameController.framework).
+    /// Persists `kind.rawValue` directly into `ControllerData.type` — this is the new
+    /// namespace that won't collide with JoyCon's legacy ControllerType.rawValue strings
+    /// because none of those are equal to a ControllerKind raw value.
+    func createControllerData(kind: ControllerKind) -> ControllerData {
+        let controller = ControllerData(context: self.container.viewContext)
+        controller.appConfigs = []
+        controller.type = kind.rawValue
+        controller.defaultConfig = self.createKeyConfig(kind: kind)
+
         return controller
     }
     
@@ -179,8 +192,37 @@ class DataManager: NSObject {
 
         let controller = self.createControllerData(type: controller.type)
         controller.serialID = serialID
-        
+
         return controller
+    }
+
+    /// ControllerData lookup keyed by a ControllerBackend's identifier.
+    /// JoyConBackend keeps using the bare JoyCon serialID for backwards
+    /// compatibility with previously stored rows; non-JoyCon backends use
+    /// their namespaced identifier (e.g. "gc::DualSense::Sony_Interactive::1").
+    func getControllerData(forBackend backend: ControllerBackend) -> ControllerData {
+        if let joyCon = (backend as? JoyConBackend)?.controller {
+            return self.getControllerData(controller: joyCon)
+        }
+
+        let serialID = backend.identifier
+        let context = self.container.viewContext
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "ControllerData")
+        request.predicate = NSPredicate(format: "serialID == %@", serialID)
+
+        do {
+            let result = try context.fetch(request) as! [ControllerData]
+            if result.count > 0 {
+                return result[0]
+            }
+        } catch {
+            fatalError("Failed to fetch ControllerData: \(error)")
+        }
+
+        let row = self.createControllerData(kind: backend.kind)
+        row.serialID = serialID
+
+        return row
     }
     
     // MARK: - AppConfig
@@ -212,16 +254,40 @@ class DataManager: NSObject {
 
     func createKeyConfig(type: JoyCon.ControllerType) -> KeyConfig {
         let keyConfig = KeyConfig(context: self.container.viewContext)
-        
+
         if type == .JoyConL || type == .ProController {
             keyConfig.leftStick = self.createStickConfig()
         }
         if type == .JoyConR || type == .ProController {
             keyConfig.rightStick = self.createStickConfig()
         }
-        
+
         keyConfig.keyMaps = []
-        
+
+        return keyConfig
+    }
+
+    /// Creates an empty KeyConfig sized for a given backend-agnostic kind.
+    /// PS / Xbox / MFi / generic extended gamepads always have both sticks;
+    /// SNES / Famicom variants have neither. Joy-Con singletons keep the
+    /// existing single-stick semantics; that path still goes through the
+    /// JoyCon.ControllerType overload.
+    func createKeyConfig(kind: ControllerKind) -> KeyConfig {
+        let keyConfig = KeyConfig(context: self.container.viewContext)
+
+        switch kind {
+        case .joyConL:
+            keyConfig.leftStick = self.createStickConfig()
+        case .joyConR:
+            keyConfig.rightStick = self.createStickConfig()
+        case .proController, .dualShock4, .dualSense, .xbox, .mfi, .generic:
+            keyConfig.leftStick = self.createStickConfig()
+            keyConfig.rightStick = self.createStickConfig()
+        case .snesController, .famicomController1, .famicomController2, .unknown:
+            break
+        }
+
+        keyConfig.keyMaps = []
         return keyConfig
     }
 

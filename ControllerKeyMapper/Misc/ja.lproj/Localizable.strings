@@ -177,3 +177,10 @@
 "Don't show again" = "今後表示しない";
 "Granted" = "許可済み";
 "Not granted" = "未許可";
+
+// Controller kinds (M2 / M3)
+"DualShock 4" = "DualShock 4";
+"DualSense" = "DualSense";
+"Xbox Controller" = "Xboxコントローラー";
+"MFi Controller" = "MFiコントローラー";
+"Generic Controller" = "汎用コントローラー";

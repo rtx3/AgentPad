@@ -18,11 +18,30 @@ extension JoyCon.BatteryStatus {
         .full: "Full",
         .unknown: "Unknown"
     ]
-    
+
     var string: String {
         return JoyCon.BatteryStatus.stringMap[self] ?? "Unknown"
     }
-    
+
+    var localizedString: String {
+        return NSLocalizedString(self.string, comment: "BatteryStatus localized string")
+    }
+}
+
+extension BatteryLevel {
+    static let stringMap: [BatteryLevel: String] = [
+        .empty: "Empty",
+        .critical: "Critical",
+        .low: "Low",
+        .medium: "Medium",
+        .full: "Full",
+        .unknown: "Unknown"
+    ]
+
+    var string: String {
+        return BatteryLevel.stringMap[self] ?? "Unknown"
+    }
+
     var localizedString: String {
         return NSLocalizedString(self.string, comment: "BatteryStatus localized string")
     }
@@ -32,24 +51,37 @@ class GameController {
     let data: ControllerData
 
     var type: JoyCon.ControllerType
+    /// Backend-agnostic hardware family. Defaults to a value derived from
+    /// `data.type` so existing JoyCon rows keep rendering correctly; the
+    /// active backend overrides this when it connects.
+    var kind: ControllerKind
     var bodyColor: NSColor
     var buttonColor: NSColor
     var leftGripColor: NSColor?
     var rightGripColor: NSColor?
     
-    var controller: JoyConSwift.Controller? {
+    var backend: ControllerBackend? {
         didSet {
-            self.setControllerHandler()
+            self.setBackendHandlers()
         }
     }
+
+    /// Legacy access: returns the wrapped JoyConSwift.Controller when the
+    /// active backend is a JoyConBackend. Existing UI code (menu, collection
+    /// view items) still reads JoyCon-specific properties via this path;
+    /// non-JoyCon backends introduced in M3 will simply yield nil.
+    var controller: JoyConSwift.Controller? {
+        return (self.backend as? JoyConBackend)?.controller
+    }
+
     var currentConfigData: KeyConfig {
         didSet { self.updateKeyMap() }
     }
-    var currentConfig: [JoyCon.Button:KeyMap] = [:]
+    var currentConfig: [ControllerButton:KeyMap] = [:]
     var currentLStickMode: StickType = .None
-    var currentLStickConfig: [JoyCon.StickDirection:KeyMap] = [:]
+    var currentLStickConfig: [ControllerStickDirection:KeyMap] = [:]
     var currentRStickMode: StickType = .None
-    var currentRStickConfig: [JoyCon.StickDirection:KeyMap] = [:]
+    var currentRStickConfig: [ControllerStickDirection:KeyMap] = [:]
 
     var isEnabled: Bool = true {
         didSet {
@@ -72,7 +104,7 @@ class GameController {
     private var _icon: NSImage?
     
     var localizedBatteryString: String {
-        return (self.controller?.battery ?? .unknown).localizedString
+        return (self.backend?.battery ?? .unknown).localizedString
     }
 
     init(data: ControllerData) {
@@ -83,8 +115,18 @@ class GameController {
         }
         self.currentConfigData = defaultConfig
 
-        let type = JoyCon.ControllerType(rawValue: data.type ?? "")
+        let storedType = data.type ?? ""
+        let type = JoyCon.ControllerType(rawValue: storedType)
         self.type = type ?? JoyCon.ControllerType(rawValue: "unknown")!
+        // Try ControllerKind raw value first (new GC backends), then fall back
+        // to a JoyCon-derived kind. Empty / unknown rows land on .unknown.
+        if let k = ControllerKind(rawValue: storedType) {
+            self.kind = k
+        } else if let jc = type {
+            self.kind = JoyConBackend.kind(from: jc)
+        } else {
+            self.kind = .unknown
+        }
 
         let defaultColor = NSColor(red: 55.0 / 255, green: 55.0 / 255, blue: 55.0 / 255, alpha: 1.0)
 
@@ -118,77 +160,104 @@ class GameController {
     }
     
     // MARK: - Controller event handlers
-    
-    func setControllerHandler() {
-        guard let controller = self.controller else { return }
-        
-        controller.setPlayerLights(l1: .on, l2: .off, l3: .off, l4: .off)
-        controller.enableIMU(enable: true)
-        controller.setInputMode(mode: .standardFull)
-        controller.buttonPressHandler = { [weak self] button in
+
+    func setBackendHandlers() {
+        guard let backend = self.backend else { return }
+        // Keep the backend-agnostic kind in sync with the active hardware.
+        self.kind = backend.kind
+        // Bridge to the legacy JoyCon.ControllerType used by the KeyMapList /
+        // KeyConfig storyboard tables. PS / Xbox / MFi / generic extended
+        // gamepads share the Pro Controller button layout (ABXY + d-pad +
+        // L/R + ZL/ZR + sticks + Plus/Minus + Home), so the existing
+        // controllerButtons[.ProController] entry covers them correctly.
+        switch backend.kind {
+        case .dualShock4, .dualSense, .xbox, .mfi, .generic:
+            self.type = .ProController
+        case .joyConL, .joyConR, .proController, .snesController,
+             .famicomController1, .famicomController2, .unknown:
+            // Joy-Con family stays on the JoyCon-derived type which the
+            // JoyConBackend overwrites below using the real device type.
+            break
+        }
+
+        // JoyCon-specific setup (lights / IMU / input mode). Non-JoyCon
+        // backends (M3) won't expose this surface and skip silently.
+        if let joyCon = (backend as? JoyConBackend)?.controller {
+            joyCon.setPlayerLights(l1: .on, l2: .off, l3: .off, l4: .off)
+            joyCon.enableIMU(enable: true)
+            joyCon.setInputMode(mode: .standardFull)
+        }
+
+        backend.buttonPressHandler = { [weak self] button in
             self?.buttonPressHandler(button: button)
         }
-        controller.buttonReleaseHandler = { [weak self] button in
+        backend.buttonReleaseHandler = { [weak self] button in
             if !(self?.isEnabled ?? false) { return }
             self?.buttonReleaseHandler(button: button)
         }
-        controller.leftStickHandler = { [weak self] (newDir, oldDir) in
+        backend.stickHandler = { [weak self] (stick, newDir, oldDir) in
             if !(self?.isEnabled ?? false) { return }
-            self?.leftStickHandler(newDirection: newDir, oldDirection: oldDir)
+            switch stick {
+            case .left:
+                self?.leftStickHandler(newDirection: newDir, oldDirection: oldDir)
+            case .right:
+                self?.rightStickHandler(newDirection: newDir, oldDirection: oldDir)
+            }
         }
-        controller.rightStickHandler = { [weak self] (newDir, oldDir) in
+        backend.stickPosHandler = { [weak self] (stick, pos) in
             if !(self?.isEnabled ?? false) { return }
-            self?.rightStickHandler(newDirection: newDir, oldDirection: oldDir)
-        }
-        controller.leftStickPosHandler = { [weak self] pos in
-            if !(self?.isEnabled ?? false) { return }
-            self?.leftStickPosHandler(pos: pos)
-        }
-        controller.rightStickPosHandler = { [weak self] pos in
-            if !(self?.isEnabled ?? false) { return }
-            self?.rightStickPosHandler(pos: pos)
+            switch stick {
+            case .left:
+                self?.leftStickPosHandler(pos: pos)
+            case .right:
+                self?.rightStickPosHandler(pos: pos)
+            }
         }
 
-        controller.batteryChangeHandler = { [weak self] newState, oldState in
+        backend.batteryChangeHandler = { [weak self] newState, oldState in
             self?.batteryChangeHandler(newState: newState, oldState: oldState)
         }
-        controller.isChargingChangeHandler = { [weak self] isCharging in
+        backend.isChargingChangeHandler = { [weak self] isCharging in
             self?.isChargingChangeHandler(isCharging: isCharging)
         }
-        
-        // Update Controller data
-        
-        self.data.type = controller.type.rawValue
-        self.type = controller.type
 
-        let bodyColor = NSColor(cgColor: controller.bodyColor)!
-        self.data.bodyColor = try! NSKeyedArchiver.archivedData(withRootObject: bodyColor, requiringSecureCoding: false)
-        self.bodyColor = bodyColor
-        
-        let buttonColor = NSColor(cgColor: controller.buttonColor)!
-        self.data.buttonColor = try! NSKeyedArchiver.archivedData(withRootObject: buttonColor, requiringSecureCoding: false)
-        self.buttonColor = buttonColor
-        
-        self.data.leftGripColor = nil
-        if let leftGripColor = controller.leftGripColor {
-            if let nsLeftGripColor = NSColor(cgColor: leftGripColor) {
-                self.data.leftGripColor = try? NSKeyedArchiver.archivedData(withRootObject: nsLeftGripColor, requiringSecureCoding: false)
-                self.leftGripColor = nsLeftGripColor
+        // Persist controller metadata sourced from the backend.
+        // Type / color writes keep the legacy JoyCon string format so existing
+        // Core Data rows and `JoyCon.ControllerType(rawValue:)` reads continue
+        // to function until the persistence migration in s4.
+        if let joyCon = (backend as? JoyConBackend)?.controller {
+            self.data.type = joyCon.type.rawValue
+            self.type = joyCon.type
+
+            let bodyColor = NSColor(cgColor: joyCon.bodyColor)!
+            self.data.bodyColor = try! NSKeyedArchiver.archivedData(withRootObject: bodyColor, requiringSecureCoding: false)
+            self.bodyColor = bodyColor
+
+            let buttonColor = NSColor(cgColor: joyCon.buttonColor)!
+            self.data.buttonColor = try! NSKeyedArchiver.archivedData(withRootObject: buttonColor, requiringSecureCoding: false)
+            self.buttonColor = buttonColor
+
+            self.data.leftGripColor = nil
+            if let leftGripColor = joyCon.leftGripColor {
+                if let nsLeftGripColor = NSColor(cgColor: leftGripColor) {
+                    self.data.leftGripColor = try? NSKeyedArchiver.archivedData(withRootObject: nsLeftGripColor, requiringSecureCoding: false)
+                    self.leftGripColor = nsLeftGripColor
+                }
+            }
+
+            self.data.rightGripColor = nil
+            if let rightGripColor = joyCon.rightGripColor {
+                if let nsRightGripColor = NSColor(cgColor: rightGripColor) {
+                    self.data.rightGripColor = try? NSKeyedArchiver.archivedData(withRootObject: nsRightGripColor, requiringSecureCoding: false)
+                    self.rightGripColor = nsRightGripColor
+                }
             }
         }
-        
-        self.data.rightGripColor = nil
-        if let rightGripColor = controller.rightGripColor {
-            if let nsRightGripColor = NSColor(cgColor: rightGripColor) {
-                self.data.rightGripColor = try? NSKeyedArchiver.archivedData(withRootObject: nsRightGripColor, requiringSecureCoding: false)
-                self.rightGripColor = nsRightGripColor
-            }
-        }
-        
+
         self.updateControllerIcon()
     }
-    
-    func buttonPressHandler(button: JoyCon.Button) {
+
+    func buttonPressHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
         self.buttonPressHandler(config: config)
     }
@@ -254,7 +323,7 @@ class GameController {
         }
     }
     
-    func buttonReleaseHandler(button: JoyCon.Button) {
+    func buttonReleaseHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
         self.buttonReleaseHandler(config: config)
     }
@@ -351,7 +420,7 @@ class GameController {
         event?.post(tap: .cghidEventTap)
     }
     
-    func leftStickHandler(newDirection: JoyCon.StickDirection, oldDirection: JoyCon.StickDirection) {
+    func leftStickHandler(newDirection: ControllerStickDirection, oldDirection: ControllerStickDirection) {
         if self.currentLStickMode == .Key {
             if let config = self.currentLStickConfig[oldDirection] {
                 self.buttonReleaseHandler(config: config)
@@ -362,7 +431,7 @@ class GameController {
         }
     }
 
-    func rightStickHandler(newDirection: JoyCon.StickDirection, oldDirection: JoyCon.StickDirection) {
+    func rightStickHandler(newDirection: ControllerStickDirection, oldDirection: ControllerStickDirection) {
         if self.currentRStickMode == .Key {
             if let config = self.currentRStickConfig[oldDirection] {
                 self.buttonReleaseHandler(config: config)
@@ -391,7 +460,7 @@ class GameController {
         }
     }
     
-    func batteryChangeHandler(newState: JoyCon.BatteryStatus, oldState: JoyCon.BatteryStatus) {
+    func batteryChangeHandler(newState: BatteryLevel, oldState: BatteryLevel) {
         self.updateControllerIcon()
         
         if newState == .full && oldState != .unknown {
@@ -480,53 +549,41 @@ class GameController {
     }
     
     func updateKeyMap() {
-        var newKeyMap: [JoyCon.Button:KeyMap] = [:]
+        var newKeyMap: [ControllerButton:KeyMap] = [:]
         self.currentConfigData.keyMaps?.enumerateObjects { (map, _) in
             guard let keyMap = map as? KeyMap else { return }
             guard let buttonStr = keyMap.button else { return }
-            let buttonName = buttonNames.first { (_, name) in
-                return name == buttonStr
-            }
-            guard let button = buttonName?.key else { return }
-            
+            guard let button = LegacyButtonNameMap.button(from: buttonStr) else { return }
             newKeyMap[button] = keyMap
         }
         self.currentConfig = newKeyMap
-        
+
         self.currentLStickMode = .None
         if let stickTypeStr = self.currentConfigData.leftStick?.type,
             let stickType = StickType(rawValue: stickTypeStr) {
             self.currentLStickMode = stickType
         }
 
-        var newLeftStickMap: [JoyCon.StickDirection:KeyMap] = [:]
+        var newLeftStickMap: [ControllerStickDirection:KeyMap] = [:]
         self.currentConfigData.leftStick?.keyMaps?.enumerateObjects { (map, _) in
             guard let keyMap = map as? KeyMap else { return }
             guard let buttonStr = keyMap.button else { return }
-            let directionName = directionNames.first { (_, name) in
-                return name == buttonStr
-            }
-            guard let direction = directionName?.key else { return }
-            
+            guard let direction = LegacyButtonNameMap.stickDirection(from: buttonStr) else { return }
             newLeftStickMap[direction] = keyMap
         }
         self.currentLStickConfig = newLeftStickMap
-        
+
         self.currentRStickMode = .None
         if let stickTypeStr = self.currentConfigData.rightStick?.type,
             let stickType = StickType(rawValue: stickTypeStr) {
             self.currentRStickMode = stickType
         }
-        
-        var newRightStickMap: [JoyCon.StickDirection:KeyMap] = [:]
+
+        var newRightStickMap: [ControllerStickDirection:KeyMap] = [:]
         self.currentConfigData.rightStick?.keyMaps?.enumerateObjects { (map, _) in
             guard let keyMap = map as? KeyMap else { return }
             guard let buttonStr = keyMap.button else { return }
-            let directionName = directionNames.first { (_, name) in
-                return name == buttonStr
-            }
-            guard let direction = directionName?.key else { return }
-            
+            guard let direction = LegacyButtonNameMap.stickDirection(from: buttonStr) else { return }
             newRightStickMap[direction] = keyMap
         }
         self.currentRStickConfig = newRightStickMap
@@ -580,7 +637,7 @@ class GameController {
     
     @objc func disconnect() {
         self.stopTimer()
-        self.controller?.setHCIState(state: .disconnect)
+        self.backend?.disconnect()
     }
     
     // MARK: - Timer

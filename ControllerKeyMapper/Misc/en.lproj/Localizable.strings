@@ -177,3 +177,10 @@
 "Don't show again" = "Don't show again";
 "Granted" = "Granted";
 "Not granted" = "Not granted";
+
+// Controller kinds (M2 / M3)
+"DualShock 4" = "DualShock 4";
+"DualSense" = "DualSense";
+"Xbox Controller" = "Xbox Controller";
+"MFi Controller" = "MFi Controller";
+"Generic Controller" = "Generic Controller";

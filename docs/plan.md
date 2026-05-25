@@ -382,10 +382,33 @@ final class PassthroughCoordinator {
 
 ---
 
+## 计划 4：Accessibility 权限引导（临时需求）
+
+### 4.1 目标
+
+- 首次启动且未授予 Accessibility 权限时，提示用户开启隐私访问权限。
+- 引导弹窗提供「打开隐私设置」和「稍后再说」，不区分 MAS / GitHub 版本文案。
+- 用户可在 Options 中查看当前 App 的 Accessibility 权限是否设置正确；未授权时，点击入口直接打开系统隐私设置的 Accessibility 面板。
+
+### 4.2 实施提示
+
+- 权限检测使用 `AXIsProcessTrusted()`；主动触发系统引导使用 `AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt: true])`。
+- 跳转系统设置使用 `NSWorkspace.shared.open` 打开 `x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility`。
+- 首次引导状态用 `UserDefaults` 记录；「稍后再说」不写入永久跳过标记。
+
+### 4.3 验证点
+
+- 未授权首次启动会展示引导，点击后能进入 Accessibility 设置。
+- 点击「稍后再说」后不阻塞主流程。
+- Options 中权限状态与系统设置一致，授权变化后能刷新。
+
+---
+
 ## 里程碑建议
 
 | 里程碑 | 内容 | 预计 |
 | --- | --- | --- |
+| **M0.5** | **计划 4 落地（Accessibility 首启引导 + Options 权限状态 + 一键跳转）** | **0.5 周** |
 | M1 | 计划 1 落地（简易映射模式 + 本地化 + 偏好） | 1 周 |
 | **M1.5** | **计划 3 落地（按 App 透传 + JoyConSwift seize patch + 重接管协调器）** | **1 周** |
 | M2 | 计划 2 阶段一：抽象层 + JoyConBackend 适配 + 数据迁移（行为零变化） | 1.5 周 |
