@@ -99,6 +99,7 @@ final class AccessibilityOnboardingWindowController: NSWindowController, NSWindo
     }
 
     @objc private func didTapOpenSettings(_ sender: Any?) {
+        AccessibilityPermission.registerInTCCList()
         AccessibilityPermission.requestTrust()
         AccessibilityPermission.openSettings()
         if dontShowAgainButton.state == .on {

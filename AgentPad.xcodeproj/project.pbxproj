@@ -11,7 +11,7 @@
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
-		DD05303424272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD05302F24272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld */; };
+		DD05303424272D7A0091B3C6 /* AgentPad.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD05302F24272D7A0091B3C6 /* AgentPad.xcdatamodeld */; };
 		DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */; };
 		DD05303924272D920091B3C6 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303724272D920091B3C6 /* Notifications.swift */; };
 		DD05303A24272D920091B3C6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303824272D920091B3C6 /* Utils.swift */; };
@@ -75,7 +75,7 @@
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
-		DD05303024272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ControllerKeyMapper.xcdatamodel; sourceTree = "<group>"; };
+		DD05303024272D7A0091B3C6 /* AgentPad.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AgentPad.xcdatamodel; sourceTree = "<group>"; };
 		DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameControllerIcon.swift; sourceTree = "<group>"; };
 		DD05303724272D920091B3C6 /* Notifications.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		DD05303824272D920091B3C6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
@@ -166,7 +166,7 @@
 		DD05302C24272D7A0091B3C6 /* DataModels */ = {
 			isa = PBXGroup;
 			children = (
-				DD05302F24272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld */,
+				DD05302F24272D7A0091B3C6 /* AgentPad.xcdatamodeld */,
 				DD05302D24272D7A0091B3C6 /* DataManager.swift */,
 				DD05302E24272D7A0091B3C6 /* GameController.swift */,
 				DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */,
@@ -507,7 +507,7 @@
 				DD05305B24272DAA0091B3C6 /* ViewController+NSCollectionViewDelegate.swift in Sources */,
 				DD05305924272DAA0091B3C6 /* ViewController+NSTableViewDelegate.swift in Sources */,
 				DD05303324272D7A0091B3C6 /* GameController.swift in Sources */,
-				DD05303424272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld in Sources */,
+				DD05303424272D7A0091B3C6 /* AgentPad.xcdatamodeld in Sources */,
 				DD05305724272DAA0091B3C6 /* ViewController+NSOutlineViewDelegate.swift in Sources */,
 				DD0AE2E522DAB13100B68F05 /* AppDelegate.swift in Sources */,
 				DD05305124272DAA0091B3C6 /* KeyConfigViewController.swift in Sources */,
@@ -833,13 +833,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		DD05302F24272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodeld */ = {
+		DD05302F24272D7A0091B3C6 /* AgentPad.xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
-				DD05303024272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodel */,
+				DD05303024272D7A0091B3C6 /* AgentPad.xcdatamodel */,
 			);
-			currentVersion = DD05303024272D7A0091B3C6 /* ControllerKeyMapper.xcdatamodel */;
-			path = ControllerKeyMapper.xcdatamodeld;
+			currentVersion = DD05303024272D7A0091B3C6 /* AgentPad.xcdatamodel */;
+			path = AgentPad.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

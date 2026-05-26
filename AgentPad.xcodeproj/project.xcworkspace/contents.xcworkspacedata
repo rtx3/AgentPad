@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:ControllerKeyMapper.xcodeproj">
+      location = "self:AgentPad.xcodeproj">
    </FileRef>
 </Workspace>
