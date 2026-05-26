@@ -1,7 +1,7 @@
 [English](https://github.com/magicien/ControllerKeyMapper/blob/master/README.md)
 
-# ControllerKeyMapper
-macOS用Joy-Con/ProControllerキーマッピングツール
+# AgentPad
+macOS用Joy-Con/ProControllerキーマッピングツール（AI agent 操作向け）
 
 ![screenshot](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/screenshot_1.png)
 
@@ -11,9 +11,9 @@ macOS用Joy-Con/ProControllerキーマッピングツール
 
 ## Github からインストール
 
-1. [Releases](https://github.com/magicien/ControllerKeyMapper/releases) からdmgファイル（ControllerKeyMapper-vX.X.X.dmg）をダウンロードする
+1. [Releases](https://github.com/magicien/ControllerKeyMapper/releases) からdmgファイル（AgentPad-vX.X.X.dmg）をダウンロードする
 
-2. ControllerKeyMapper.appをApplicationsへコピーする
+2. AgentPad.appをApplicationsへコピーする
 ![screenshot_install](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/screenshot_2.png)
 
 ## 使い方
@@ -30,7 +30,7 @@ macOS用Joy-Con/ProControllerキーマッピングツール
 
 2. キー設定
 
-    2.1 ControllerKeyMapper.app を起動する
+    2.1 AgentPad.app を起動する
     
     2.2 メニューから「設定...」を選択する
 
@@ -46,13 +46,13 @@ macOS用Joy-Con/ProControllerキーマッピングツール
 
     ![screenshot_usage_2_4_2](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/screenshot_7.png)
 
-3. ControllerKeyMapper に「アクセシビリティ」の許可をする
+3. AgentPad に「アクセシビリティ」の許可をする
 
     3.1 コントローラ使用時にアラートが表示される
     
     ![screenshot_usage_3_1](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/screenshot_8.png)    
     
-    3.2 「システム環境設定」>「セキュリティとプライバシー」>「プライバシー」タブ>「アクセシビリティ」を選択し、「ControllerKeyMapper.app」にチェックを入れる
+    3.2 「システム環境設定」>「セキュリティとプライバシー」>「プライバシー」タブ>「アクセシビリティ」を選択し、「AgentPad.app」にチェックを入れる
     
     ![screenshot_usage_3_2](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/screenshot_9.png)    
 

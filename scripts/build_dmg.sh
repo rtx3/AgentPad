@@ -9,8 +9,8 @@ fi
 
 SRC_APP_PATH="${1}"
 APP_NAME=`basename "${SRC_APP_PATH}"`
-if [ "${APP_NAME}" != "ControllerKeyMapper.app" ]; then
-  echo "error: App name must be 'ControllerKeyMapper.app'"
+if [ "${APP_NAME}" != "AgentPad.app" ]; then
+  echo "error: App name must be 'AgentPad.app'"
   exit 2
 fi
 
@@ -24,11 +24,11 @@ echo "Source app path: ${SRC_APP_PATH}"
 
 PROJECT_ROOT="`dirname $0`/.."
 TMP_DIR="${PROJECT_ROOT}/dmg"
-APP_PATH="${TMP_DIR}/ControllerKeyMapper.app"
-LAUNCHER_ENTITLEMENTS="${PROJECT_ROOT}/ControllerKeyMapperLauncher/ControllerKeyMapperLauncher.entitlements"
-APP_ENTITLEMENTS="${PROJECT_ROOT}/ControllerKeyMapper/ControllerKeyMapper.entitlements"
-DMG_PATH="${TMP_DIR}/ControllerKeyMapper-${VERSION}.dmg"
-BUNDLE_ID="jp.0spec.ControllerKeyMapper"
+APP_PATH="${TMP_DIR}/AgentPad.app"
+LAUNCHER_ENTITLEMENTS="${PROJECT_ROOT}/AgentPadLauncher/AgentPadLauncher.entitlements"
+APP_ENTITLEMENTS="${PROJECT_ROOT}/AgentPad/AgentPad.entitlements"
+DMG_PATH="${TMP_DIR}/AgentPad-${VERSION}.dmg"
+BUNDLE_ID="jp.0spec.AgentPad"
 
 if [ "${APP_API_USER}" == "" ]; then
   read -p "App Connect User: " APP_API_USER
@@ -58,7 +58,7 @@ fi
 
 # Create a dmg file
 echo "Creating a dmg file at ${DMG_PATH}"
-dmgbuild -s "${PROJECT_ROOT}/scripts/dmg_settings.py" ControllerKeyMapper "${DMG_PATH}"
+dmgbuild -s "${PROJECT_ROOT}/scripts/dmg_settings.py" AgentPad "${DMG_PATH}"
 if [ $? -ne 0 ]; then
   echo "error: Failed to build a dmg file"
   exit 5

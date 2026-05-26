@@ -1,7 +1,7 @@
-# ControllerKeyMapper 后续计划
+# AgentPad 后续计划
 
 > 起草日期：2026-05-07
-> 适用工程：`ControllerKeyMapper.xcworkspace`
+> 适用工程：`AgentPad.xcworkspace`
 > 主要语言：Swift / AppKit / Core Data
 > 范围：以下两项功能演进
 
@@ -11,7 +11,7 @@
 
 ### 1.1 现状分析
 
-- 按键设置弹窗实现于 `ControllerKeyMapper/Views/KeyConfigView/KeyConfigViewController.swift`，配合 `KeyConfigComboBox.swift` 完成键码录入。
+- 按键设置弹窗实现于 `AgentPad/Views/KeyConfigView/KeyConfigViewController.swift`，配合 `KeyConfigComboBox.swift` 完成键码录入。
 - `KeyConfigComboBox` 继承自 `NSComboBox`，在 `becomeFirstResponder()` 中通过 `NSEvent.addLocalMonitorForEvents(matching: .keyDown)` 捕获键码：
 
   ```swift
@@ -65,7 +65,7 @@
 
 ### 1.5 实施步骤
 
-1. 新建 `ControllerKeyMapper/Views/KeyConfigView/KeyCaptureField.swift`，实现按键捕获组件 + delegate。
+1. 新建 `AgentPad/Views/KeyConfigView/KeyCaptureField.swift`，实现按键捕获组件 + delegate。
 2. 修改 `KeyConfigViewController.swift`：增加 mode 切换、视图组合、按键回写逻辑。
 3. 在对应 Storyboard / XIB 中加入：分段控件、`KeyCaptureField` 容器、说明文字。
 4. `AppSettings.swift` 新增 `defaultKeyCaptureMode`，并在 `AppSettingsViewController` 加偏好开关（可选）。
@@ -127,7 +127,7 @@
 
 #### 2.4.1 抽象按键 / 摇杆
 
-新建 `ControllerKeyMapper/DataModels/Input/`：
+新建 `AgentPad/DataModels/Input/`：
 
 ```swift
 // 与具体 backend 解耦的通用按键标识
@@ -248,7 +248,7 @@ protocol ControllerBackendDiscovery: AnyObject {
   - 切到该 App 时，**释放本 App 对手柄的独占**，让游戏直接读手柄原生输入；
   - 离开该 App 时，**自动重新接管**手柄，恢复键盘 / 鼠标映射。
 - **粒度（实施期决策）**：JoyConSwift 0.2.1 的 `IOHIDManager` 用全局 seize，无法 per-device 切换。M1.5 实施时确认**降级为「全局透传」**——任一前台 App 命中 passthrough 配置即释放所有手柄；离开时全部接管。「按单只手柄」放到 plan 2/3 的 backend 抽象层后再考虑。
-- 透传期间 ControllerKeyMapper 本身不产生任何键盘 / 鼠标 / 系统媒体键事件，避免重复输入。
+- 透传期间 AgentPad 本身不产生任何键盘 / 鼠标 / 系统媒体键事件，避免重复输入。
 
 ### 3.3 关键约束与风险
 

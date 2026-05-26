@@ -1,7 +1,7 @@
 [日本語](https://github.com/magicien/ControllerKeyMapper/blob/master/lang/ja/README.md)
 
-# ControllerKeyMapper
-Nintendo Joy-Con / Pro Controller / Famicom Controller / SNES Controller key mapper for macOS.
+# AgentPad
+Nintendo Joy-Con / Pro Controller / Famicom Controller / SNES Controller key mapper for macOS — built to drive AI agents.
 
 ![screenshot](https://github.com/magicien/ControllerKeyMapper/blob/master/resources/screenshot/screenshot_1.png)
 
@@ -22,9 +22,9 @@ Nintendo Joy-Con / Pro Controller / Famicom Controller / SNES Controller key map
 
 ## Install from Github
 
-1. Download a dmg file (ControllerKeyMapper-vX.X.X.dmg) from [Releases](https://github.com/magicien/ControllerKeyMapper/releases)
+1. Download a dmg file (AgentPad-vX.X.X.dmg) from [Releases](https://github.com/magicien/ControllerKeyMapper/releases)
 
-2. Copy ControllerKeyMapper.app to Applications
+2. Copy AgentPad.app to Applications
 ![screenshot_install](https://github.com/magicien/ControllerKeyMapper/blob/master/resources/screenshot/screenshot_2.png)
 
 ## How to use
@@ -41,7 +41,7 @@ Nintendo Joy-Con / Pro Controller / Famicom Controller / SNES Controller key map
 
 2. Set key mappings
 
-    2.1 Launch ControllerKeyMapper.app
+    2.1 Launch AgentPad.app
 
     2.2 Choose the "Settings..." menu
 
@@ -60,13 +60,13 @@ Nintendo Joy-Con / Pro Controller / Famicom Controller / SNES Controller key map
 
     ![screenshot_usage_2_4_2](https://github.com/magicien/ControllerKeyMapper/blob/master/resources/screenshot/screenshot_7.png)
 
-3. Allow ControllerKeyMapper to control Accessibility
+3. Allow AgentPad to control Accessibility
 
     3.1 When you start using your controller, you will see this alert.
 
     ![screenshot_usage_3_1](https://github.com/magicien/ControllerKeyMapper/blob/master/resources/screenshot/screenshot_8.png)
 
-    3.2 Open "System Preferences" > "Security & Privacy" > "Privacy" tab > "Accessibility", and check "ControllerKeyMapper.app"
+    3.2 Open "System Preferences" > "Security & Privacy" > "Privacy" tab > "Accessibility", and check "AgentPad.app"
 
     ![screenshot_usage_3_2](https://github.com/magicien/ControllerKeyMapper/blob/master/resources/screenshot/screenshot_9.png)
 
@@ -76,10 +76,10 @@ Requires Xcode and CocoaPods.
 
 ```sh
 pod install
-open ControllerKeyMapper.xcworkspace
+open AgentPad.xcworkspace
 ```
 
-Build & run the `ControllerKeyMapper` scheme.
+Build & run the `AgentPad` scheme.
 
 ## See also
 

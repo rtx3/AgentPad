@@ -26,7 +26,7 @@
 
 - [ ] `CFBundleShortVersionString`（如 `1.0.0`）
 - [ ] `CFBundleVersion`（构建号，每次提交递增）
-- [ ] `CFBundleIdentifier`（如 `com.<team>.ControllerKeyMapper`，MAS 与 GitHub 可使用同一 Bundle ID 或加后缀区分）
+- [ ] `CFBundleIdentifier`（如 `jp.0spec.AgentPad`，MAS 与 GitHub 可使用同一 Bundle ID 或加后缀区分）
 - [ ] `LSApplicationCategoryType`（建议 `public.app-category.utilities`）
 - [ ] `LSMinimumSystemVersion`
 - [ ] `NSHumanReadableCopyright`

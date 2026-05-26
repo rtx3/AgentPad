@@ -1,11 +1,11 @@
 # Uncomment the next line to define a global platform for your project
 platform :osx, '10.14'
 
-target 'ControllerKeyMapper' do
+target 'AgentPad' do
   # Comment the next line if you don't want to use dynamic frameworks
   use_frameworks!
 
-  # Pods for ControllerKeyMapper
+  # Pods for AgentPad
   pod 'JoyConSwift', '0.2.1'
 
 end
@@ -28,7 +28,7 @@ post_install do |installer|
       //  Created by magicien on 2019/06/16.
       //  Copyright © 2019 DarkHorse. All rights reserved.
       //
-      //  Patched by ControllerKeyMapper Podfile post_install for Swift 6
+      //  Patched by AgentPad Podfile post_install for Swift 6
       //  alignment safety when reading HID byte streams at unaligned offsets.
       //
 
@@ -58,7 +58,7 @@ post_install do |installer|
 
   # JoyConSwift 0.2.1 opens its IOHIDManager with kIOHIDOptionsTypeSeizeDevice
   # globally, which makes any connected Joy-Con / Pro Controller invisible to
-  # Steam and games. To support "controller passthrough" in ControllerKeyMapper,
+  # Steam and games. To support "controller passthrough" in AgentPad,
   # inject a public `setSeized(_:)` method on JoyConManager that toggles the
   # manager between seize and shared mode. Idempotent: skipped when the
   # `setSeized` symbol is already present (i.e. patch already applied or
@@ -75,7 +75,7 @@ post_install do |installer|
       # 2) Append the seize-toggle API at end of file.
       src += <<~SWIFT
 
-        // MARK: - Passthrough (injected by ControllerKeyMapper post_install)
+        // MARK: - Passthrough (injected by AgentPad post_install)
 
         extension JoyConManager {
             private static var seizedFlagKey: UInt8 = 0
