@@ -30,6 +30,8 @@
         <relationship name="rightStick" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="StickConfig" inverseName="rightStickOwner" inverseEntity="StickConfig"/>
     </entity>
     <entity name="KeyMap" representedClassName="KeyMap" syncable="YES" codeGenerationType="class">
+        <attribute name="action" optional="YES" attributeType="String" defaultValueString="keyboard"/>
+        <attribute name="agentMacro" optional="YES" attributeType="String"/>
         <attribute name="button" attributeType="String"/>
         <attribute name="isEnabled" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="keyCode" optional="YES" attributeType="Integer 16" defaultValueString="-1" usesScalarValueType="YES"/>

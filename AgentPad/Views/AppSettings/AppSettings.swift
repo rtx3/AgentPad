@@ -14,6 +14,7 @@ let helperAppBundleID = "com.rtx3.agentpad.launcher"
 enum KeyCaptureMode: String {
     case simple
     case detailed
+    case agent
 }
 
 class AppSettings {

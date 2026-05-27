@@ -39,13 +39,20 @@ func convertModifierKeys(_ modifiers: NSEvent.ModifierFlags) -> String {
 func convertKeyName(keyMap: KeyMap?) -> String {
     guard let map = keyMap else { return none }
 
+    if map.action == "agent" {
+        let steps = AgentMacroCodec.decode(map.agentMacro)
+        if steps.isEmpty { return none }
+        let fmt = NSLocalizedString("Agent (%d steps)", comment: "Agent macro summary")
+        return String.localizedStringWithFormat(fmt, steps.count)
+    }
+
     let modifiers = convertModifierKeys(NSEvent.ModifierFlags(rawValue: UInt(map.modifiers)))
 
     if map.keyCode >= 0 {
         let keyName = getKeyName(keyCode: UInt16(map.keyCode))
         return "\(modifiers)\(keyName)"
     }
-    
+
     if map.mouseButton >= 0 {
         let buttonName = localizedMouseButtonNames[Int(map.mouseButton)]
         if modifiers != "" {
@@ -53,7 +60,7 @@ func convertKeyName(keyMap: KeyMap?) -> String {
         }
         return buttonName
     }
-    
+
     return none
 }
 

@@ -215,3 +215,15 @@
 "Down Left" = "Down Left";
 "Up Left" = "Up Left";
 "Neutral" = "Neutral";
+
+// AgentMacro (plan 5)
+"Agent" = "Agent";
+"Macro (up to 5 steps)" = "Macro (up to 5 steps)";
+"Add a step to get started" = "Add a step to get started";
+"Activate app" = "Activate app";
+"Switch input method" = "Switch input method";
+"Input phrase" = "Input phrase";
+"Delay (ms)" = "Delay (ms)";
+"Type the text to insert." = "Type the text to insert.";
+"Macro step %d failed: %@" = "Macro step %d failed: %@";
+"Done. Click to copy." = "Done. Click to copy.";

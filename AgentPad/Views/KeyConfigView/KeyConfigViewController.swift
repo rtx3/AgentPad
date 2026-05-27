@@ -40,7 +40,25 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
     private var simpleCaptureField: KeyCaptureField!
     private var detailedContainerViews: [NSView] = []
 
+    private var agentContainer: NSView!
+    private var agentEditor: AgentMacroEditorView!
+
     private var currentMode: KeyCaptureMode = .simple
+
+    override func viewWillAppear() {
+        super.viewWillAppear()
+        // Detail / agent modes need more vertical space than the storyboard's
+        // 234pt sheet provides. Resize on appear so sheet metrics are honored.
+        if let window = self.view.window {
+            let target = NSSize(width: max(window.frame.width, 460),
+                                height: max(window.frame.height, 420))
+            if window.frame.size != target {
+                var f = window.frame
+                f.size = target
+                window.setFrame(f, display: true)
+            }
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -87,7 +105,8 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         // 2. 模式切换控件
         let segmented = NSSegmentedControl(labels: [
             NSLocalizedString("Simple", comment: "Key capture simple mode"),
-            NSLocalizedString("Detailed", comment: "Key capture detailed mode")
+            NSLocalizedString("Detailed", comment: "Key capture detailed mode"),
+            NSLocalizedString("Agent", comment: "Key capture agent mode")
         ], trackingMode: .selectOne, target: self, action: #selector(didChangeMode(_:)))
         segmented.translatesAutoresizingMaskIntoConstraints = false
         segmented.selectedSegment = 0
@@ -114,6 +133,17 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         container.addSubview(capture)
         self.simpleCaptureField = capture
 
+        // 3.5 Agent macro container
+        let agentBox = NSView()
+        agentBox.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(agentBox)
+        self.agentContainer = agentBox
+
+        let editor = AgentMacroEditorView(frame: .zero)
+        editor.translatesAutoresizingMaskIntoConstraints = false
+        agentBox.addSubview(editor)
+        self.agentEditor = editor
+
         // 4. 约束
         //
         // 关键设计：segmented 放在窗口左下角（与 OK/Cancel 同一水平线），而
@@ -121,9 +151,9 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         // 放在标题下会盖住 Key/Mouse box 的标签，造成视觉重叠。
         // 简易容器（仅 Simple 模式可见）占据中间主体。
         NSLayoutConstraint.activate([
-            // segmented 紧贴左下角，垂直与 OK 按钮居中对齐。
-            segmented.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
-            segmented.centerYAnchor.constraint(equalTo: (okButton?.centerYAnchor) ?? self.view.bottomAnchor, constant: 0),
+            // segmented 紧贴右上角，与标题同一水平线，避免与底部 OK/Cancel 重叠。
+            segmented.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
+            segmented.centerYAnchor.constraint(equalTo: self.titleLabel.centerYAnchor),
 
             // 简易容器（仅 Simple 模式可见）从标题下方一直延伸到按钮上方。
             container.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 12),
@@ -139,7 +169,19 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
             capture.centerXAnchor.constraint(equalTo: container.centerXAnchor),
             capture.widthAnchor.constraint(equalToConstant: 220),
             capture.heightAnchor.constraint(equalToConstant: 60),
-            capture.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor)
+            capture.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor),
+
+            // Agent macro container occupies the same area as simple container.
+            agentBox.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 12),
+            agentBox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            agentBox.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
+            agentBox.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -55),
+            agentBox.heightAnchor.constraint(greaterThanOrEqualToConstant: 240),
+
+            editor.topAnchor.constraint(equalTo: agentBox.topAnchor),
+            editor.leadingAnchor.constraint(equalTo: agentBox.leadingAnchor),
+            editor.trailingAnchor.constraint(equalTo: agentBox.trailingAnchor),
+            editor.bottomAnchor.constraint(equalTo: agentBox.bottomAnchor),
         ])
     }
 
@@ -148,13 +190,18 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         let isMouse = keyMap.mouseButton >= 0
         let savedDefault = AppSettings.defaultKeyCaptureMode
 
-        // 优先：已有数据明确属于详细模式 → 强制详细
+        // Existing agent payload locks the dialog into agent mode.
+        let storedAction = keyMap.action ?? "keyboard"
         let mode: KeyCaptureMode
-        if hasModifiers || isMouse {
+        if storedAction == "agent" {
+            mode = .agent
+        } else if hasModifiers || isMouse {
             mode = .detailed
         } else {
             mode = savedDefault
         }
+
+        self.agentEditor.steps = AgentMacroCodec.decode(keyMap.agentMacro)
 
         self.setMode(mode, persistAsDefault: false)
 
@@ -166,17 +213,29 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
     // MARK: - Mode switching
 
     @objc private func didChangeMode(_ sender: NSSegmentedControl) {
-        let mode: KeyCaptureMode = sender.selectedSegment == 0 ? .simple : .detailed
+        let mode: KeyCaptureMode
+        switch sender.selectedSegment {
+        case 0: mode = .simple
+        case 1: mode = .detailed
+        case 2: mode = .agent
+        default: mode = .simple
+        }
         self.setMode(mode, persistAsDefault: true)
     }
 
     private func setMode(_ mode: KeyCaptureMode, persistAsDefault: Bool) {
         self.currentMode = mode
-        self.modeSegmented.selectedSegment = (mode == .simple) ? 0 : 1
+        switch mode {
+        case .simple: self.modeSegmented.selectedSegment = 0
+        case .detailed: self.modeSegmented.selectedSegment = 1
+        case .agent: self.modeSegmented.selectedSegment = 2
+        }
 
         let isSimple = (mode == .simple)
+        let isAgent = (mode == .agent)
         self.simpleContainer.isHidden = !isSimple
-        self.detailedContainerViews.forEach { $0.isHidden = isSimple }
+        self.agentContainer.isHidden = !isAgent
+        self.detailedContainerViews.forEach { $0.isHidden = isSimple || isAgent }
 
         if isSimple {
             // 进入简易模式：把 detailed 模式的修饰键 / 鼠标抹掉，仅保留 keyCode
@@ -209,6 +268,24 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
 
     func updateKeyMap() {
         guard let keyMap = self.keyMap else { return }
+
+        if self.currentMode == .agent {
+            keyMap.action = "agent"
+            keyMap.agentMacro = AgentMacroCodec.encode(self.agentEditor.steps)
+            keyMap.modifiers = 0
+            keyMap.keyCode = -1
+            keyMap.mouseButton = -1
+            keyMap.isEnabled = !self.agentEditor.steps.isEmpty
+            self.delegate?.setKeyConfig(controller: self)
+            return
+        }
+
+        // Non-agent modes: persist keyboard action and preserve macro payload
+        // so toggling back to agent keeps the previously edited steps.
+        keyMap.action = "keyboard"
+        keyMap.agentMacro = self.agentEditor.steps.isEmpty
+            ? nil
+            : AgentMacroCodec.encode(self.agentEditor.steps)
 
         if self.currentMode == .simple {
             keyMap.modifiers = 0

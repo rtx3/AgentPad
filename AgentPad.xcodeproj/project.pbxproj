@@ -8,6 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		49B4DBC043C8057C97E15A25 /* Pods_AgentPad.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */; };
+		DDA9000100000001 /* AgentMacroStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000200000001 /* AgentMacroStep.swift */; };
+		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
+		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
+		DDA9000700000001 /* AgentMacroEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000800000001 /* AgentMacroEditorView.swift */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
@@ -73,6 +77,10 @@
 		291932F3A44BA30E0D45ADA1 /* Pods-AgentPad.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AgentPad.debug.xcconfig"; path = "Target Support Files/Pods-AgentPad/Pods-AgentPad.debug.xcconfig"; sourceTree = "<group>"; };
 		42872285F01B63D4297263E6 /* Pods-AgentPad.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AgentPad.release.xcconfig"; path = "Target Support Files/Pods-AgentPad/Pods-AgentPad.release.xcconfig"; sourceTree = "<group>"; };
 		CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AgentPad.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDA9000200000001 /* AgentMacroStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroStep.swift; sourceTree = "<group>"; };
+		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
+		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
+		DDA9000800000001 /* AgentMacroEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroEditorView.swift; sourceTree = "<group>"; };
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
@@ -175,8 +183,19 @@
 				DD0389E72497D911009090BE /* MetaKeyState.swift */,
 				DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */,
 				DDB20A0000000000000000A0 /* Input */,
+				DDA9000900000001 /* Agent */,
 			);
 			path = DataModels;
+			sourceTree = "<group>";
+		};
+		DDA9000900000001 /* Agent */ = {
+			isa = PBXGroup;
+			children = (
+				DDA9000200000001 /* AgentMacroStep.swift */,
+				DDA9000400000001 /* AgentMacroRunner.swift */,
+				DDA9000600000001 /* Writeback.swift */,
+			);
+			path = Agent;
 			sourceTree = "<group>";
 		};
 		DD05303624272D920091B3C6 /* Misc */ = {
@@ -212,6 +231,7 @@
 				DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */,
 				DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */,
 				DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */,
+				DDA9000800000001 /* AgentMacroEditorView.swift */,
 			);
 			path = KeyConfigView;
 			sourceTree = "<group>";
@@ -499,6 +519,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DDA9000100000001 /* AgentMacroStep.swift in Sources */,
+				DDA9000300000001 /* AgentMacroRunner.swift in Sources */,
+				DDA9000500000001 /* Writeback.swift in Sources */,
+				DDA9000700000001 /* AgentMacroEditorView.swift in Sources */,
 				DD05305324272DAA0091B3C6 /* AppSettings.swift in Sources */,
 				DD05305024272DAA0091B3C6 /* ViewController.swift in Sources */,
 				DD05303924272D920091B3C6 /* Notifications.swift in Sources */,

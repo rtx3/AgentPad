@@ -259,6 +259,15 @@ class GameController {
 
     func buttonPressHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
+        if AgentMacroRunner.shared.inflight { return }
+        if (config.action ?? "keyboard") == "agent" {
+            let steps = AgentMacroCodec.decode(config.agentMacro)
+            guard !steps.isEmpty else { return }
+            DispatchQueue.main.async {
+                AgentMacroRunner.shared.run(steps: steps)
+            }
+            return
+        }
         self.buttonPressHandler(config: config)
     }
     
@@ -325,6 +334,7 @@ class GameController {
     
     func buttonReleaseHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
+        if (config.action ?? "keyboard") == "agent" { return }
         self.buttonReleaseHandler(config: config)
     }
     

@@ -215,3 +215,15 @@
 "Down Left" = "左下";
 "Up Left" = "左上";
 "Neutral" = "中立";
+
+// AgentMacro (plan 5)
+"Agent" = "エージェント";
+"Macro (up to 5 steps)" = "マクロ（最大 5 ステップ）";
+"Add a step to get started" = "ステップを追加してください";
+"Activate app" = "App をアクティブ化";
+"Switch input method" = "入力ソースを切り替え";
+"Input phrase" = "フレーズを入力";
+"Delay (ms)" = "待機（ミリ秒）";
+"Type the text to insert." = "挿入するテキストを入力してください。";
+"Macro step %d failed: %@" = "マクロ ステップ %d 失敗: %@";
+"Done. Click to copy." = "完了。クリックでコピー。";
