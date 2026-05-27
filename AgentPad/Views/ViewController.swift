@@ -23,6 +23,10 @@ class ViewController: NSViewController {
     /// 选中 Default 行（或没选中）时禁用。锚点放在 optionsButton 左侧 8pt + centerY 对齐。
     private weak var syncFromDefaultButton: NSButton?
 
+    /// 选中 passthrough AppConfig 时覆盖在 configTableView 之上的提示层。
+    /// 半透明背景 + 居中文案；自身 hitTest 接管所有点击，防止透传期间误改键映射。
+    private weak var passthroughOverlay: NSView?
+
     var appDelegate: AppDelegate? {
         return NSApplication.shared.delegate as? AppDelegate
     }
@@ -32,6 +36,7 @@ class ViewController: NSViewController {
             self.configTableView.reloadData()
             self.updateAppAddRemoveButtonState()
             self.updateSyncButtonState()
+            self.updatePassthroughOverlay()
         }
     }
     var selectedControllerData: ControllerData? {
@@ -73,6 +78,8 @@ class ViewController: NSViewController {
 
         self.installSyncFromDefaultButton()
         self.updateSyncButtonState()
+        self.installPassthroughOverlay()
+        self.updatePassthroughOverlay()
 
         NotificationCenter.default.addObserver(self, selector: #selector(controllerAdded), name: .controllerAdded, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(controllerRemoved), name: .controllerRemoved, object: nil)
@@ -295,7 +302,63 @@ class ViewController: NSViewController {
     
     @IBAction func didPushOptions(_ sender: NSButton) {
         guard let controller = self.storyboard?.instantiateController(withIdentifier: "AppSettingsViewController") as? AppSettingsViewController else { return }
-        
+
         self.presentAsSheet(controller)
+    }
+
+    // MARK: - Passthrough overlay
+
+    /// 创建覆盖在 configTableView 滚动区域上的提示层（半透明背景 + 居中 label）。
+    /// 默认隐藏；selectedAppConfig.passthrough 时显示。
+    private func installPassthroughOverlay() {
+        guard let scroll = self.configTableView?.enclosingScrollView,
+              let parent = scroll.superview else { return }
+
+        let overlay = PassthroughOverlayView()
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.wantsLayer = true
+        // 半透明遮罩，沿用系统窗口背景色避免暗色 / 亮色模式偏色。
+        overlay.layer?.backgroundColor = NSColor.windowBackgroundColor.withAlphaComponent(0.85).cgColor
+        overlay.isHidden = true
+
+        let label = NSTextField(labelWithString: NSLocalizedString("This app uses the controller directly. No mapping.",
+                                                                    comment: "Passthrough overlay text"))
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.alignment = .center
+        label.lineBreakMode = .byWordWrapping
+        label.maximumNumberOfLines = 0
+        label.textColor = .secondaryLabelColor
+        label.font = NSFont.systemFont(ofSize: NSFont.systemFontSize + 1, weight: .medium)
+        overlay.addSubview(label)
+
+        parent.addSubview(overlay, positioned: .above, relativeTo: scroll)
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: scroll.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: scroll.trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: scroll.topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: scroll.bottomAnchor),
+            label.centerXAnchor.constraint(equalTo: overlay.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: overlay.centerYAnchor),
+            label.leadingAnchor.constraint(greaterThanOrEqualTo: overlay.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(lessThanOrEqualTo: overlay.trailingAnchor, constant: -16)
+        ])
+
+        self.passthroughOverlay = overlay
+    }
+
+    /// 根据当前 selectedAppConfig.passthrough 显示/隐藏 overlay。
+    /// 由 selectedController.didSet / tableViewSelectionDidChange / togglePassthrough 触发。
+    func updatePassthroughOverlay() {
+        let shouldShow = self.selectedAppConfig?.passthrough ?? false
+        self.passthroughOverlay?.isHidden = !shouldShow
+    }
+}
+
+/// 接管 hitTest，确保 overlay 显示时点击不会穿透到底下的 outlineView。
+final class PassthroughOverlayView: NSView {
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        // 仅当自身可见时拦截事件；隐藏时让点击穿透到底下控件。
+        if self.isHidden { return nil }
+        return self
     }
 }

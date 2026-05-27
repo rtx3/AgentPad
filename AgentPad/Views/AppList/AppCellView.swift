@@ -18,6 +18,10 @@ class AppCellView: NSTableCellView {
     /// 导致 ensurePassthroughCheckbox 每次都重新 addSubview，堆叠多个按钮。
     var passthroughCheckbox: NSButton?
 
+    /// 透传角标：appIcon 右下角的小手柄图，提示该 App 处于 passthrough 模式。
+    /// 与 passthroughCheckbox 同步显隐。同 strong 引用理由：cell 复用。
+    var passthroughBadge: NSImageView?
+
     /// 创建并嵌入 passthrough checkbox（只在首次调用时建）。
     /// 用纯方框（无标题），完整文案放进 toolTip，避免覆盖 appIcon / appName。
     func ensurePassthroughCheckbox() -> NSButton {
@@ -38,6 +42,42 @@ class AppCellView: NSTableCellView {
     /// 隐藏 checkbox（Default 行用）。
     func hidePassthroughCheckbox() {
         self.passthroughCheckbox?.isHidden = true
+        self.passthroughBadge?.isHidden = true
+    }
+
+    /// 显示/隐藏右下角小手柄角标，与 AppConfig.passthrough 联动。
+    /// SF Symbol 要 macOS 11+；旧系统回退到 menu_icon（项目内已有的手柄轮廓图）。
+    func setPassthroughBadgeVisible(_ visible: Bool) {
+        if visible {
+            let badge = self.ensurePassthroughBadge()
+            badge.isHidden = false
+        } else {
+            self.passthroughBadge?.isHidden = true
+        }
+    }
+
+    private func ensurePassthroughBadge() -> NSImageView {
+        if let existing = self.passthroughBadge { return existing }
+        let badge = NSImageView()
+        badge.translatesAutoresizingMaskIntoConstraints = false
+        badge.imageScaling = .scaleProportionallyUpOrDown
+        if #available(macOS 11.0, *) {
+            badge.image = NSImage(systemSymbolName: "gamecontroller.fill",
+                                  accessibilityDescription: NSLocalizedString("Passthrough", comment: "Passthrough badge"))
+            badge.contentTintColor = .controlAccentColor
+        } else {
+            badge.image = NSImage(named: "menu_icon")
+        }
+        badge.toolTip = NSLocalizedString("Keep as controller (don't map)", comment: "Passthrough badge tooltip")
+        self.addSubview(badge)
+        NSLayoutConstraint.activate([
+            badge.widthAnchor.constraint(equalToConstant: 14),
+            badge.heightAnchor.constraint(equalToConstant: 14),
+            badge.trailingAnchor.constraint(equalTo: self.appIcon.trailingAnchor, constant: 3),
+            badge.bottomAnchor.constraint(equalTo: self.appIcon.bottomAnchor, constant: 3)
+        ])
+        self.passthroughBadge = badge
+        return badge
     }
 }
 

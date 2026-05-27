@@ -9,7 +9,7 @@
 import Foundation
 import ServiceManagement
 
-let helperAppBundleID = "jp.0spec.AgentPadLauncher"
+let helperAppBundleID = "com.rtx3.agentpad.launcher"
 
 enum KeyCaptureMode: String {
     case simple

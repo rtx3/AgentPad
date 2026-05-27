@@ -16,6 +16,7 @@ protocol KeyConfigSetDelegate {
 class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigComboBoxDelegate, KeyCaptureFieldDelegate {
     var delegate: KeyConfigSetDelegate?
     var keyMap: KeyMap?
+    var controllerKind: ControllerKind = .unknown
     var keyCode: Int16 = -1
 
     @IBOutlet weak var titleLabel: NSTextField!
@@ -47,7 +48,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         guard let keyMap = self.keyMap else { return }
 
         let title = NSLocalizedString("%@ Button Key Config", comment: "%@ Button Key Config")
-        let buttonName = NSLocalizedString((keyMap.button ?? ""), comment: "Button Name")
+        let buttonName = displayName(forLegacyButton: keyMap.button ?? "", kind: self.controllerKind)
         self.titleLabel.stringValue = String.localizedStringWithFormat(title, buttonName)
 
         let modifiers = NSEvent.ModifierFlags(rawValue: UInt(keyMap.modifiers))

@@ -163,6 +163,7 @@
 // Passthrough (M1.5)
 "Keep as controller (don't map)" = "Keep as controller (don't map)";
 "This app uses the controller directly. No mapping." = "This app uses the controller directly. No mapping.";
+"Mapping" = "Mapping";
 "Passthrough → %@" = "Passthrough → %@";
 "Reclaiming controller…" = "Reclaiming controller…";
 
@@ -184,3 +185,33 @@
 "Xbox Controller" = "Xbox Controller";
 "MFi Controller" = "MFi Controller";
 "Generic Controller" = "Generic Controller";
+
+// Controller button display names (M3) — independent NSLocalizedString keys
+// so PS / Xbox face buttons don't collide with Nintendo A/B/X/Y.
+"Cross" = "Cross";
+"Circle" = "Circle";
+"Square" = "Square";
+"Triangle" = "Triangle";
+"Xbox A" = "A";
+"Xbox B" = "B";
+"Xbox X" = "X";
+"Xbox Y" = "Y";
+"L1" = "L1";
+"R1" = "R1";
+"L2" = "L2";
+"R2" = "R2";
+"LB" = "LB";
+"RB" = "RB";
+"LT" = "LT";
+"RT" = "RT";
+"Options" = "Options";
+"Share" = "Share";
+"Menu" = "Menu";
+"View" = "View";
+"Start" = "Start";
+"Select" = "Select";
+"Up Right" = "Up Right";
+"Down Right" = "Down Right";
+"Down Left" = "Down Left";
+"Up Left" = "Up Left";
+"Neutral" = "Neutral";

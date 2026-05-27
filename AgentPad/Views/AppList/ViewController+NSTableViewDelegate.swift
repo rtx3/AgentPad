@@ -76,6 +76,7 @@ extension ViewController: NSTableViewDelegate, NSTableViewDataSource {
             cb.target = self
             cb.action = #selector(togglePassthrough(_:))
             cb.tag = row
+            newView.setPassthroughBadgeVisible(appConfig.passthrough)
         }
 
         return newView
@@ -88,13 +89,18 @@ extension ViewController: NSTableViewDelegate, NSTableViewDataSource {
         guard let appConfig = controller.data.appConfigs?[row - 1] as? AppConfig else { return }
         appConfig.passthrough = (sender.state == .on)
         _ = self.appDelegate?.dataManager?.save()
-        // 立即重画 KeyMapList，让用户感知"该 App 透传不再有映射意义"。
+        // 立即重画 KeyMapList + overlay，让用户感知"该 App 透传不再有映射意义"。
         self.configTableView.reloadData()
+        self.updatePassthroughOverlay()
+        // 切换勾选状态也要让角标重画。
+        self.appTableView.reloadData(forRowIndexes: IndexSet(integer: sender.tag),
+                                     columnIndexes: IndexSet(integer: 0))
     }
 
     func tableViewSelectionDidChange(_ notification: Notification) {
         self.updateAppAddRemoveButtonState()
         self.updateSyncButtonState()
         self.configTableView.reloadData()
+        self.updatePassthroughOverlay()
     }
 }

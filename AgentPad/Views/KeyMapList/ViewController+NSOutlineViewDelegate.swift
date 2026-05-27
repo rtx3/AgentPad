@@ -385,7 +385,8 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
             }
             
             itemView.buttonName.state = keyMap.isEnabled ? .on : .off
-            itemView.buttonName.title = NSLocalizedString(directionName, comment: "")
+            itemView.buttonName.title = displayName(forStickDirection: directionName)
+            itemView.buttonName.identifier = NSUserInterfaceItemIdentifier(directionName)
             if stick == .LStick {
                 itemView.buttonName.action = Selector(("leftStickDirectionCheckDidChange:"))
             } else if stick == .RStick {
@@ -449,7 +450,8 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
             }
             
             itemView.buttonName.state = (keyMap?.isEnabled ?? false) ? .on : .off
-            itemView.buttonName.title = NSLocalizedString(buttonNames[button] ?? "", comment: "")
+            itemView.buttonName.title = displayName(forLegacyButton: buttonNames[button] ?? "", kind: controller.kind)
+            itemView.buttonName.identifier = NSUserInterfaceItemIdentifier(buttonNames[button] ?? "")
             itemView.buttonName.action = Selector(("checkDidChange:"))
             itemView.buttonName.target = self
             
@@ -522,11 +524,12 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         
         guard let controller = self.storyboard?.instantiateController(withIdentifier: "KeyConfigViewController") as? KeyConfigViewController else { return }
         controller.keyMap = map
+        controller.controllerKind = self.selectedController?.kind ?? .unknown
         controller.delegate = self
-        
+
         self.presentAsSheet(controller)
     }
-    
+
     func didClick(stick: JoyCon.Button, direction: JoyCon.StickDirection) {
         guard let directionName = directionNames[direction] else { return }
 
@@ -552,11 +555,12 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         
         guard let controller = self.storyboard?.instantiateController(withIdentifier: "KeyConfigViewController") as? KeyConfigViewController else { return }
         controller.keyMap = map
+        controller.controllerKind = self.selectedController?.kind ?? .unknown
         controller.delegate = self
-        
+
         self.presentAsSheet(controller)
     }
-    
+
     func setKeyConfig(controller: KeyConfigViewController) {
         self.configTableView.reloadData()
     }
@@ -566,13 +570,14 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         guard let config = self.selectedKeyConfig else { return }
         guard let keyMaps = config.keyMaps else { return }
 
+        let buttonName = sender.identifier?.rawValue ?? sender.title
         let result = keyMaps.first(where: { map in
             guard let keyMap = map as? KeyMap else { return false }
-            return keyMap.button == sender.title // TODO: Use consistent value instead of "title"
+            return keyMap.button == buttonName
         })
         guard let keyMapData = result as? KeyMap else {
             guard let keyMap = self.appDelegate?.dataManager?.createKeyMap() else { return }
-            keyMap.button = sender.title // TODO: Use consistent value instead of "title"
+            keyMap.button = buttonName
             keyMap.isEnabled = sender.state == .on
             config.addToKeyMaps(keyMap)
             controller.updateKeyMap()
@@ -604,10 +609,11 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         guard let controller = self.selectedController else { return }
         guard let config = self.selectedKeyConfig else { return }
         guard let keyMaps = config.leftStick?.keyMaps else { return }
-        
+
+        let directionName = sender.identifier?.rawValue ?? sender.title
         let result = keyMaps.first(where: { map in
             guard let keyMap = map as? KeyMap else { return false }
-            return keyMap.button == sender.title // TODO: Use consistent value instead of "title"
+            return keyMap.button == directionName
         })
         guard let keyMapData = result as? KeyMap else { return }
         keyMapData.isEnabled = sender.state == .on
@@ -619,10 +625,11 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         guard let controller = self.selectedController else { return }
         guard let config = self.selectedKeyConfig else { return }
         guard let keyMaps = config.rightStick?.keyMaps else { return }
-        
+
+        let directionName = sender.identifier?.rawValue ?? sender.title
         let result = keyMaps.first(where: { map in
             guard let keyMap = map as? KeyMap else { return false }
-            return keyMap.button == sender.title // TODO: Use consistent value instead of "title"
+            return keyMap.button == directionName
         })
         guard let keyMapData = result as? KeyMap else { return }
         keyMapData.isEnabled = sender.state == .on

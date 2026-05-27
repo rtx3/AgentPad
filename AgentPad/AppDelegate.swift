@@ -11,7 +11,7 @@ import ServiceManagement
 import UserNotifications
 import JoyConSwift
 
-let helperAppID: CFString = "jp.0spec.AgentPadLauncher" as CFString
+let helperAppID: CFString = "com.rtx3.agentpad.launcher" as CFString
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
@@ -32,6 +32,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     var controllers: [GameController] = []
     var passthroughCoordinator: PassthroughCoordinator?
     var accessibilityOnboardingWindowController: AccessibilityOnboardingWindowController?
+    /// 当前命中 passthrough 的前台 App 显示名，由 didActivateApp 维护。
+    /// 用于状态栏菜单显示 "Passthrough → [App]"。
+    var currentPassthroughAppName: String?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -77,6 +80,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             // PassthroughCoordinator 必须在 manager.runAsync() 之后创建，
             // 否则 manager.runLoop 还未赋值，setSeized 会立即 kIOReturnNotReady。
             strongSelf.passthroughCoordinator = PassthroughCoordinator(manager: strongSelf.manager)
+            NotificationCenter.default.addObserver(strongSelf, selector: #selector(strongSelf.passthroughStateChanged), name: PassthroughCoordinator.stateChangedNotification, object: nil)
 
             NSWorkspace.shared.notificationCenter.addObserver(strongSelf, selector: #selector(strongSelf.didActivateApp), name: NSWorkspace.didActivateApplicationNotification, object: nil)
 
@@ -157,7 +161,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             }
             battery.isEnabled = false
             item.submenu?.addItem(battery)
-            
+
+            // Passthrough / Reclaiming / Mapping 状态行（plan §3.4.5）。
+            let status = NSMenuItem()
+            status.title = self.passthroughStatusTitle()
+            status.isEnabled = false
+            item.submenu?.addItem(status)
+
             self.controllersMenu?.submenu?.addItem(item)
         }
         
@@ -167,6 +177,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             item.title = "(\(noControllers))"
             item.isEnabled = false
             self.controllersMenu?.submenu?.addItem(item)
+        }
+    }
+
+    /// 当前 PassthroughCoordinator 状态对应的菜单标题。
+    /// coordinator 未就绪时按 mapping 处理（启动早期窗口）。
+    private func passthroughStatusTitle() -> String {
+        let state = self.passthroughCoordinator?.state ?? .mapping
+        switch state {
+        case .mapping:
+            return NSLocalizedString("Mapping", comment: "Passthrough status: mapping active")
+        case .passthrough:
+            let fmt = NSLocalizedString("Passthrough → %@", comment: "Passthrough status: pass-through to app")
+            let appName = self.currentPassthroughAppName ?? ""
+            return String(format: fmt, appName)
+        case .reclaiming:
+            return NSLocalizedString("Reclaiming controller…", comment: "Passthrough status: reclaiming")
         }
     }
     
@@ -188,6 +214,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     // MARK: - Notifications
     
     @objc func controllerIconChanged(_ notification: NSNotification) {
+        self.updateControllersMenu()
+    }
+
+    @objc func passthroughStateChanged(_ notification: NSNotification) {
         self.updateControllersMenu()
     }
     
@@ -380,9 +410,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         }
 
         if anyPassthrough {
+            // localizedName 在沙箱环境下可能为 nil，回退到 bundleID 末段。
+            self.currentPassthroughAppName = app.localizedName ?? bundleID.components(separatedBy: ".").last ?? bundleID
             self.passthroughCoordinator?.requestPassthrough()
         } else {
+            self.currentPassthroughAppName = nil
             self.passthroughCoordinator?.requestMapping()
         }
+        // requestPassthrough/requestMapping 若状态未变不会 post 通知；
+        // 但 App 名可能从一个 passthrough App 切到另一个，菜单文案需刷新。
+        self.updateControllersMenu()
     }
 }
