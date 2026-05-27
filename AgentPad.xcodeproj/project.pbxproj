@@ -15,6 +15,7 @@
 		DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */; };
 		DD05303924272D920091B3C6 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303724272D920091B3C6 /* Notifications.swift */; };
 		DD05303A24272D920091B3C6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303824272D920091B3C6 /* Utils.swift */; };
+		DDB20B30000000000000B030 /* ControllerButtonNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A30000000000000A030 /* ControllerButtonNames.swift */; };
 		DD05305024272DAA0091B3C6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303C24272DAA0091B3C6 /* ViewController.swift */; };
 		DD05305124272DAA0091B3C6 /* KeyConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */; };
 		DD05305224272DAA0091B3C6 /* KeyConfigComboBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */; };
@@ -79,6 +80,7 @@
 		DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameControllerIcon.swift; sourceTree = "<group>"; };
 		DD05303724272D920091B3C6 /* Notifications.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		DD05303824272D920091B3C6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
+		DDB20A30000000000000A030 /* ControllerButtonNames.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerButtonNames.swift; sourceTree = "<group>"; };
 		DD05303C24272DAA0091B3C6 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigViewController.swift; sourceTree = "<group>"; };
 		DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigComboBox.swift; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 			children = (
 				DD05303724272D920091B3C6 /* Notifications.swift */,
 				DD05303824272D920091B3C6 /* Utils.swift */,
+				DDB20A30000000000000A030 /* ControllerButtonNames.swift */,
 				DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */,
 				DDA072B3246699C500F9B80B /* Localizable.strings */,
 			);
@@ -503,6 +506,7 @@
 				DD05305A24272DAA0091B3C6 /* AppCellView.swift in Sources */,
 				DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */,
 				DD05303A24272D920091B3C6 /* Utils.swift in Sources */,
+				DDB20B30000000000000B030 /* ControllerButtonNames.swift in Sources */,
 				DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */,
 				DD05305B24272DAA0091B3C6 /* ViewController+NSCollectionViewDelegate.swift in Sources */,
 				DD05305924272DAA0091B3C6 /* ViewController+NSTableViewDelegate.swift in Sources */,
@@ -713,7 +717,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = jp.0spec.AgentPad;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
@@ -740,7 +744,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = jp.0spec.AgentPad;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
@@ -766,7 +770,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = jp.0spec.AgentPadLauncher;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.launcher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -792,7 +796,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = jp.0spec.AgentPadLauncher;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.launcher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;

@@ -8,25 +8,10 @@
 
 import Cocoa
 
-let mainAppID = "jp.0spec.AgentPad"
-// let mainAppURL  = URL(string: "https://joyconmapper.0spec.jp")!
+let mainAppID = "com.rtx3.agentpad"
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
-    /*
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        let apps = NSRunningApplication.runningApplications(withBundleIdentifier: mainAppID)
-        let activeApp = apps.first { $0.isActive }
-        
-        if (activeApp == nil) {
-            // Launch the main app
-            NSWorkspace.shared.open(mainAppURL)
-        }
-
-        // Quit this launcher
-        NSApp.terminate(nil)
-    }
-    */
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Ensure the app is not already running
         guard NSRunningApplication.runningApplications(withBundleIdentifier: mainAppID).isEmpty else {
