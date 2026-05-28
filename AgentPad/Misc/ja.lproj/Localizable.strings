@@ -226,4 +226,5 @@
 "Delay (ms)" = "待機（ミリ秒）";
 "Type the text to insert." = "挿入するテキストを入力してください。";
 "Macro step %d failed: %@" = "マクロ ステップ %d 失敗: %@";
+"App window not on active Space: %@" = "App のウィンドウが現在の Space にありません: %@";
 "Done. Click to copy." = "完了。クリックでコピー。";

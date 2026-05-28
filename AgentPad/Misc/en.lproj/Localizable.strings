@@ -226,4 +226,5 @@
 "Delay (ms)" = "Delay (ms)";
 "Type the text to insert." = "Type the text to insert.";
 "Macro step %d failed: %@" = "Macro step %d failed: %@";
+"App window not on active Space: %@" = "App window not on active Space: %@";
 "Done. Click to copy." = "Done. Click to copy.";

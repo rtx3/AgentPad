@@ -745,6 +745,15 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/System/Library/PrivateFrameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					SkyLight,
+				);
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -772,6 +781,15 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/System/Library/PrivateFrameworks",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					SkyLight,
+				);
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
