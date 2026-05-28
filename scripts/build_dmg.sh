@@ -28,7 +28,7 @@ APP_PATH="${TMP_DIR}/AgentPad.app"
 LAUNCHER_ENTITLEMENTS="${PROJECT_ROOT}/AgentPadLauncher/AgentPadLauncher.entitlements"
 APP_ENTITLEMENTS="${PROJECT_ROOT}/AgentPad/AgentPad.entitlements"
 DMG_PATH="${TMP_DIR}/AgentPad-${VERSION}.dmg"
-BUNDLE_ID="jp.0spec.AgentPad"
+BUNDLE_ID="com.rtx3.agentpad"
 
 if [ "${APP_API_USER}" == "" ]; then
   read -p "App Connect User: " APP_API_USER
