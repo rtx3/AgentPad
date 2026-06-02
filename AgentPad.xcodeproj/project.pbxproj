@@ -32,6 +32,7 @@
 		DDAC003100000001 /* PTYStateProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001100000001 /* PTYStateProbeTests.swift */; };
 		DDAC003200000001 /* SessionLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001200000001 /* SessionLocatorTests.swift */; };
 		DDAC003300000001 /* ProcessScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001300000001 /* ProcessScannerTests.swift */; };
+		DDAC003400000001 /* CodexJSONLProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001400000001 /* CodexJSONLProbeTests.swift */; };
 		DDAC004000000001 /* streaming.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002000000001 /* streaming.jsonl */; };
 		DDAC004100000001 /* tool_use.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002100000001 /* tool_use.jsonl */; };
 		DDAC004200000001 /* completed.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002200000001 /* completed.jsonl */; };
@@ -116,6 +117,7 @@
 		DDAC001100000001 /* PTYStateProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbeTests.swift; sourceTree = "<group>"; };
 		DDAC001200000001 /* SessionLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocatorTests.swift; sourceTree = "<group>"; };
 		DDAC001300000001 /* ProcessScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScannerTests.swift; sourceTree = "<group>"; };
+		DDAC001400000001 /* CodexJSONLProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexJSONLProbeTests.swift; sourceTree = "<group>"; };
 		DDAC002000000001 /* streaming.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = streaming.jsonl; sourceTree = "<group>"; };
 		DDAC002100000001 /* tool_use.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = tool_use.jsonl; sourceTree = "<group>"; };
 		DDAC002200000001 /* completed.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = completed.jsonl; sourceTree = "<group>"; };
@@ -417,6 +419,7 @@
 				DDAC001100000001 /* PTYStateProbeTests.swift */,
 				DDAC001200000001 /* SessionLocatorTests.swift */,
 				DDAC001300000001 /* ProcessScannerTests.swift */,
+				DDAC001400000001 /* CodexJSONLProbeTests.swift */,
 				DDAC000200000001 /* Fixtures */,
 			);
 			path = AgentMonitorTests;
@@ -785,6 +788,7 @@
 				DDAC003100000001 /* PTYStateProbeTests.swift in Sources */,
 				DDAC003200000001 /* SessionLocatorTests.swift in Sources */,
 				DDAC003300000001 /* ProcessScannerTests.swift in Sources */,
+				DDAC003400000001 /* CodexJSONLProbeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

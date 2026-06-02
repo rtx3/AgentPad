@@ -70,6 +70,78 @@ final class JSONLSessionProbeTests: XCTestCase {
         XCTAssertEqual(cls?.state, .idle)
     }
 
+    // MARK: - C1: freshness / new types / timestamp 解析
+
+    func testStalenessForcesIdleEvenWhenRecordSuggestsWorking() {
+        // 末行明明是 tool_use（→ working），但 timestamp 太老 → staleness 强制 idle。
+        let rec = JSONLRecord.parse(line:
+            "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"name\":\"Bash\"}]}}")
+        let cls = JSONLSessionProbe.classify(record: rec,
+                                             lastWriteAt: Date(timeIntervalSinceNow: -200),
+                                             stalenessThreshold: 90)
+        XCTAssertEqual(cls?.state, .idle)
+    }
+
+    func testFreshToolUseStaysAsWorking() {
+        // 同一记录写入「刚刚」→ 不 stale → 仍判 working。
+        let rec = JSONLRecord.parse(line:
+            "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"name\":\"Bash\"}]}}")
+        let cls = JSONLSessionProbe.classify(record: rec,
+                                             lastWriteAt: Date(),
+                                             stalenessThreshold: 90)
+        XCTAssertEqual(cls?.state, .working)
+    }
+
+    func testPermissionModeClassifiesAsWaitingInput() {
+        let rec = JSONLRecord.parse(line: "{\"type\":\"permission-mode\",\"mode\":\"acceptEdits\"}")
+        let cls = JSONLSessionProbe.classify(record: rec, lastWriteAt: Date())
+        XCTAssertEqual(cls?.state, .idle)
+        if case .waitingInput(let prompt) = cls?.detail {
+            XCTAssertEqual(prompt, "permission")
+        } else {
+            XCTFail("expected .waitingInput(\"permission\")")
+        }
+    }
+
+    func testAttachmentClassifiesAsCallingAPI() {
+        let rec = JSONLRecord.parse(line:
+            "{\"type\":\"attachment\",\"attachment\":{\"type\":\"hook_success\",\"hookEvent\":\"SessionStart\"}}")
+        let cls = JSONLSessionProbe.classify(record: rec, lastWriteAt: Date())
+        XCTAssertEqual(cls?.state, .callingAPI)
+    }
+
+    func testRecordTimestampIsParsedIntoDate() {
+        let rec = JSONLRecord.parse(line:
+            "{\"type\":\"user\",\"timestamp\":\"2026-06-02T06:05:08.570Z\"}")
+        XCTAssertNotNil(rec?.timestamp)
+        // 校验 timezone：UTC 06:05:08
+        let cal = Calendar(identifier: .gregorian)
+        var c = cal.dateComponents(in: TimeZone(identifier: "UTC")!, from: rec!.timestamp!)
+        XCTAssertEqual(c.year, 2026)
+        XCTAssertEqual(c.month, 6)
+        XCTAssertEqual(c.day, 2)
+        XCTAssertEqual(c.hour, 6)
+        XCTAssertEqual(c.minute, 5)
+        XCTAssertEqual(c.second, 8)
+    }
+
+    func testLastWriteAtUsesRecordTimestampNotPollTime() throws {
+        // 当 record 自带 timestamp 时，JSONLProbeContext.lastWriteAt 应该取它，
+        // 而不是用「读到这条行的本地时刻」（否则 staleness 会永久不触发）。
+        let tmp = NSTemporaryDirectory() + "agentpad-ts-\(UUID().uuidString).jsonl"
+        let url = URL(fileURLWithPath: tmp)
+        defer { try? FileManager.default.removeItem(at: url) }
+        let recordedTs = "2026-06-02T06:05:08.570Z"
+        let line = "{\"type\":\"user\",\"timestamp\":\"\(recordedTs)\"}\n"
+        try line.write(to: url, atomically: true, encoding: .utf8)
+
+        let ctx = JSONLProbeContext(pid: 0, cwd: nil)
+        ctx.bind(to: url)
+        ctx.tick()
+        let expected = JSONLRecord.parseTimestamp(recordedTs)
+        XCTAssertEqual(ctx.lastWriteAt, expected)
+    }
+
     func testIncrementalTickPicksUpAppendedLines() throws {
         let tmp = NSTemporaryDirectory() + "agentpad-test-\(UUID().uuidString).jsonl"
         let url = URL(fileURLWithPath: tmp)
