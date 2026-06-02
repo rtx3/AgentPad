@@ -220,7 +220,7 @@
 
 // Agent Monitor (plan B)
 "agent.monitor.header.title" = "エージェントモニター";
-"agent.monitor.header.count.fmt" = "%d 件実行中";
+"agent.monitor.header.count.fmt" = "%1$d 実行中 · %2$d アイドル";
 "agent.monitor.header.idle" = "アイドル";
 "agent.monitor.empty.title" = "エージェントは実行されていません";
 "agent.monitor.empty.subtitle" = "Claude Code / opencode / codex をターミナルで起動すると監視されます。";

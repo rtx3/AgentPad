@@ -220,7 +220,7 @@
 
 // Agent Monitor (plan B)
 "agent.monitor.header.title" = "AGENT MONITOR";
-"agent.monitor.header.count.fmt" = "%d running";
+"agent.monitor.header.count.fmt" = "%1$d working · %2$d idle";
 "agent.monitor.header.idle" = "idle";
 "agent.monitor.empty.title" = "No agent running";
 "agent.monitor.empty.subtitle" = "Start Claude Code / opencode / codex in a terminal to monitor it.";

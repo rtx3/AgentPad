@@ -210,8 +210,10 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
             } else {
                 scrollView.isHidden = false
                 emptyView.isHidden = true
+                let working = list.reduce(0) { $0 + ($1.state == .idle ? 0 : 1) }
+                let idle = list.count - working
                 let fmt = NSLocalizedString("agent.monitor.header.count.fmt", comment: "")
-                countLabel.stringValue = String(format: fmt, list.count)
+                countLabel.stringValue = String(format: fmt, working, idle)
             }
             tableView.reloadData()
         }
