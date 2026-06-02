@@ -4,8 +4,9 @@
 //
 //  Popover 列表的单行视图。代码布局。
 //  布局（左→右）：
-//    [dot]  [项目名 ─────────────────  duration]
-//           [agentKind · detail · pid/procs       ]
+//    [dot]  [项目名 · duration                  ]
+//           [agentKind · detail · pid/procs      ]
+//  duration 紧贴项目名，避免在 popover 宽度内出现大段中间空白。
 //
 
 import AppKit
@@ -16,7 +17,7 @@ final class AgentRowView: NSTableCellView {
     private let dot = NSView()
     /// 主行：项目名（cwd 末段）。
     private let projectNameLabel = NSTextField(labelWithString: "")
-    /// 主行右侧：duration（紧凑表达）。
+    /// 主行右侧：duration（紧贴项目名，secondary color）。
     private let durationLabel = NSTextField(labelWithString: "")
     /// 副行：agentKind · detail · pid/procs。
     private let subtitleLabel = NSTextField(labelWithString: "")
@@ -41,12 +42,16 @@ final class AgentRowView: NSTableCellView {
 
         projectNameLabel.font = NSFont.systemFont(ofSize: 13, weight: .semibold)
         projectNameLabel.lineBreakMode = .byTruncatingTail
+        // 让 projectName 在宽度不足时主动 truncate，而不是撑开 row。
+        projectNameLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        projectNameLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         projectNameLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(projectNameLabel)
 
         durationLabel.font = NSFont.monospacedDigitSystemFont(ofSize: 11, weight: .regular)
         durationLabel.textColor = .secondaryLabelColor
-        durationLabel.alignment = .right
+        durationLabel.alignment = .left
+        // duration 不能被压缩或省略，必须完整显示。
         durationLabel.setContentHuggingPriority(.required, for: .horizontal)
         durationLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -55,6 +60,8 @@ final class AgentRowView: NSTableCellView {
         subtitleLabel.font = NSFont.systemFont(ofSize: 11)
         subtitleLabel.textColor = .secondaryLabelColor
         subtitleLabel.lineBreakMode = .byTruncatingTail
+        // 副行允许 truncate，避免长 detail 撑开 row。
+        subtitleLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
         addSubview(subtitleLabel)
 
@@ -66,10 +73,12 @@ final class AgentRowView: NSTableCellView {
 
             projectNameLabel.leadingAnchor.constraint(equalTo: dot.trailingAnchor, constant: 8),
             projectNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            projectNameLabel.trailingAnchor.constraint(lessThanOrEqualTo: durationLabel.leadingAnchor, constant: -8),
 
-            durationLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+            // duration 紧跟 projectName 右侧（中间 6pt 间隙），不再钉到 trailing。
+            durationLabel.leadingAnchor.constraint(equalTo: projectNameLabel.trailingAnchor, constant: 6),
             durationLabel.centerYAnchor.constraint(equalTo: projectNameLabel.centerYAnchor),
+            // 留出右边距，避免 duration 顶到边或溢出。
+            durationLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -12),
 
             subtitleLabel.leadingAnchor.constraint(equalTo: projectNameLabel.leadingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: projectNameLabel.bottomAnchor, constant: 3),
@@ -85,7 +94,8 @@ final class AgentRowView: NSTableCellView {
         applyStateColor()
 
         projectNameLabel.stringValue = Self.projectName(from: project.cwd)
-        durationLabel.stringValue = Self.formatRelativeDuration(from: project.earliestStartedAt, to: now)
+        // 用 · 前缀让它视觉上和 projectName 是一对儿，比独立标签更紧凑。
+        durationLabel.stringValue = "· " + Self.formatRelativeDuration(from: project.earliestStartedAt, to: now)
         subtitleLabel.stringValue = Self.subtitleText(for: project)
     }
 

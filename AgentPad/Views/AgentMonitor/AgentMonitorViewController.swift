@@ -117,6 +117,9 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.documentView = tableView
         scrollView.hasVerticalScroller = true
+        // 避免长 row content 触发水平滚动条；row 内 label 设了 truncate priority。
+        scrollView.hasHorizontalScroller = false
+        scrollView.horizontalScrollElasticity = .none
         scrollView.drawsBackground = false
         scrollView.borderType = .noBorder
 
