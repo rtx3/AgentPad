@@ -12,6 +12,30 @@
 		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
 		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
 		DDA9000700000001 /* AgentMacroEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000800000001 /* AgentMacroEditorView.swift */; };
+		DDAB001100000001 /* AgentProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000100000001 /* AgentProcess.swift */; };
+		DDAB001200000001 /* ProcessScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000200000001 /* ProcessScanner.swift */; };
+		DDAB001300000001 /* TerminalHostResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000300000001 /* TerminalHostResolver.swift */; };
+		DDAB001400000001 /* PTYStateProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000400000001 /* PTYStateProbe.swift */; };
+		DDAB001500000001 /* SessionLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000500000001 /* SessionLocator.swift */; };
+		DDAB001600000001 /* JSONLSessionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000600000001 /* JSONLSessionProbe.swift */; };
+		DDAB001700000001 /* AgentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000700000001 /* AgentMonitor.swift */; };
+		DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001000000001 /* StatusBarIconRenderer.swift */; };
+		DDAD002100000001 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001100000001 /* StatusBarController.swift */; };
+		DDAD002200000001 /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001200000001 /* AgentRowView.swift */; };
+		DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001300000001 /* AgentMonitorEmptyView.swift */; };
+		DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001400000001 /* AgentMonitorErrorView.swift */; };
+		DDAD002500000001 /* AgentMonitorPopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001500000001 /* AgentMonitorPopoverController.swift */; };
+		DDAD002600000001 /* AgentMonitorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001600000001 /* AgentMonitorViewController.swift */; };
+		DDAD002700000001 /* AgentMonitorSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001700000001 /* AgentMonitorSettingsViewController.swift */; };
+		DDAD002800000001 /* AgentPadWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001800000001 /* AgentPadWindowController.swift */; };
+		DDAC003000000001 /* JSONLSessionProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001000000001 /* JSONLSessionProbeTests.swift */; };
+		DDAC003100000001 /* PTYStateProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001100000001 /* PTYStateProbeTests.swift */; };
+		DDAC003200000001 /* SessionLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001200000001 /* SessionLocatorTests.swift */; };
+		DDAC003300000001 /* ProcessScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001300000001 /* ProcessScannerTests.swift */; };
+		DDAC004000000001 /* streaming.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002000000001 /* streaming.jsonl */; };
+		DDAC004100000001 /* tool_use.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002100000001 /* tool_use.jsonl */; };
+		DDAC004200000001 /* completed.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002200000001 /* completed.jsonl */; };
+		DDAC004300000001 /* waiting_user.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002300000001 /* waiting_user.jsonl */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
@@ -81,6 +105,31 @@
 		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
 		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
 		DDA9000800000001 /* AgentMacroEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroEditorView.swift; sourceTree = "<group>"; };
+		DDAB000100000001 /* AgentProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProcess.swift; sourceTree = "<group>"; };
+		DDAB000200000001 /* ProcessScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScanner.swift; sourceTree = "<group>"; };
+		DDAB000300000001 /* TerminalHostResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalHostResolver.swift; sourceTree = "<group>"; };
+		DDAB000400000001 /* PTYStateProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbe.swift; sourceTree = "<group>"; };
+		DDAB000500000001 /* SessionLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocator.swift; sourceTree = "<group>"; };
+		DDAB000600000001 /* JSONLSessionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbe.swift; sourceTree = "<group>"; };
+		DDAB000700000001 /* AgentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitor.swift; sourceTree = "<group>"; };
+		DDAC001000000001 /* JSONLSessionProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbeTests.swift; sourceTree = "<group>"; };
+		DDAC001100000001 /* PTYStateProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbeTests.swift; sourceTree = "<group>"; };
+		DDAC001200000001 /* SessionLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocatorTests.swift; sourceTree = "<group>"; };
+		DDAC001300000001 /* ProcessScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScannerTests.swift; sourceTree = "<group>"; };
+		DDAC002000000001 /* streaming.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = streaming.jsonl; sourceTree = "<group>"; };
+		DDAC002100000001 /* tool_use.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = tool_use.jsonl; sourceTree = "<group>"; };
+		DDAC002200000001 /* completed.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = completed.jsonl; sourceTree = "<group>"; };
+		DDAC002300000001 /* waiting_user.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = waiting_user.jsonl; sourceTree = "<group>"; };
+		DDAC190000000001 /* AgentPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDAD001000000001 /* StatusBarIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarIconRenderer.swift; sourceTree = "<group>"; };
+		DDAD001100000001 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		DDAD001200000001 /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
+		DDAD001300000001 /* AgentMonitorEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorEmptyView.swift; sourceTree = "<group>"; };
+		DDAD001400000001 /* AgentMonitorErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorErrorView.swift; sourceTree = "<group>"; };
+		DDAD001500000001 /* AgentMonitorPopoverController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorPopoverController.swift; sourceTree = "<group>"; };
+		DDAD001600000001 /* AgentMonitorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorViewController.swift; sourceTree = "<group>"; };
+		DDAD001700000001 /* AgentMonitorSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorSettingsViewController.swift; sourceTree = "<group>"; };
+		DDAD001800000001 /* AgentPadWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPadWindowController.swift; sourceTree = "<group>"; };
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
@@ -153,6 +202,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DDAC130000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -184,6 +240,7 @@
 				DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */,
 				DDB20A0000000000000000A0 /* Input */,
 				DDA9000900000001 /* Agent */,
+				DDAB000000000001 /* AgentMonitor */,
 			);
 			path = DataModels;
 			sourceTree = "<group>";
@@ -196,6 +253,20 @@
 				DDA9000600000001 /* Writeback.swift */,
 			);
 			path = Agent;
+			sourceTree = "<group>";
+		};
+		DDAB000000000001 /* AgentMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				DDAB000100000001 /* AgentProcess.swift */,
+				DDAB000200000001 /* ProcessScanner.swift */,
+				DDAB000300000001 /* TerminalHostResolver.swift */,
+				DDAB000400000001 /* PTYStateProbe.swift */,
+				DDAB000500000001 /* SessionLocator.swift */,
+				DDAB000600000001 /* JSONLSessionProbe.swift */,
+				DDAB000700000001 /* AgentMonitor.swift */,
+			);
+			path = AgentMonitor;
 			sourceTree = "<group>";
 		};
 		DD05303624272D920091B3C6 /* Misc */ = {
@@ -221,8 +292,41 @@
 				DD05303D24272DAA0091B3C6 /* KeyConfigView */,
 				DD05304024272DAA0091B3C6 /* AppSettings */,
 				DDA11B0801010001000A0A0A /* Onboarding */,
+				DDAD000000000001 /* StatusBar */,
+				DDAD000100000001 /* AgentMonitor */,
+				DDAD000200000001 /* AgentMonitorSettings */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		DDAD000000000001 /* StatusBar */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001000000001 /* StatusBarIconRenderer.swift */,
+				DDAD001100000001 /* StatusBarController.swift */,
+			);
+			path = StatusBar;
+			sourceTree = "<group>";
+		};
+		DDAD000100000001 /* AgentMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001200000001 /* AgentRowView.swift */,
+				DDAD001300000001 /* AgentMonitorEmptyView.swift */,
+				DDAD001400000001 /* AgentMonitorErrorView.swift */,
+				DDAD001500000001 /* AgentMonitorPopoverController.swift */,
+				DDAD001600000001 /* AgentMonitorViewController.swift */,
+			);
+			path = AgentMonitor;
+			sourceTree = "<group>";
+		};
+		DDAD000200000001 /* AgentMonitorSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001700000001 /* AgentMonitorSettingsViewController.swift */,
+				DDAD001800000001 /* AgentPadWindowController.swift */,
+			);
+			path = AgentMonitorSettings;
 			sourceTree = "<group>";
 		};
 		DD05303D24272DAA0091B3C6 /* KeyConfigView */ = {
@@ -281,6 +385,7 @@
 			children = (
 				DD0AE2E322DAB13100B68F05 /* AgentPad */,
 				DD87447B241495A700B3AB11 /* AgentPadLauncher */,
+				DDAC000000000001 /* AgentPadTests */,
 				DD0AE2E222DAB13100B68F05 /* Products */,
 				822205FE79640986B57D9BA4 /* Pods */,
 				57EC3AFD4C706542BEBE0CB0 /* Frameworks */,
@@ -292,8 +397,40 @@
 			children = (
 				DD0AE2E122DAB13100B68F05 /* AgentPad.app */,
 				DD87447A241495A700B3AB11 /* AgentPadLauncher.app */,
+				DDAC190000000001 /* AgentPadTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DDAC000000000001 /* AgentPadTests */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC000100000001 /* AgentMonitorTests */,
+			);
+			path = AgentPadTests;
+			sourceTree = "<group>";
+		};
+		DDAC000100000001 /* AgentMonitorTests */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC001000000001 /* JSONLSessionProbeTests.swift */,
+				DDAC001100000001 /* PTYStateProbeTests.swift */,
+				DDAC001200000001 /* SessionLocatorTests.swift */,
+				DDAC001300000001 /* ProcessScannerTests.swift */,
+				DDAC000200000001 /* Fixtures */,
+			);
+			path = AgentMonitorTests;
+			sourceTree = "<group>";
+		};
+		DDAC000200000001 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC002000000001 /* streaming.jsonl */,
+				DDAC002100000001 /* tool_use.jsonl */,
+				DDAC002200000001 /* completed.jsonl */,
+				DDAC002300000001 /* waiting_user.jsonl */,
+			);
+			path = Fixtures;
 			sourceTree = "<group>";
 		};
 		DD0AE2E322DAB13100B68F05 /* AgentPad */ = {
@@ -389,7 +526,43 @@
 			productReference = DD87447A241495A700B3AB11 /* AgentPadLauncher.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DDAC100000000001 /* AgentPadTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DDAC140000000001 /* Build configuration list for PBXNativeTarget "AgentPadTests" */;
+			buildPhases = (
+				DDAC110000000001 /* Sources */,
+				DDAC130000000001 /* Frameworks */,
+				DDAC120000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DDAC180000000001 /* PBXTargetDependency */,
+			);
+			name = AgentPadTests;
+			productName = AgentPadTests;
+			productReference = DDAC190000000001 /* AgentPadTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
+
+/* Begin PBXContainerItemProxy section */
+		DDAC170000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD0AE2D922DAB13100B68F05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0AE2E022DAB13100B68F05;
+			remoteInfo = AgentPad;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXTargetDependency section */
+		DDAC180000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0AE2E022DAB13100B68F05 /* AgentPad */;
+			targetProxy = DDAC170000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		DD0AE2D922DAB13100B68F05 /* Project object */ = {
@@ -410,6 +583,10 @@
 					DD874479241495A700B3AB11 = {
 						CreatedOnToolsVersion = 11.3.1;
 					};
+					DDAC100000000001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = DD0AE2E022DAB13100B68F05;
+					};
 				};
 			};
 			buildConfigurationList = DD0AE2DC22DAB13100B68F05 /* Build configuration list for PBXProject "AgentPad" */;
@@ -427,6 +604,7 @@
 			targets = (
 				DD0AE2E022DAB13100B68F05 /* AgentPad */,
 				DD874479241495A700B3AB11 /* AgentPadLauncher */,
+				DDAC100000000001 /* AgentPadTests */,
 			);
 		};
 /* End PBXProject section */
@@ -449,6 +627,17 @@
 			files = (
 				DD874487241495A900B3AB11 /* Main.storyboard in Resources */,
 				DD874481241495A900B3AB11 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DDAC120000000001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DDAC004000000001 /* streaming.jsonl in Resources */,
+				DDAC004100000001 /* tool_use.jsonl in Resources */,
+				DDAC004200000001 /* completed.jsonl in Resources */,
+				DDAC004300000001 /* waiting_user.jsonl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +712,22 @@
 				DDA9000300000001 /* AgentMacroRunner.swift in Sources */,
 				DDA9000500000001 /* Writeback.swift in Sources */,
 				DDA9000700000001 /* AgentMacroEditorView.swift in Sources */,
+				DDAB001100000001 /* AgentProcess.swift in Sources */,
+				DDAB001200000001 /* ProcessScanner.swift in Sources */,
+				DDAB001300000001 /* TerminalHostResolver.swift in Sources */,
+				DDAB001400000001 /* PTYStateProbe.swift in Sources */,
+				DDAB001500000001 /* SessionLocator.swift in Sources */,
+				DDAB001600000001 /* JSONLSessionProbe.swift in Sources */,
+				DDAB001700000001 /* AgentMonitor.swift in Sources */,
+				DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */,
+				DDAD002100000001 /* StatusBarController.swift in Sources */,
+				DDAD002200000001 /* AgentRowView.swift in Sources */,
+				DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */,
+				DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */,
+				DDAD002500000001 /* AgentMonitorPopoverController.swift in Sources */,
+				DDAD002600000001 /* AgentMonitorViewController.swift in Sources */,
+				DDAD002700000001 /* AgentMonitorSettingsViewController.swift in Sources */,
+				DDAD002800000001 /* AgentPadWindowController.swift in Sources */,
 				DD05305324272DAA0091B3C6 /* AppSettings.swift in Sources */,
 				DD05305024272DAA0091B3C6 /* ViewController.swift in Sources */,
 				DD05303924272D920091B3C6 /* Notifications.swift in Sources */,
@@ -569,6 +774,17 @@
 			buildActionMask = 2147483647;
 			files = (
 				DD87447D241495A700B3AB11 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DDAC110000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DDAC003000000001 /* JSONLSessionProbeTests.swift in Sources */,
+				DDAC003100000001 /* PTYStateProbeTests.swift in Sources */,
+				DDAC003200000001 /* SessionLocatorTests.swift in Sources */,
+				DDAC003300000001 /* ProcessScannerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -820,6 +1036,60 @@
 			};
 			name = Debug;
 		};
+		DDAC150000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = STLD27C5KT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
+					"/System/Library/PrivateFrameworks",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentPad.app/Contents/MacOS/AgentPad";
+			};
+			name = Debug;
+		};
+		DDAC160000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = STLD27C5KT;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
+					"/System/Library/PrivateFrameworks",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentPad.app/Contents/MacOS/AgentPad";
+			};
+			name = Release;
+		};
 		DD87448C241495A900B3AB11 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -872,6 +1142,15 @@
 			buildConfigurations = (
 				DD87448B241495A900B3AB11 /* Debug */,
 				DD87448C241495A900B3AB11 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DDAC140000000001 /* Build configuration list for PBXNativeTarget "AgentPadTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DDAC150000000001 /* Debug */,
+				DDAC160000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

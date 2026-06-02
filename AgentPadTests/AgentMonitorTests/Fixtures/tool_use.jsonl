@@ -1,0 +1,2 @@
+{"type":"user","sessionId":"s-fixture-2","message":{"role":"user","content":"run a tool"}}
+{"type":"assistant","sessionId":"s-fixture-2","message":{"role":"assistant","content":[{"type":"text","text":"calling tool"},{"type":"tool_use","name":"Bash","id":"t1"}]}}

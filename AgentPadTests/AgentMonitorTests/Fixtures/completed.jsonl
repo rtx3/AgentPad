@@ -1,0 +1,2 @@
+{"type":"user","sessionId":"s-fixture-3","message":{"role":"user","content":"thanks"}}
+{"type":"assistant","sessionId":"s-fixture-3","message":{"role":"assistant","content":[{"type":"text","text":"done"}],"stop_reason":"end_turn"}}

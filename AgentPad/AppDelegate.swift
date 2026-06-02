@@ -16,8 +16,6 @@ let helperAppID: CFString = "com.rtx3.agentpad.launcher" as CFString
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNotificationCenterDelegate {
     @IBOutlet weak var menu: NSMenu?
-    @IBOutlet weak var controllersMenu: NSMenuItem?
-    let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var windowController: NSWindowController?
     
     let manager: JoyConManager = JoyConManager()
@@ -35,6 +33,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     /// 当前命中 passthrough 的前台 App 显示名，由 didActivateApp 维护。
     /// 用于状态栏菜单显示 "Passthrough → [App]"。
     var currentPassthroughAppName: String?
+
+    /// Agent 监控后端。计划 A：仅启动 + 持有；UI 由计划 B 接入。
+    var agentMonitor: AgentMonitor?
+    /// 计划 B：菜单栏图标 + Popover 控制器。
+    var statusBarController: StatusBarController?
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -43,11 +46,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         let storyboard = NSStoryboard(name: "Main", bundle: nil)
         self.windowController = storyboard.instantiateController(withIdentifier: "AgentPadWindowController") as? NSWindowController
         
-        // Menu settings
-        let icon = NSImage(named: "menu_icon")
-        icon?.size = NSSize(width: 24, height: 24)
-        self.statusItem.button?.image = icon
-        self.statusItem.menu = self.menu
+        // 状态栏图标：完全交给 StatusBarController（计划 B）。
+        let sbController = StatusBarController(
+            legacyMenu: self.menu,
+            openSettings: { [weak self] in
+                self?.openAgentMonitorSettings()
+            }
+        )
+        self.statusBarController = sbController
 
         // Set controller handlers
         self.joyConDiscovery.connectHandler = { [weak self] backend in
@@ -86,7 +92,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
             NotificationCenter.default.post(name: .controllerAdded, object: nil)
         }
-        
+
         self.updateControllersMenu()
         NotificationCenter.default.addObserver(self, selector: #selector(controllerIconChanged), name: .controllerIconChanged, object: nil)
         
@@ -97,6 +103,33 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         DispatchQueue.main.async { [weak self] in
             self?.accessibilityOnboardingWindowController = AccessibilityOnboardingWindowController.presentIfNeeded()
         }
+
+        // Agent monitor backend (计划 A)。事件扇出给 StatusBarController（计划 B）。
+        let monitor = AgentMonitor()
+        monitor.setEventHandler { [weak self] event in
+            self?.statusBarController?.apply(event: event)
+        }
+        self.statusBarController?.popover.onRetry = { [weak monitor] in
+            monitor?.pollOnce()
+        }
+        monitor.start()
+        self.agentMonitor = monitor
+    }
+
+    /// 让 Popover Footer Settings 与新 menuItem 都走这条路径。
+    /// 直接显示主窗口并定位到 Agent Monitor 分页。
+    @objc func openAgentMonitorSettings() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        if let wc = self.windowController as? AgentPadWindowController {
+            wc.show(tab: .agentMonitor)
+        } else {
+            self.windowController?.showWindow(self)
+        }
+    }
+
+    /// 新 menuItem「Open Agent Monitor…」：等价于左键单击图标。
+    @IBAction func openAgentMonitor(_ sender: Any) {
+        self.statusBarController?.showPopover()
     }
     
     // MARK: - Menu
@@ -118,65 +151,104 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     }
 
     func updateControllersMenu() {
-        self.controllersMenu?.submenu?.removeAllItems()
-
-        self.controllers.forEach { controller in
-            guard controller.controller?.isConnected ?? false else { return }
-            let item = NSMenuItem()
-
-            item.title = ""
-            item.image = controller.icon
-            item.image?.size = NSSize(width: 32, height: 32)
-            
-            item.submenu = NSMenu()
-            
-            // Enable key mappings menu
-            let enabled = NSMenuItem()
-            enabled.title = NSLocalizedString("Enable key mappings", comment: "Enable key mappings")
-            enabled.action = Selector(("toggleEnableKeyMappings"))
-            enabled.state = controller.isEnabled ? .on : .off
-            enabled.target = controller
-            item.submenu?.addItem(enabled)
-
-            // Disconnect menu
-            let disconnect = NSMenuItem()
-            disconnect.title = NSLocalizedString("Disconnect", comment: "Disconnect")
-            disconnect.action = Selector(("disconnect"))
-            disconnect.target = controller
-            item.submenu?.addItem(disconnect)
-            
-            // Separator
-            item.submenu?.addItem(NSMenuItem.separator())
-
-            // Battery info
-            let battery = NSMenuItem()
-            if controller.controller?.battery ?? .unknown != .unknown {
-                var chargeString = ""
-                if controller.controller?.isCharging ?? false {
-                    let charging = NSLocalizedString("charging", comment: "charging")
-                    chargeString = " (\(charging))"
-                }
-                let batteryString = NSLocalizedString("Battery", comment: "Battery")
-                battery.title = "\(batteryString): \(controller.localizedBatteryString)\(chargeString)"
+        if !Thread.isMainThread {
+            NSLog("[ThreadProbe] updateControllersMenu hop-to-main from queue=%@", String(cString: __dispatch_queue_get_label(nil)))
+            DispatchQueue.main.async { [weak self] in
+                self?.updateControllersMenu()
             }
-            battery.isEnabled = false
-            item.submenu?.addItem(battery)
-
-            // Passthrough / Reclaiming / Mapping 状态行（plan §3.4.5）。
-            let status = NSMenuItem()
-            status.title = self.passthroughStatusTitle()
-            status.isEnabled = false
-            item.submenu?.addItem(status)
-
-            self.controllersMenu?.submenu?.addItem(item)
+            return
         }
-        
-        if let itemCount = self.controllersMenu?.submenu?.items.count, itemCount <= 0 {
+        dispatchPrecondition(condition: .onQueue(.main))
+        // 新设计：手柄状态行直接显示在主菜单中，不再使用 Controllers 子菜单。
+        // 插入位置：在 "Open Agent Monitor" 和 "Settings" 之间。
+
+        guard let menu = self.menu else { return }
+
+        // 先移除所有标记为手柄状态行的 menuItem（tag = 9999）
+        menu.items.removeAll { $0.tag == 9999 }
+
+        // 找到 "Settings" 的索引（假设它的 action 是 openSettings）
+        guard let settingsIndex = menu.items.firstIndex(where: { $0.action == #selector(openSettings(_:)) }) else {
+            return
+        }
+
+        // 如果有已连接的手柄，插入状态行
+        let connectedControllers = self.controllers.filter { $0.controller?.isConnected ?? false }
+
+        if connectedControllers.isEmpty {
+            // 无手柄：插入 "No controllers connected" 占位行
             let item = NSMenuItem()
-            let noControllers = NSLocalizedString("No controllers connected", comment: "No controllers connected")
-            item.title = "(\(noControllers))"
+            item.title = NSLocalizedString("No controllers connected", comment: "No controllers connected")
             item.isEnabled = false
-            self.controllersMenu?.submenu?.addItem(item)
+            item.tag = 9999
+            menu.insertItem(item, at: settingsIndex)
+            menu.insertItem(NSMenuItem.separator(), at: settingsIndex)
+        } else {
+            // 有手柄：每个手柄一行
+            var insertIndex = settingsIndex
+            for controller in connectedControllers {
+                let item = makeControllerStatusItem(for: controller)
+                menu.insertItem(item, at: insertIndex)
+                insertIndex += 1
+            }
+            // 手柄行后加分隔符
+            menu.insertItem(NSMenuItem.separator(), at: insertIndex)
+        }
+    }
+
+    /// 创建单个手柄的状态行 NSMenuItem。
+    /// 格式：[icon] 名字    电量% ⚡
+    /// 点击 → 弹 disconnect 确认 alert。
+    private func makeControllerStatusItem(for controller: GameController) -> NSMenuItem {
+        let item = NSMenuItem()
+        item.tag = 9999 // 标记为手柄状态行，便于下次更新时移除
+
+        // 图标（20pt）
+        item.image = controller.icon
+        item.image?.size = NSSize(width: 20, height: 20)
+
+        // 标题：名字 + 右对齐电量
+        let name = controller.backend?.displayName ?? "Controller"
+        var batteryText = ""
+        if let battery = controller.controller?.battery, battery != .unknown {
+            let percent = controller.localizedBatteryString
+            let charging = (controller.controller?.isCharging ?? false) ? " ⚡" : ""
+            batteryText = "\(percent)\(charging)"
+        }
+
+        // 使用 NSAttributedString + NSTextTab 实现右对齐
+        let attrTitle = NSMutableAttributedString(string: name)
+        if !batteryText.isEmpty {
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.tabStops = [NSTextTab(textAlignment: .right, location: 200, options: [:])]
+            attrTitle.append(NSAttributedString(string: "\t\(batteryText)"))
+            attrTitle.addAttribute(NSAttributedString.Key.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: attrTitle.length))
+        }
+        item.attributedTitle = attrTitle
+
+        // 点击 → disconnect 确认
+        item.target = self
+        item.action = #selector(confirmDisconnectController(_:))
+        item.representedObject = controller
+
+        return item
+    }
+
+    /// 手柄状态行点击 → 弹 alert 确认 disconnect。
+    @objc private func confirmDisconnectController(_ sender: NSMenuItem) {
+        guard let controller = sender.representedObject as? GameController else { return }
+
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("Disconnect controller?", comment: "")
+        let name = controller.backend?.displayName ?? "Controller"
+        alert.informativeText = String(format: NSLocalizedString("Do you want to disconnect %@?", comment: ""), name)
+        alert.addButton(withTitle: NSLocalizedString("Disconnect", comment: ""))
+        alert.addButton(withTitle: NSLocalizedString("Cancel", comment: ""))
+        alert.alertStyle = .warning
+
+        let response = alert.runModal()
+        if response == .alertFirstButtonReturn {
+            controller.backend?.disconnect()
         }
     }
 
@@ -390,9 +462,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         
         return .terminateNow
     }
-    
+
     // MARK: - Context switch handling
-    
+
     @objc func didActivateApp(notification: Notification) {
         guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication,
             let bundleID = app.bundleIdentifier else { return }

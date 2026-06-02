@@ -14,7 +14,7 @@ Agentic coding sessions are a stream of small yes/no decisions: approve a tool c
 
 - **Approve / reject with thumbs only** — map A / B to `y` / `n`, or to whatever shortcut your agent uses.
 - **Per-app profiles** — one mapping for Claude Code in Terminal, another for Cursor, another for your browser — switched automatically by the frontmost app.
-- **Passthrough for games** — when you launch a game, AgentPad leaves the controller alone so it behaves as a native gamepad. No manual toggle.
+- **Passthrough per app (PS / Xbox / MFi)** — for DualShock 4 / DualSense / Xbox / MFi controllers, the per-app passthrough setting hands the device back to the system so the foreground app sees a native gamepad.
 
 ### Example: Claude Code in Terminal
 
@@ -32,7 +32,7 @@ Agentic coding sessions are a stream of small yes/no decisions: approve a tool c
 - **Per-app key mappings** — switch profiles automatically based on the frontmost app.
 - **Simple capture mode** — press any keyboard key once and it is assigned immediately (no modifier checkboxes, no dropdown). Detailed mode is still available for combo keys.
 - **Sync from Default** — overwrite a per-app mapping with the default profile in one click (with Undo support).
-- **Passthrough per app** — keep the controller as a native game controller for selected apps instead of remapping it.
+- **Passthrough per app (PS / Xbox / MFi only)** — for non-Nintendo controllers, mark an app as Passthrough so the controller behaves as a native gamepad in that app. See [Known Limitations](#known-limitations) for why this does not work for Joy-Con / Pro Controller.
 - **Controller list shows the model name** (Joy-Con (L) / Joy-Con (R) / Pro Controller / SNES / Famicom 1 / Famicom 2) under each icon.
 - **Accessibility permission walkthrough** — guides you through granting the required system permission on first launch.
 - Native AppKit UI that follows the system appearance (Light / Dark Mode).
@@ -88,6 +88,16 @@ Supported controllers today: Joy-Con (L), Joy-Con (R), Pro Controller, Famicom C
     3.2 Open "System Settings" > "Privacy & Security" > "Accessibility", and enable "AgentPad.app".
 
     ![screenshot_usage_3_2](resources/screenshot/screenshot_9.png)
+
+## Known Limitations
+
+### Nintendo controllers cannot be used in games while AgentPad is running
+
+AgentPad uses the IOKit HID API in **exclusive seize** mode to read Joy-Con and Pro Controller — that is the only path on macOS that exposes the rumble, IMU, player LEDs and full button set for these devices. As long as AgentPad has them seized, **no other process — including Switch emulators, Steam, or any game — can read input from them**.
+
+The Passthrough setting and quitting AgentPad both close the IOKit handle, but macOS does not re-publish a Bluetooth Nintendo controller to other clients after a seized session ends. **To use a Joy-Con / Pro Controller in a game, disconnect the controller from the Mac's Bluetooth menu (or power-cycle the controller) and reconnect it after quitting AgentPad.**
+
+This limitation only applies to Nintendo controllers. **PlayStation, Xbox, and MFi controllers go through `GameController.framework`**, which is a shared system path — Passthrough per app works normally for them.
 
 ## Roadmap
 

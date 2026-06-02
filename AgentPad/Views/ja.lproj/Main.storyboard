@@ -677,7 +677,6 @@
                 </application>
                 <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="AgentPad" customModuleProvider="target">
                     <connections>
-                        <outlet property="controllersMenu" destination="77o-CP-M3N" id="v3g-Ru-9Yh"/>
                         <outlet property="menu" destination="qnE-BP-7VY" id="KtR-jY-Jd2"/>
                     </connections>
                 </customObject>
@@ -697,9 +696,12 @@
                                 <action selector="openSettings:" target="Voe-Tx-rLC" id="7Sj-wq-IF2"/>
                             </connections>
                         </menuItem>
-                        <menuItem title="コントローラ" id="77o-CP-M3N">
+                        <menuItem isSeparatorItem="YES" id="aBC-D1-Mn1"/>
+                        <menuItem title="エージェントモニターを開く…" id="aBC-D2-Mn2">
                             <modifierMask key="keyEquivalentModifierMask"/>
-                            <menu key="submenu" title="コントローラ" id="FEg-tA-MVo"/>
+                            <connections>
+                                <action selector="openAgentMonitor:" target="Voe-Tx-rLC" id="aBC-D3-Mn3"/>
+                            </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="pgJ-gZ-J5o"/>
                         <menuItem title="終了" id="6eB-VV-th5">
@@ -717,7 +719,7 @@
         <!--Window Controller-->
         <scene sceneID="R2V-B0-nI4">
             <objects>
-                <windowController storyboardIdentifier="AgentPadWindowController" showSeguePresentationStyle="single" id="B8D-0N-5wS" sceneMemberID="viewController">
+                <windowController storyboardIdentifier="AgentPadWindowController" showSeguePresentationStyle="single" id="B8D-0N-5wS" customClass="AgentPadWindowController" customModule="AgentPad" customModuleProvider="target" sceneMemberID="viewController">
                     <window key="window" title="AgentPad" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="IQv-IB-iLA">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>

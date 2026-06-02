@@ -8,6 +8,8 @@
 "charging" = "charging";
 "Battery" = "Battery";
 "No controllers connected" = "No controllers connected";
+"Disconnect controller?" = "Disconnect controller?";
+"Do you want to disconnect %@?" = "Do you want to disconnect %@?";
 "Could not save changes while quitting. Quit anyway?" = "Could not save changes while quitting. Quit anyway?";
 "Quitting now will lose any changes you have made since the last successful save" = "Quitting now will lose any changes you have made since the last successful save";
 "Quit anyway" = "Quit anyway";
@@ -215,6 +217,27 @@
 "Down Left" = "Down Left";
 "Up Left" = "Up Left";
 "Neutral" = "Neutral";
+
+// Agent Monitor (plan B)
+"agent.monitor.header.title" = "AGENT MONITOR";
+"agent.monitor.header.count.fmt" = "%d running";
+"agent.monitor.header.idle" = "idle";
+"agent.monitor.empty.title" = "No agent running";
+"agent.monitor.empty.subtitle" = "Start Claude Code / opencode / codex in a terminal to monitor it.";
+"agent.monitor.error.title" = "Failed to enumerate processes.";
+"agent.monitor.error.retry" = "Retry";
+"agent.monitor.state.working" = "Working";
+"agent.monitor.state.callingAPI" = "Calling API";
+"agent.monitor.state.idle" = "Idle";
+"settings.tab.general" = "General";
+"settings.tab.agentMonitor" = "Agent Monitor";
+"settings.agentMonitor.patterns.title" = "Monitored process patterns";
+"settings.agentMonitor.patterns.hint" = "case-insensitive substring";
+"settings.agentMonitor.sessionRoot.title" = "Session root";
+"settings.agentMonitor.interval" = "Polling interval";
+"settings.agentMonitor.showCount" = "Show count in menu bar";
+"settings.agentMonitor.showStatusBadge" = "Show status badge in menu bar";
+"settings.agentMonitor.launchAtLogin" = "Launch at login";
 
 // AgentMacro (plan 5)
 "Agent" = "Agent";

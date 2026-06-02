@@ -8,6 +8,8 @@
 "charging" = "充電中";
 "Battery" = "バッテリー";
 "No controllers connected" = "接続中のコントローラがありません";
+"Disconnect controller?" = "コントローラを切断しますか？";
+"Do you want to disconnect %@?" = "%@を切断しますか？";
 "Could not save changes while quitting. Quit anyway?" = "Could not save changes while quitting. Quit anyway?";
 "Quitting now will lose any changes you have made since the last successful save" = "Quitting now will lose any changes you have made since the last successful save";
 "Quit anyway" = "Quit anyway";
@@ -215,6 +217,27 @@
 "Down Left" = "左下";
 "Up Left" = "左上";
 "Neutral" = "中立";
+
+// Agent Monitor (plan B)
+"agent.monitor.header.title" = "エージェントモニター";
+"agent.monitor.header.count.fmt" = "%d 件実行中";
+"agent.monitor.header.idle" = "アイドル";
+"agent.monitor.empty.title" = "エージェントは実行されていません";
+"agent.monitor.empty.subtitle" = "Claude Code / opencode / codex をターミナルで起動すると監視されます。";
+"agent.monitor.error.title" = "プロセスの列挙に失敗しました。";
+"agent.monitor.error.retry" = "再試行";
+"agent.monitor.state.working" = "実行中";
+"agent.monitor.state.callingAPI" = "API 呼び出し中";
+"agent.monitor.state.idle" = "アイドル";
+"settings.tab.general" = "一般";
+"settings.tab.agentMonitor" = "エージェントモニター";
+"settings.agentMonitor.patterns.title" = "監視するプロセスパターン";
+"settings.agentMonitor.patterns.hint" = "大文字小文字を区別しない部分一致";
+"settings.agentMonitor.sessionRoot.title" = "セッションルート";
+"settings.agentMonitor.interval" = "ポーリング間隔";
+"settings.agentMonitor.showCount" = "メニューバーに件数を表示";
+"settings.agentMonitor.showStatusBadge" = "メニューバーにステータスバッジを表示";
+"settings.agentMonitor.launchAtLogin" = "ログイン時に起動";
 
 // AgentMacro (plan 5)
 "Agent" = "エージェント";
