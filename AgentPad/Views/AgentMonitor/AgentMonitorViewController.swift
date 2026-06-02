@@ -21,7 +21,7 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
     private let errorView = AgentMonitorErrorView()
     private let listContainer = NSView()
 
-    private var processes: [AgentProcess] = []
+    private var projects: [AgentProject] = []
     private var currentEvent: AgentMonitorEvent = .empty
 
     override func loadView() {
@@ -190,7 +190,7 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
     private func applyEventToUI() {
         switch currentEvent {
         case .empty:
-            processes = []
+            projects = []
             scrollView.isHidden = true
             errorView.isHidden = true
             emptyView.isHidden = false
@@ -201,7 +201,7 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
             errorView.isHidden = false
             countLabel.stringValue = NSLocalizedString("agent.monitor.header.idle", comment: "")
         case .updated(let list):
-            processes = list
+            projects = list
             errorView.isHidden = true
             if list.isEmpty {
                 scrollView.isHidden = true
@@ -219,7 +219,7 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
 
     // MARK: - NSTableView
 
-    func numberOfRows(in tableView: NSTableView) -> Int { processes.count }
+    func numberOfRows(in tableView: NSTableView) -> Int { projects.count }
 
     private static let rowReuseID = NSUserInterfaceItemIdentifier("agent.row")
 
@@ -231,7 +231,7 @@ final class AgentMonitorViewController: NSViewController, NSTableViewDataSource,
             cell = AgentRowView(frame: .zero)
             cell.identifier = Self.rowReuseID
         }
-        cell.configure(with: processes[row])
+        cell.configure(with: projects[row])
         return cell
     }
 

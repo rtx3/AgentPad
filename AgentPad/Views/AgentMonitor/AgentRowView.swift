@@ -89,18 +89,27 @@ final class AgentRowView: NSTableCellView {
         ])
     }
 
-    /// 缓存当前 agent 的状态色，用于 Dark Mode 切换时重绘 CGColor。
+    /// 缓存当前 project 的状态色，用于 Dark Mode 切换时重绘 CGColor。
     private var currentState: AgentState?
 
-    func configure(with agent: AgentProcess, now: Date = Date()) {
-        currentState = agent.state
+    func configure(with project: AgentProject, now: Date = Date()) {
+        currentState = project.state
         applyStateColor()
 
-        nameLabel.stringValue = agent.name
-        cwdLabel.stringValue = Self.shortenCWD(agent.cwd)
-        secondaryLabel.stringValue = "PID \(agent.pid) · \(Self.detailText(agent.detail))"
-        stateLabel.stringValue = Self.stateText(agent.state)
-        durationLabel.stringValue = Self.formatRelativeDuration(from: agent.startedAt, to: now)
+        nameLabel.stringValue = project.agentKind
+        cwdLabel.stringValue = Self.shortenCWD(project.cwd)
+        secondaryLabel.stringValue = Self.secondaryText(for: project)
+        stateLabel.stringValue = Self.stateText(project.state)
+        durationLabel.stringValue = Self.formatRelativeDuration(from: project.earliestStartedAt, to: now)
+    }
+
+    /// 副行：多 instance 显示 "N procs · detail"，单 instance 显示 "PID X · detail"。
+    static func secondaryText(for project: AgentProject) -> String {
+        let detail = detailText(project.detail)
+        if project.instanceCount > 1 {
+            return "\(project.instanceCount) procs · \(detail)"
+        }
+        return "PID \(project.primaryPid) · \(detail)"
     }
 
     private func applyStateColor() {

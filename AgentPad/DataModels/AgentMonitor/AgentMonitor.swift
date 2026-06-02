@@ -2,8 +2,12 @@
 //  AgentMonitor.swift
 //  AgentPad
 //
-//  调度入口。AppDelegate 持有一份实例（非单例，决策点 5.b）。
-//  每轮 poll：枚举命中进程 → 每进程跑 JSONL 主路 → PTY 兜底 → 排序发布事件。
+//  调度入口。AppDelegate 持有一份实例（非单例）。
+//  每轮 poll：枚举命中进程 → 按 (cwd, pattern) 聚合 → 组内跑 JSONL 主路 → PTY 兜底
+//   → 排序发布事件。
+//
+//  聚合的原因（见 git log 与 docs）：claude/codex 进程与 session 文件是 N:M 关系，
+//  同 cwd 多进程时无法精确把 pid 对应到唯一 session。改为「项目级」单元更符合用户感知。
 //
 
 import Foundation
@@ -15,17 +19,18 @@ final class AgentMonitor {
     private var _eventHandler: ((AgentMonitorEvent) -> Void)?
 
     private(set) var lastEvent: AgentMonitorEvent = .empty
-    private(set) var lastProcesses: [AgentProcess] = []
+    private(set) var lastProjects: [AgentProject] = []
 
     private let queue = DispatchQueue(label: "com.rtx3.agentpad.agentmonitor", qos: .utility)
     private var timer: DispatchSourceTimer?
     private var consecutiveFailures: Int = 0
     private var intervalSec: Int
 
-    /// pid → JSONL tail 上下文。已退出的进程在下一轮被清理。
-    private var jsonlContexts: [pid_t: JSONLProbeContext] = [:]
+    /// groupKey → JSONL tail 上下文（key 形如 "<cwd>|<pattern>"）。
+    /// 不再以 pid 为单位：同 cwd 多进程共享同一 context（同 session 文件）。
+    private var jsonlContexts: [String: JSONLProbeContext] = [:]
 
-    /// 各 pattern 对应的 SessionLocator。当前仅 Claude Code 有实现。
+    /// 各 pattern 对应的 SessionLocator。当前仅 Claude Code / Codex 有实现。
     private let locators: [String: SessionLocator]
 
     init(intervalSec: Int = AppSettings.AgentMonitor.pollIntervalSec) {
@@ -108,6 +113,12 @@ final class AgentMonitor {
 
     // MARK: - Poll core (queue-only)
 
+    private struct ScanGroup {
+        let cwd: String?
+        let pattern: String
+        var snaps: [ProcessSnapshot]
+    }
+
     private func tickLocked() {
         let started = Date()
         do {
@@ -119,29 +130,47 @@ final class AgentMonitor {
             let axTrusted = AccessibilityPermission.isTrusted()
 
             let snapshots = try ProcessScanner.scan(matching: patterns)
-            let liveSet = Set(snapshots.map { $0.pid })
-            jsonlContexts = jsonlContexts.filter { liveSet.contains($0.key) }
 
             NSLog("[agent.monitor] tick patterns=\(patterns) matched=\(snapshots.count) axTrusted=\(axTrusted) enablePTY=\(enablePTY)")
             for s in snapshots {
                 NSLog("[agent.monitor]   snap pid=\(s.pid) name=\(s.name) cwd=\(s.cwd ?? "<nil>")")
             }
 
-            var processes: [AgentProcess] = []
-            processes.reserveCapacity(snapshots.count)
-
-            for snap in snapshots {
-                let agent = buildAgent(from: snap,
-                                       patterns: patterns,
-                                       sessionRoots: sessionRoots,
-                                       enablePTY: enablePTY,
-                                       staleness: staleness)
-                processes.append(agent)
-                NSLog("[agent.monitor]   result pid=\(agent.pid) state=\(agent.state) source=\(agent.source) detail=\(agent.detail)")
+            // 按 (cwd, pattern) 分组；保留 first-seen 顺序便于日志可读。
+            var groups: [String: ScanGroup] = [:]
+            var insertionOrder: [String] = []
+            for s in snapshots {
+                guard let pat = ProcessScanner.matchedPattern(name: s.name, patterns: patterns) else { continue }
+                let key = Self.groupKey(cwd: s.cwd, pattern: pat, pid: s.pid)
+                if groups[key] == nil {
+                    groups[key] = ScanGroup(cwd: s.cwd, pattern: pat, snaps: [s])
+                    insertionOrder.append(key)
+                } else {
+                    groups[key]!.snaps.append(s)
+                }
             }
-            processes.sort { lhs, rhs in
+
+            // 清理已退出 group 对应的 jsonl context。
+            let liveKeys = Set(groups.keys)
+            jsonlContexts = jsonlContexts.filter { liveKeys.contains($0.key) }
+
+            var projects: [AgentProject] = []
+            projects.reserveCapacity(groups.count)
+            for key in insertionOrder {
+                guard let g = groups[key] else { continue }
+                let project = buildProject(key: key,
+                                           cwd: g.cwd,
+                                           pattern: g.pattern,
+                                           snaps: g.snaps,
+                                           sessionRoots: sessionRoots,
+                                           enablePTY: enablePTY,
+                                           staleness: staleness)
+                projects.append(project)
+                NSLog("[agent.monitor]   result project=\(key) state=\(project.state) source=\(project.source) detail=\(project.detail) instances=\(project.instanceCount)")
+            }
+            projects.sort { lhs, rhs in
                 if lhs.state != rhs.state { return lhs.state > rhs.state }
-                return lhs.startedAt < rhs.startedAt
+                return lhs.earliestStartedAt < rhs.earliestStartedAt
             }
             let elapsed = Date().timeIntervalSince(started)
             let budget = TimeInterval(intervalSec) * 0.8
@@ -151,8 +180,8 @@ final class AgentMonitor {
             } else {
                 consecutiveFailures = 0
             }
-            lastProcesses = processes
-            let evt: AgentMonitorEvent = processes.isEmpty ? .empty : .updated(processes: processes)
+            lastProjects = projects
+            let evt: AgentMonitorEvent = projects.isEmpty ? .empty : .updated(projects: projects)
             publish(evt)
         } catch {
             NSLog("[agent.monitor] tick scan error: \(error)")
@@ -160,28 +189,35 @@ final class AgentMonitor {
         }
     }
 
-    private func buildAgent(from snap: ProcessSnapshot,
-                            patterns: [String],
-                            sessionRoots: [String: String],
-                            enablePTY: Bool,
-                            staleness: TimeInterval) -> AgentProcess {
-        // 1. JSONL 主路
-        let pattern = ProcessScanner.matchedPattern(name: snap.name, patterns: patterns)
-        let root = pattern.flatMap { sessionRoots[$0.lowercased()] ?? sessionRoots[$0] }
-        let loc = pattern.flatMap { self.locator(for: $0) }
-        let url = (loc != nil) ? loc!.locate(pid: snap.pid, cwd: snap.cwd, sessionRoot: root ?? "") : nil
-        NSLog("[agent.monitor]     jsonl pid=\(snap.pid) pattern=\(pattern ?? "<nil>") root=\(root ?? "<nil>") urlFound=\(url?.lastPathComponent ?? "<nil>")")
+    /// 同 (cwd, pattern) 的所有进程聚合为一个 AgentProject。
+    private func buildProject(key: String,
+                              cwd: String?,
+                              pattern: String,
+                              snaps: [ProcessSnapshot],
+                              sessionRoots: [String: String],
+                              enablePTY: Bool,
+                              staleness: TimeInterval) -> AgentProject {
+        // 组内最近启动的代表（PTY 兜底用），与组内最早启动（duration / 排序用）。
+        let primary = snaps.max(by: { $0.startedAt < $1.startedAt }) ?? snaps[0]
+        let earliest = snaps.min(by: { $0.startedAt < $1.startedAt })?.startedAt ?? primary.startedAt
+        let kindLower = pattern.lowercased()
 
-        if let url = url, let pattern = pattern, root != nil {
-            let ctx = jsonlContexts[snap.pid] ?? JSONLProbeContext(pid: snap.pid, cwd: snap.cwd)
-            jsonlContexts[snap.pid] = ctx
+        // 1. JSONL 主路（组内共享 context）
+        let root = sessionRoots[kindLower] ?? sessionRoots[pattern]
+        let loc = self.locator(for: pattern)
+        let url = (loc != nil) ? loc!.locate(pid: primary.pid, cwd: cwd, sessionRoot: root ?? "") : nil
+        NSLog("[agent.monitor]     jsonl group=\(key) pattern=\(pattern) root=\(root ?? "<nil>") urlFound=\(url?.lastPathComponent ?? "<nil>")")
+
+        if let url = url, root != nil {
+            let ctx = jsonlContexts[key] ?? JSONLProbeContext(pid: primary.pid, cwd: cwd)
+            jsonlContexts[key] = ctx
             ctx.bind(to: url)
             ctx.tick()
             let lastType = ctx.lastRecord?.type ?? "<nil>"
+            let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
             let lastStop = ctx.lastRecord?.stopReason ?? "<nil>"
             let lastTool = ctx.lastRecord?.toolUseName ?? "<nil>"
-            let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
-            NSLog("[agent.monitor]     jsonl tick pid=\(snap.pid) lastType=\(lastType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
+            NSLog("[agent.monitor]     jsonl tick group=\(key) lastType=\(lastType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
             let cls = Self.classifyByPattern(
                 pattern: pattern,
                 record: ctx.lastRecord,
@@ -190,37 +226,65 @@ final class AgentMonitor {
             )
             if let cls = cls {
                 let sid = url.deletingPathExtension().lastPathComponent
-                return AgentProcess(
-                    pid: snap.pid, name: snap.name,
-                    executablePath: snap.executablePath, cwd: snap.cwd,
-                    startedAt: snap.startedAt,
-                    state: cls.state, detail: cls.detail,
-                    source: .jsonl(sessionId: sid)
+                return AgentProject(
+                    id: key,
+                    cwd: cwd,
+                    agentKind: kindLower,
+                    state: cls.state,
+                    detail: cls.detail,
+                    source: .jsonl(sessionId: sid),
+                    instanceCount: snaps.count,
+                    primaryPid: primary.pid,
+                    earliestStartedAt: earliest,
+                    sessionId: sid,
+                    lastActivityAt: ctx.lastWriteAt
                 )
             }
         }
-        // 2. PTY 兜底
+        // 2. PTY 兜底：用最近启动的 pid 做 host 查找（更可能对应用户当前活跃窗口）。
         if enablePTY {
-            let pty = PTYStateProbe.probe(forAgentPID: snap.pid)
-            NSLog("[agent.monitor]     pty pid=\(snap.pid) hit=\(pty != nil) snippet=\(pty?.snippet ?? "<nil>")")
+            let pty = PTYStateProbe.probe(forAgentPID: primary.pid)
+            NSLog("[agent.monitor]     pty group=\(key) pid=\(primary.pid) hit=\(pty != nil) snippet=\(pty?.snippet ?? "<nil>")")
             if let pty = pty {
-                return AgentProcess(
-                    pid: snap.pid, name: snap.name,
-                    executablePath: snap.executablePath, cwd: snap.cwd,
-                    startedAt: snap.startedAt,
-                    state: pty.state, detail: pty.detail,
-                    source: .pty(snippet: pty.snippet)
+                return AgentProject(
+                    id: key,
+                    cwd: cwd,
+                    agentKind: kindLower,
+                    state: pty.state,
+                    detail: pty.detail,
+                    source: .pty(snippet: pty.snippet),
+                    instanceCount: snaps.count,
+                    primaryPid: primary.pid,
+                    earliestStartedAt: earliest,
+                    sessionId: nil,
+                    lastActivityAt: nil
                 )
             }
         }
         // 3. 兜底 idle
-        return AgentProcess(
-            pid: snap.pid, name: snap.name,
-            executablePath: snap.executablePath, cwd: snap.cwd,
-            startedAt: snap.startedAt,
-            state: .idle, detail: .unknown,
-            source: .none
+        return AgentProject(
+            id: key,
+            cwd: cwd,
+            agentKind: kindLower,
+            state: .idle,
+            detail: .unknown,
+            source: .none,
+            instanceCount: snaps.count,
+            primaryPid: primary.pid,
+            earliestStartedAt: earliest,
+            sessionId: nil,
+            lastActivityAt: nil
         )
+    }
+
+    /// 组 key：cwd 有值时 "<cwd>|<pattern>"，否则退化按 pid「不聚合」。
+    /// 退化时仍带 pattern 前缀以便和有 cwd 的组区分；多 nil-cwd 进程各自独立显示。
+    private static func groupKey(cwd: String?, pattern: String, pid: pid_t) -> String {
+        let pat = pattern.lowercased()
+        if let c = cwd, !c.isEmpty {
+            return "\(c)|\(pat)"
+        }
+        return "<pid:\(pid)>|\(pat)"
     }
 
     /// 按 pattern 选用对应 classifier。

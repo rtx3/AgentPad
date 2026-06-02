@@ -77,15 +77,16 @@ final class StatusBarController: NSObject {
     }
 
     /// 从 AgentMonitorEvent 提取 running 和 idle 计数。
+    /// 计数单位为 **project（按 cwd 聚合）**，而不是进程：同 cwd 多个 claude 实例只算一次。
     /// running = working + callingAPI，idle = idle。
     private func countsFromEvent(_ event: AgentMonitorEvent) -> (running: Int, idle: Int) {
         switch event {
         case .empty, .pollingFailed:
             return (0, 0)
-        case .updated(let processes):
+        case .updated(let projects):
             var running = 0
             var idle = 0
-            for p in processes {
+            for p in projects {
                 switch p.state {
                 case .working, .callingAPI:
                     running += 1
