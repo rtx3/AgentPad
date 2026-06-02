@@ -20,6 +20,7 @@
 		DDAB001600000001 /* JSONLSessionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000600000001 /* JSONLSessionProbe.swift */; };
 		DDAB001700000001 /* AgentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000700000001 /* AgentMonitor.swift */; };
 		DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001000000001 /* StatusBarIconRenderer.swift */; };
+		DDAD002A00000001 /* AgentMenuRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001A00000001 /* AgentMenuRowView.swift */; };
 		DDAD002100000001 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001100000001 /* StatusBarController.swift */; };
 		DDAD002200000001 /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001200000001 /* AgentRowView.swift */; };
 		DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001300000001 /* AgentMonitorEmptyView.swift */; };
@@ -124,6 +125,7 @@
 		DDAC002300000001 /* waiting_user.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = waiting_user.jsonl; sourceTree = "<group>"; };
 		DDAC190000000001 /* AgentPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAD001000000001 /* StatusBarIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarIconRenderer.swift; sourceTree = "<group>"; };
+		DDAD001A00000001 /* AgentMenuRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMenuRowView.swift; sourceTree = "<group>"; };
 		DDAD001100000001 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
 		DDAD001200000001 /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
 		DDAD001300000001 /* AgentMonitorEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorEmptyView.swift; sourceTree = "<group>"; };
@@ -306,6 +308,7 @@
 			children = (
 				DDAD001000000001 /* StatusBarIconRenderer.swift */,
 				DDAD001100000001 /* StatusBarController.swift */,
+				DDAD001A00000001 /* AgentMenuRowView.swift */,
 			);
 			path = StatusBar;
 			sourceTree = "<group>";
@@ -724,6 +727,7 @@
 				DDAB001700000001 /* AgentMonitor.swift in Sources */,
 				DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */,
 				DDAD002100000001 /* StatusBarController.swift in Sources */,
+				DDAD002A00000001 /* AgentMenuRowView.swift in Sources */,
 				DDAD002200000001 /* AgentRowView.swift in Sources */,
 				DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */,
 				DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */,

@@ -2,37 +2,33 @@
 //  StatusBarController.swift
 //  AgentPad
 //
-//  持有 NSStatusItem，并把：
-//  - 左键单击 → toggle Agent Monitor Popover
-//  - 右键 / Ctrl+Click → 弹既有 NSMenu
-//  接入 AgentMonitor.eventHandler 做图标重绘。
+//  持有 NSStatusItem。
+//  统一行为：左键、右键、Ctrl+Click 都弹出 statusItem.menu（NSMenu 版本，
+//  AppDelegate 是 menu delegate，负责在 menuWillOpen 时把当前 agent rows 注入）。
+//  原 Popover 入口已撤掉；popover 控制器类保留以备未来复用。
 //
 
 import AppKit
 
 final class StatusBarController: NSObject {
     let statusItem: NSStatusItem
-    let popover: AgentMonitorPopoverController
     weak var legacyMenu: NSMenu?
 
     private var lastEvent: AgentMonitorEvent = .empty
-    /// AgentMonitorSettings 变更通知（影响 showCount）。
+    /// AgentMonitorSettings 变更通知（影响 showCount / showBadge）。
     private var settingsObserver: Any?
+
+    /// Settings 入口保留为可调用闭包，留给将来菜单或快捷键复用。
+    var openSettings: () -> Void
 
     init(legacyMenu: NSMenu?, openSettings: @escaping () -> Void = {}) {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-        self.popover = AgentMonitorPopoverController()
         self.legacyMenu = legacyMenu
+        self.openSettings = openSettings
         super.init()
 
-        self.popover.onOpenSettings = openSettings
-        self.popover.onQuit = { NSApp.terminate(nil) }
-
-        if let button = self.statusItem.button {
-            button.target = self
-            button.action = #selector(handleClick(_:))
-            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-        }
+        // 永久绑定 menu：左/右键、Ctrl+Click 系统会自动弹出。
+        self.statusItem.menu = legacyMenu
 
         renderIcon()
 
@@ -50,18 +46,16 @@ final class StatusBarController: NSObject {
     }
 
     /// AgentMonitor 每轮 poll 调一次。Main thread。
+    /// 现在仅用于更新菜单栏图标徽章；菜单内 agent rows 由 AppDelegate 在 menuWillOpen 时按 snapshot 重建。
     func apply(event: AgentMonitorEvent) {
         lastEvent = event
-        popover.apply(event: event)
         renderIcon()
     }
 
     private func renderIcon() {
-        // 读取配置：是否显示状态徽章
         let showBadge = AppSettings.AgentMonitor.showStatusBadge
 
         if !showBadge {
-            // 不显示徽章：只显示纯 icon
             let icon = NSImage(named: "menu_icon")
             icon?.size = NSSize(width: 24, height: 24)
             icon?.isTemplate = true
@@ -69,8 +63,6 @@ final class StatusBarController: NSObject {
             return
         }
 
-        // 显示徽章：使用两行布局
-        // 从 lastEvent 提取 running/idle 计数
         let (running, idle) = countsFromEvent(lastEvent)
         let icon = StatusBarIconRenderer.twoLineImage(running: running, idle: idle)
         statusItem.button?.image = icon
@@ -96,25 +88,5 @@ final class StatusBarController: NSObject {
             }
             return (running, idle)
         }
-    }
-
-    @objc private func handleClick(_ sender: Any?) {
-        guard let event = NSApp.currentEvent, let button = statusItem.button else { return }
-        let isRight = event.type == .rightMouseUp ||
-                      (event.type == .leftMouseUp && event.modifierFlags.contains(.control))
-        if isRight {
-            // 右键 / Ctrl+Click：临时挂 menu，触发后立即解绑，避免下次左键也弹菜单
-            statusItem.menu = legacyMenu
-            button.performClick(nil)
-            statusItem.menu = nil
-        } else {
-            popover.toggle(relativeTo: button)
-        }
-    }
-
-    /// 等价于左键单击效果。给「Open Agent Monitor…」menuItem 调。
-    func showPopover() {
-        guard let button = statusItem.button else { return }
-        popover.show(relativeTo: button)
     }
 }

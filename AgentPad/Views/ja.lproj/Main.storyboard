@@ -697,13 +697,6 @@
                             </connections>
                         </menuItem>
                         <menuItem isSeparatorItem="YES" id="aBC-D1-Mn1"/>
-                        <menuItem title="エージェントモニターを開く…" id="aBC-D2-Mn2">
-                            <modifierMask key="keyEquivalentModifierMask"/>
-                            <connections>
-                                <action selector="openAgentMonitor:" target="Voe-Tx-rLC" id="aBC-D3-Mn3"/>
-                            </connections>
-                        </menuItem>
-                        <menuItem isSeparatorItem="YES" id="pgJ-gZ-J5o"/>
                         <menuItem title="終了" id="6eB-VV-th5">
                             <modifierMask key="keyEquivalentModifierMask"/>
                             <connections>
