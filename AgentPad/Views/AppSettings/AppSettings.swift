@@ -100,11 +100,15 @@ extension AppSettings {
         static let defaultPollIntervalSec: Int = 3
         static let defaultPollFailureThreshold: Int = 3
         static let allowedPollIntervalsSec: [Int] = [1, 3, 5, 10, 30]
+        /// 末条 record 距 now 超过此阈值时，视为"死会话残留"→ classify 强制降级 idle。
+        /// 仅 UserDefaults 可调，无 UI 暴露。
+        static let defaultStalenessThresholdSec: Int = 90
 
         private static let patternsKey = "agent.monitor.patterns"
         private static let sessionRootsKey = "agent.monitor.sessionRoots"
         private static let pollIntervalKey = "agent.monitor.pollIntervalSec"
         private static let pollFailureThresholdKey = "agent.monitor.pollFailureThreshold"
+        private static let stalenessThresholdKey = "agent.monitor.stalenessThresholdSec"
         private static let showCountKey = "agent.monitor.showCountInMenuBar"
         private static let enablePTYKey = "agent.monitor.enablePTYProbe"
         private static let showStatusBadgeKey = "agent.monitor.showStatusBadge"
@@ -153,6 +157,16 @@ extension AppSettings {
             }
             set {
                 UserDefaults.standard.set(newValue, forKey: pollFailureThresholdKey)
+            }
+        }
+
+        static var stalenessThresholdSec: Int {
+            get {
+                let v = UserDefaults.standard.integer(forKey: stalenessThresholdKey)
+                return v > 0 ? v : defaultStalenessThresholdSec
+            }
+            set {
+                UserDefaults.standard.set(newValue, forKey: stalenessThresholdKey)
             }
         }
 

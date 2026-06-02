@@ -115,6 +115,7 @@ final class AgentMonitor {
             let sessionRoots = AppSettings.AgentMonitor.sessionRoots
             let enablePTY = AppSettings.AgentMonitor.enablePTYProbe
             let failureThreshold = AppSettings.AgentMonitor.pollFailureThreshold
+            let staleness = TimeInterval(AppSettings.AgentMonitor.stalenessThresholdSec)
             let axTrusted = AccessibilityPermission.isTrusted()
 
             let snapshots = try ProcessScanner.scan(matching: patterns)
@@ -133,7 +134,8 @@ final class AgentMonitor {
                 let agent = buildAgent(from: snap,
                                        patterns: patterns,
                                        sessionRoots: sessionRoots,
-                                       enablePTY: enablePTY)
+                                       enablePTY: enablePTY,
+                                       staleness: staleness)
                 processes.append(agent)
                 NSLog("[agent.monitor]   result pid=\(agent.pid) state=\(agent.state) source=\(agent.source) detail=\(agent.detail)")
             }
@@ -161,7 +163,8 @@ final class AgentMonitor {
     private func buildAgent(from snap: ProcessSnapshot,
                             patterns: [String],
                             sessionRoots: [String: String],
-                            enablePTY: Bool) -> AgentProcess {
+                            enablePTY: Bool,
+                            staleness: TimeInterval) -> AgentProcess {
         // 1. JSONL 主路
         let pattern = ProcessScanner.matchedPattern(name: snap.name, patterns: patterns)
         let root = pattern.flatMap { sessionRoots[$0.lowercased()] ?? sessionRoots[$0] }
@@ -177,9 +180,15 @@ final class AgentMonitor {
             let lastType = ctx.lastRecord?.type ?? "<nil>"
             let lastStop = ctx.lastRecord?.stopReason ?? "<nil>"
             let lastTool = ctx.lastRecord?.toolUseName ?? "<nil>"
-            NSLog("[agent.monitor]     jsonl tick pid=\(snap.pid) lastType=\(lastType) stop=\(lastStop) tool=\(lastTool)")
-            _ = pattern
-            if let cls = JSONLSessionProbe.classify(record: ctx.lastRecord, lastWriteAt: ctx.lastWriteAt) {
+            let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
+            NSLog("[agent.monitor]     jsonl tick pid=\(snap.pid) lastType=\(lastType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
+            let cls = Self.classifyByPattern(
+                pattern: pattern,
+                record: ctx.lastRecord,
+                lastWriteAt: ctx.lastWriteAt,
+                stalenessThreshold: staleness
+            )
+            if let cls = cls {
                 let sid = url.deletingPathExtension().lastPathComponent
                 return AgentProcess(
                     pid: snap.pid, name: snap.name,
@@ -212,6 +221,24 @@ final class AgentMonitor {
             state: .idle, detail: .unknown,
             source: .none
         )
+    }
+
+    /// 按 pattern 选用对应 classifier。
+    /// 当前：`codex` → CodexJSONLProbe；其他（含 `claude`） → JSONLSessionProbe。
+    private static func classifyByPattern(pattern: String,
+                                          record: JSONLRecord?,
+                                          lastWriteAt: Date?,
+                                          stalenessThreshold: TimeInterval) -> (state: AgentState, detail: AgentStateDetail)? {
+        switch pattern.lowercased() {
+        case "codex":
+            return CodexJSONLProbe.classify(record: record,
+                                            lastWriteAt: lastWriteAt,
+                                            stalenessThreshold: stalenessThreshold)
+        default:
+            return JSONLSessionProbe.classify(record: record,
+                                              lastWriteAt: lastWriteAt,
+                                              stalenessThreshold: stalenessThreshold)
+        }
     }
 
     private func locator(for pattern: String) -> SessionLocator? {
