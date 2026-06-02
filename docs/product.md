@@ -8,7 +8,7 @@
 
 AgentPad 是一款面向 AI 编程助手用户的 macOS 原生应用。它把"看 agent 在干什么"与"控制 agent 下一步动作"两件事合并在同一个菜单栏入口里：
 
-- 一边实时监控 Claude Code、Codex、opencode、Antigravity 等自主运行的 AI agent 进程，通过三态指示器让用户一眼掌握每个 agent 当前是在执行命令、调用 API，还是空闲等待输入；
+- 一边实时监控 Claude Code、Codex、opencode 等自主运行的 AI agent 进程，通过三态指示器让用户一眼掌握每个 agent 当前是在执行命令、调用 API，还是空闲等待输入；
 - 一边把游戏手柄变成 agent 的专用遥控器，让 approve / reject / 翻页 / 切窗口这些高频小决策不再打断阅读节奏。
 
 形态上是常驻菜单栏的 AppKit 原生应用，配合独立的 Popover 详情面板和设置窗口。
@@ -52,7 +52,6 @@ AgentPad 是一款面向 AI 编程助手用户的 macOS 原生应用。它把"�
 | `claude` | Claude Code CLI |
 | `opencode` | opencode CLI |
 | `codex` | codex CLI |
-| `antigravity` | antigravity CLI |
 
 用户可在设置中添加任意自定义模式以监控其他 AI agent 工具。
 
@@ -145,7 +144,7 @@ AgentPad 是一款面向 AI 编程助手用户的 macOS 原生应用。它把"�
 
 | 设置项 | 默认值 | 说明 |
 |--------|--------|------|
-| 监控进程模式 | `claude`, `opencode`, `codex`, `antigravity` | 进程名匹配模式列表，支持增删 |
+| 监控进程模式 | `claude`, `opencode`, `codex` | 进程名匹配模式列表，支持增删 |
 | 轮询间隔 | 3 秒 | 可选 2s / 3s / 5s / 10s |
 | 菜单栏显示计数 | 开启 | 在圆点旁显示 agent 数量 |
 | 登录时启动 | 关闭 | 开机自启动（需 macOS 13+ SMAppService） |
@@ -171,7 +170,6 @@ AgentPad 是一款面向 AI 编程助手用户的 macOS 原生应用。它把"�
 | Claude Code | `claude` | Anthropic 官方 CLI 编程助手 |
 | opencode | `opencode` | 开源 AI 编程助手 |
 | codex CLI | `codex` | codex CLI 编程助手 |
-| Antigravity | `antigravity` | Antigravity CLI 编程助手 |
 
 ### 4.2 自定义扩展
 

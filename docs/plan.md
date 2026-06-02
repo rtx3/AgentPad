@@ -21,7 +21,7 @@
 
 提供与「手柄遥控」并列的另一根产品支柱：
 
-- 周期扫描所有运行中进程，按配置的进程名模式（默认 `claude` / `opencode` / `codex` / `antigravity`，大小写不敏感子串匹配）筛出 AI agent。
+- 周期扫描所有运行中进程，按配置的进程名模式（默认 `claude` / `opencode` / `codex`，大小写不敏感子串匹配）筛出 AI agent。
 - 为每个命中进程实时判定三态：**Working** / **Calling API** / **Idle**；优先级 Working > Calling API > Idle。
 - **状态判定仅基于两路本地信号**：
   1. **Session JSONL tail（主路）**：tail agent 自身写入的本地会话文件（首发支持 Claude Code 的 `~/.claude/projects/<encoded>/<sessionId>.jsonl`）。
@@ -94,7 +94,7 @@ enum AgentMonitorEvent {
   - 末条为 `type: "assistant"` 处于 streaming（无终止 `stop_reason` 字段，或文件正在持续追加且最近 N ms 内有写入）→ `callingAPI` + `.streaming`。
   - 末条为 `type: "assistant"` 已完成（带 `stop_reason`）且其后再无 user 消息 → `idle`。
   - 末条为 `type: "user"` 等待 assistant 响应（启动后立即出现）→ `callingAPI`（短窗口判定为冷启动 streaming，超过冷启动窗口仍无 assistant 行则降级 `idle`）。
-- 其他 agent（codex / opencode / antigravity）：先注册占位 `SessionLocator`，本计划不实现具体定位逻辑；这些 agent 在 v1 阶段直接走 PTY 路兜底。
+- 其他 agent（codex / opencode）：先注册占位 `SessionLocator`，本计划不实现具体定位逻辑；这些 agent 在 v1 阶段直接走 PTY 路兜底。
 
 #### A.3.4 兜底路：PTY 内容抓取
 
@@ -154,7 +154,7 @@ final class AgentMonitor {
 
 ```swift
 struct AgentMonitorSettings: Codable {
-    var patterns: [String] = ["claude", "opencode", "codex", "antigravity"]
+    var patterns: [String] = ["claude", "opencode", "codex"]
     var pollIntervalSec: Int = 3            // 允许 2/3/5/10
     var pollFailureThreshold: Int = 3
     var showCountInMenuBar: Bool = true

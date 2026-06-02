@@ -192,7 +192,6 @@ storyboard 既有 `AgentPadWindowController` 主窗口保持不变（`splitView`
 │  │ claude                                                   │  │
 │  │ opencode                                                 │  │
 │  │ codex                                                    │  │
-│  │ antigravity                                              │  │
 │  └──────────────────────────────────────────────────────────┘  │
 │     [ + ]  [ − ]                  case-insensitive substring   │
 │                                                                │
