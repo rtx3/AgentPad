@@ -24,8 +24,25 @@ enum PTYStateProbe {
         var idle: [String]
 
         static let `default` = Keywords(
-            working: ["esc to interrupt", "running ", "tool_use(", "⏵⏵"],
-            callingAPI: ["thinking", "streaming", "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+            working: [
+                // Claude Code 在跑 tool 时底栏会显示 "esc to interrupt" / "ctrl+b to background"
+                // 用 "to interrupt" 取代 "esc to interrupt"，兼容 ctrl 提示行变体。
+                "to interrupt",
+                "running ", "tool_use(", "⏵⏵"
+            ],
+            callingAPI: [
+                "thinking", "streaming",
+                // 旧版 Claude Code spinner
+                "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",
+                // 新版 Claude Code（4.6+）改用"烹饪动词"系列做进度文案：
+                // 实测见 `✻ Churned for 3m 29s` / `✢ Caramelizing… (12s · still thinking with xhigh effort)`
+                // 子串匹配 + 小写，因此 "Churned"/"churned" 都能命中。
+                "churned", "caramelizing", "simmering", "whisking", "folding",
+                "braising", "searing", "reducing", "proofing", "kneading",
+                "marinating", "sautéing", "sauteing", "blanching", "poaching",
+                // 进度装饰符号（出现在每一行前缀），命中其一即认为在 calling。
+                "✻", "✢"
+            ],
             idle: ["do you want to", "(y/n)"]
         )
     }

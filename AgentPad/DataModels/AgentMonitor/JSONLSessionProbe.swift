@@ -25,6 +25,25 @@ final class JSONLProbeContext {
     /// 否则 fall back 到 tick 时刻读到的文件 mtime；都没有时为 nil。
     /// 注意：这里**不是** `Date()`(当前时刻)，否则 freshness 判定会失效。
     private(set) var lastWriteAt: Date?
+    /// 末条「状态信号行」—— 跳过 turn 间隙的装饰行（system/summary/...）。
+    /// Claude Code 在每个 turn 结束后会写一串非状态行，会把真正决定状态的
+    /// assistant/user 行从「物理末行」位置挤走；classify 必须基于这个字段
+    /// 才能避免把"间隙"误判为 idle。Codex 用的 type 都不在装饰集合里，
+    /// 因此 lastStateSignalRecord 与 lastRecord 在 codex 上等价。
+    private(set) var lastStateSignalRecord: JSONLRecord?
+    private(set) var lastStateSignalAt: Date?
+
+    /// Claude Code 在 turn 之间或异步写入的"装饰行"——出现在物理末行但不携带
+    /// 状态信号。把它们当末行会把 inter-turn 间隙 / 异步晚到的标题写入误判为 idle。
+    /// - permission-mode / attachment 不属于此集合：前者是 idle.waitingInput("permission")
+    ///   的真实信号；后者会紧跟新一轮 user→assistant 流，本身视为 callingAPI。
+    fileprivate static let decorativeTypes: Set<String> = [
+        "system",
+        "summary",
+        "file-history-snapshot",
+        "ai-title",
+        "last-prompt"
+    ]
 
     init(pid: pid_t, cwd: String?) {
         self.pid = pid
@@ -41,6 +60,8 @@ final class JSONLProbeContext {
         pendingData.removeAll(keepingCapacity: true)
         lastRecord = nil
         lastWriteAt = nil
+        lastStateSignalRecord = nil
+        lastStateSignalAt = nil
     }
 
     func close() {
@@ -87,6 +108,12 @@ final class JSONLProbeContext {
             if let rec = JSONLRecord.parse(line: trimmed) {
                 lastRecord = rec
                 lastWriteAt = rec.timestamp ?? fileMtime
+                // 装饰行只刷新 lastRecord/lastWriteAt 用于日志和兜底，
+                // 不污染状态信号轨。
+                if !Self.decorativeTypes.contains(rec.type) {
+                    lastStateSignalRecord = rec
+                    lastStateSignalAt = rec.timestamp ?? fileMtime
+                }
                 didUpdate = true
             }
         }
@@ -214,9 +241,15 @@ enum JSONLSessionProbe {
                 return (.callingAPI, .streaming)
             }
             return (.idle, .waitingInput(prompt: nil))
-        case "system", "summary", "file-history-snapshot":
-            // turn 收尾 / session 收尾 / 文件快照 → 没有未决任务，视为 idle。
-            return (.idle, .unknown)
+        case "system", "summary", "file-history-snapshot", "ai-title", "last-prompt":
+            // 装饰行：turn 间隙 / session 收尾 / 文件快照 / 异步晚到的会话标题 /
+            // 用户输入草稿快照。它们不携带状态信号，且会在 turn 中间被 hook
+            // 注入——映射成 idle 会把正在 working 的状态错误降级。
+            // 返回 nil 让 AgentMonitor.carryover 接管，沿用上一拍非 idle 状态。
+            // 注意：JSONLProbeContext 也用同一个 decorativeTypes 集合在 tick()
+            // 期间跳过这些行的 lastStateSignalRecord 更新，正常路径走不到这里；
+            // 这里是双重保险（initial bind 后只读到装饰行时仍需保护）。
+            return nil
         case "permission-mode":
             // claude 在等用户授权（y/n / 接受 edit）。状态上仍属 idle（等待输入），
             // 但 detail 用 waitingInput("permission") 标记，UI 可高亮副行。

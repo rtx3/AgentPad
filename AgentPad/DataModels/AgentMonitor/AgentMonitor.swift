@@ -154,6 +154,12 @@ final class AgentMonitor {
             let liveKeys = Set(groups.keys)
             jsonlContexts = jsonlContexts.filter { liveKeys.contains($0.key) }
 
+            // 上一拍按 key 索引；用于 classify==nil 时沿用非 idle 状态。
+            // lastProjects 在本轮 tick 末尾才被覆盖，这里读到的就是上一拍。
+            let prevByKey: [String: AgentProject] = Dictionary(
+                uniqueKeysWithValues: lastProjects.map { ($0.id, $0) }
+            )
+
             var projects: [AgentProject] = []
             projects.reserveCapacity(groups.count)
             for key in insertionOrder {
@@ -164,7 +170,8 @@ final class AgentMonitor {
                                            snaps: g.snaps,
                                            sessionRoots: sessionRoots,
                                            enablePTY: enablePTY,
-                                           staleness: staleness)
+                                           staleness: staleness,
+                                           prev: prevByKey[key])
                 projects.append(project)
                 NSLog("[agent.monitor]   result project=\(key) state=\(project.state) source=\(project.source) detail=\(project.detail) instances=\(project.instanceCount)")
             }
@@ -190,13 +197,15 @@ final class AgentMonitor {
     }
 
     /// 同 (cwd, pattern) 的所有进程聚合为一个 AgentProject。
+    /// `prev` 是上一拍同 key 的 project（如有），用于 classify==nil 时沿用状态。
     private func buildProject(key: String,
                               cwd: String?,
                               pattern: String,
                               snaps: [ProcessSnapshot],
                               sessionRoots: [String: String],
                               enablePTY: Bool,
-                              staleness: TimeInterval) -> AgentProject {
+                              staleness: TimeInterval,
+                              prev: AgentProject?) -> AgentProject {
         // 组内最近启动的代表（PTY 兜底用），与组内最早启动（duration / 排序用）。
         let primary = snaps.max(by: { $0.startedAt < $1.startedAt }) ?? snaps[0]
         let earliest = snaps.min(by: { $0.startedAt < $1.startedAt })?.startedAt ?? primary.startedAt
@@ -213,15 +222,22 @@ final class AgentMonitor {
             jsonlContexts[key] = ctx
             ctx.bind(to: url)
             ctx.tick()
+            // classify 优先用「最近一条状态信号行」，避免 inter-turn 装饰行
+            // (system/summary/file-history-snapshot/ai-title/last-prompt) 把
+            // 仍在进行中的 turn 错误降级到 idle。fallback 到 lastRecord 仅在
+            // 首次 bind 后只读到装饰行的边界情况下生效。
+            let classifyRecord = ctx.lastStateSignalRecord ?? ctx.lastRecord
+            let classifyWriteAt = ctx.lastStateSignalAt ?? ctx.lastWriteAt
             let lastType = ctx.lastRecord?.type ?? "<nil>"
             let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
             let lastStop = ctx.lastRecord?.stopReason ?? "<nil>"
             let lastTool = ctx.lastRecord?.toolUseName ?? "<nil>"
-            NSLog("[agent.monitor]     jsonl tick group=\(key) lastType=\(lastType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
+            let signalType = ctx.lastStateSignalRecord?.type ?? "<nil>"
+            NSLog("[agent.monitor]     jsonl tick group=\(key) lastType=\(lastType) signalType=\(signalType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
             let cls = Self.classifyByPattern(
                 pattern: pattern,
-                record: ctx.lastRecord,
-                lastWriteAt: ctx.lastWriteAt,
+                record: classifyRecord,
+                lastWriteAt: classifyWriteAt,
                 stalenessThreshold: staleness
             )
             if let cls = cls {
@@ -237,8 +253,23 @@ final class AgentMonitor {
                     primaryPid: primary.pid,
                     earliestStartedAt: earliest,
                     sessionId: sid,
-                    lastActivityAt: ctx.lastWriteAt
+                    lastActivityAt: classifyWriteAt
                 )
+            }
+            // P0-2: classify 给不出结论（未知 type / 解析失败 / lastRecord==nil）→
+            // 优先沿用上一拍同 key 的非 idle 状态，避免新增 record 类型把 UI 错误降级到 idle。
+            // 沿用前提：上一拍非 idle 且其 lastActivityAt 距 now 不超过 staleness。
+            if let carry = Self.carryover(prev: prev,
+                                          key: key,
+                                          cwd: cwd,
+                                          agentKind: kindLower,
+                                          instanceCount: snaps.count,
+                                          primaryPid: primary.pid,
+                                          earliestStartedAt: earliest,
+                                          staleness: staleness,
+                                          now: Date()) {
+                NSLog("[agent.monitor]     carryover group=\(key) prevState=\(carry.state) reason=jsonl-classify-nil")
+                return carry
             }
         }
         // 2. PTY 兜底：用最近启动的 pid 做 host 查找（更可能对应用户当前活跃窗口）。
@@ -307,6 +338,42 @@ final class AgentMonitor {
 
     private func locator(for pattern: String) -> SessionLocator? {
         return locators[pattern.lowercased()] ?? locators[pattern]
+    }
+
+    /// classify 返回 nil 时的状态沿用决策。pure / 可单测。
+    ///
+    /// - 仅当上一拍是「非 idle」且其 `lastActivityAt` 距 now 不超过 staleness 时，
+    ///   才沿用其 state / detail / source。
+    /// - 沿用版本保留 prev 的 `lastActivityAt`，使下一拍能基于同一时间点继续判定 staleness。
+    /// - 沿用失败返回 nil → 调用方按原路走 PTY → idle 兜底。
+    static func carryover(prev: AgentProject?,
+                          key: String,
+                          cwd: String?,
+                          agentKind: String,
+                          instanceCount: Int,
+                          primaryPid: pid_t,
+                          earliestStartedAt: Date,
+                          staleness: TimeInterval,
+                          now: Date) -> AgentProject? {
+        guard let prev = prev,
+              prev.state != .idle,
+              let act = prev.lastActivityAt,
+              now.timeIntervalSince(act) <= staleness else {
+            return nil
+        }
+        return AgentProject(
+            id: key,
+            cwd: cwd,
+            agentKind: agentKind,
+            state: prev.state,
+            detail: prev.detail,
+            source: prev.source,
+            instanceCount: instanceCount,
+            primaryPid: primaryPid,
+            earliestStartedAt: earliestStartedAt,
+            sessionId: prev.sessionId,
+            lastActivityAt: prev.lastActivityAt
+        )
     }
 
     private func handleFailure(threshold: Int) {
