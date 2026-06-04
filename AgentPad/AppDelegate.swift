@@ -38,7 +38,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     var agentMonitor: AgentMonitor?
     /// 计划 B：菜单栏图标 + Popover 控制器。
     var statusBarController: StatusBarController?
-    
+
+    /// 状态栏 NSMenu 是否处于打开状态。打开期间 poll 事件需原地刷新已存在的行视图，
+    /// 因为 NSMenu tracking 期间不接受 item 增删。
+    private var agentMenuOpen: Bool = false
+    /// menuWillOpen 时记录每个 project row 对应的视图，poll 期间按 id 原地 configure。
+    private var agentRowViewsByProjectId: [String: AgentMenuRowView] = [:]
+    /// menuWillOpen 时记录的 header item 引用，poll 期间更新计数文案。
+    private weak var agentHeaderItem: NSMenuItem?
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         
@@ -104,10 +112,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             self?.accessibilityOnboardingWindowController = AccessibilityOnboardingWindowController.presentIfNeeded()
         }
 
-        // Agent monitor backend (计划 A)。事件扇出给 StatusBarController（计划 B）。
+        // Agent monitor backend (计划 A)。事件同时扇出给 StatusBarController（菜单栏图标）
+        // 与已展开的状态栏 NSMenu（原地刷新行视图与 header 计数）。
         let monitor = AgentMonitor()
         monitor.setEventHandler { [weak self] event in
             self?.statusBarController?.apply(event: event)
+            self?.refreshOpenAgentMenuRows(event: event)
         }
         monitor.start()
         self.agentMonitor = monitor
@@ -504,11 +514,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     func menuWillOpen(_ menu: NSMenu) {
         guard menu === self.menu else { return }
         rebuildAgentMonitorRows(in: menu)
+        agentMenuOpen = true
+    }
+
+    func menuDidClose(_ menu: NSMenu) {
+        guard menu === self.menu else { return }
+        agentMenuOpen = false
+        agentRowViewsByProjectId.removeAll()
+        agentHeaderItem = nil
     }
 
     private func rebuildAgentMonitorRows(in menu: NSMenu) {
         // 清理上一次注入的 agent 区块。
         menu.items.removeAll { $0.tag == AppDelegate.agentMenuItemTag }
+        agentRowViewsByProjectId.removeAll()
+        agentHeaderItem = nil
 
         let projects = self.agentMonitor?.lastProjects ?? []
         var insertIndex = 0
@@ -517,32 +537,56 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
         let header = NSMenuItem()
         header.tag = AppDelegate.agentMenuItemTag
         header.isEnabled = false
-        let title = NSLocalizedString("agent.monitor.header.title", comment: "")
-        if projects.isEmpty {
-            let empty = NSLocalizedString("agent.monitor.empty.title", comment: "")
-            header.title = "\(title) — \(empty)"
-        } else {
-            let working = projects.reduce(0) { $0 + ($1.state == .idle ? 0 : 1) }
-            let idle = projects.count - working
-            let fmt = NSLocalizedString("agent.monitor.header.count.fmt", comment: "")
-            let counts = String(format: fmt, working, idle)
-            header.title = "\(title) — \(counts)"
-        }
+        header.title = Self.headerTitle(forProjects: projects)
         menu.insertItem(header, at: insertIndex); insertIndex += 1
+        agentHeaderItem = header
 
         // Project rows（自定义 view）。
         let now = Date()
         for p in projects {
             let item = NSMenuItem()
             item.tag = AppDelegate.agentMenuItemTag
-            item.view = AgentMenuRowView(project: p, now: now)
+            let rowView = AgentMenuRowView(project: p, now: now)
+            item.view = rowView
             item.isEnabled = false
             menu.insertItem(item, at: insertIndex); insertIndex += 1
+            agentRowViewsByProjectId[p.id] = rowView
         }
 
         // 与其余菜单内容（手柄状态 / About / Settings / Quit）的分隔。
         let sep = NSMenuItem.separator()
         sep.tag = AppDelegate.agentMenuItemTag
         menu.insertItem(sep, at: insertIndex); insertIndex += 1
+    }
+
+    /// 由 monitor.setEventHandler 在每轮 poll 后调用。
+    /// 仅当状态栏 NSMenu 处于打开期间生效：按 project.id 命中已有 row 视图调用 configure，
+    /// 并刷新 header 计数。新出现 / 已消失的 project 不在本次 tracking 期间增减 item，
+    /// 留到下次菜单打开时由 rebuildAgentMonitorRows 重建。
+    private func refreshOpenAgentMenuRows(event: AgentMonitorEvent) {
+        guard agentMenuOpen else { return }
+        let projects: [AgentProject]
+        switch event {
+        case .updated(let list): projects = list
+        case .empty, .pollingFailed: projects = []
+        }
+        agentHeaderItem?.title = Self.headerTitle(forProjects: projects)
+        let now = Date()
+        for p in projects {
+            agentRowViewsByProjectId[p.id]?.configure(with: p, now: now)
+        }
+    }
+
+    private static func headerTitle(forProjects projects: [AgentProject]) -> String {
+        let title = NSLocalizedString("agent.monitor.header.title", comment: "")
+        if projects.isEmpty {
+            let empty = NSLocalizedString("agent.monitor.empty.title", comment: "")
+            return "\(title) — \(empty)"
+        }
+        let working = projects.reduce(0) { $0 + ($1.state == .idle ? 0 : 1) }
+        let idle = projects.count - working
+        let fmt = NSLocalizedString("agent.monitor.header.count.fmt", comment: "")
+        let counts = String(format: fmt, working, idle)
+        return "\(title) — \(counts)"
     }
 }
