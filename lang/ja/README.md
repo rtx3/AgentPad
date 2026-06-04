@@ -2,121 +2,106 @@
 
 # AgentPad
 
-ゲームコントローラで macOS の AI コーディングエージェント（Claude Code / Cursor / Codex など）を操作するためのツール。手をパッドに置いたまま、approve / reject / diff スクロール / hunk 切替 / chat 送信を行えます。
+**macOS の AI コーディングエージェント用、メニューバー HUD。**
+どのエージェントが作業中か / モデル通信中か / あなたの入力待ちか — 一目で把握。そしてコントローラから手を離さずに approve / reject。
 
-ベースは macOS 向け Joy-Con / Pro Controller / Famicom / SNES Controller のキーマッパーです。
+![hero](screenshot_monitor_hero.png)
 
-![screenshot](screenshot_1.png)
+---
 
-## なぜ AgentPad
+## できること
 
-エージェントセッションは小さな yes/no 判断の連続です。キーボードショートカットでも操作できますが、読みながら手を離すのは煩わしい。AgentPad はゲームコントローラを **エージェント専用リモコン** に変えます。
+今あなたは Claude / Codex / opencode のセッションを 3 つくらい同時に動かしているはずです。1 つはツール実行の途中、1 つはストリーミング中、1 つは `y` の入力を待っている — ウィンドウを切り替えて確かめるまで、どれがどれか分からない。
 
-- **両手の親指だけで approve / reject** — A / B を `y` / `n`、もしくはエージェント側のショートカットへ割り当て。
-- **アプリ別プロファイル** — Terminal の Claude Code、Cursor、ブラウザでそれぞれ別マッピング。フロント切替時に自動で追従。
-- **アプリ別パススルー（PS / Xbox / MFi）** — DualShock 4 / DualSense / Xbox / MFi では、指定アプリで純正ゲームパッドとして振る舞います。
+AgentPad はそれを一瞥に変えます。
 
-### 例：Terminal の Claude Code
+🟢  **Working** — ツール / コマンドを実行中
+🟡  **Calling API** — モデルとストリーミング中
+⚪  **Idle** — あなたの入力待ち
+
+メニューバーアイコンをクリックすると、各エージェントのプロジェクト・稼働時間・PID・現状が見えます。あなたを最も必要としている順にソート。
+
+![menu](screenshot_monitor_menu.png)
+
+---
+
+## 2 つの面
+
+### 1. Monitor — 設定不要
+
+起動するだけ。すでに走っている `claude` / `codex` / `opencode` プロセスを見つけてドットを出します。アカウント不要、API キー不要、ネットワーク通信なし。状態はすべて、ローカルのセッションファイルと（任意で）画面に見えているターミナル文字から読みます。
+
+他の AI ツールを使うなら、設定でプロセスパターンを追加できます。
+
+### 2. コントローラリモコン — 任意
+
+Joy-Con / Pro Controller / Famicom / SNES をキーボードショートカットにマッピング。定番の組み合わせ：
 
 | ボタン | 動作 |
 | --- | --- |
 | A | `y`（approve） |
 | B | `n`（reject） |
-| L / R | 上 / 下スクロール |
+| L / R | diff スクロール |
 | Start | `Ctrl+C` |
-| Home | ターミナルにフォーカス / プロファイル切替 |
 
-## 機能
+フロントアプリに応じてプロファイルが自動切替。PlayStation / Xbox / MFi コントローラは Passthrough 指定すれば、ゲームでは純正ゲームパッドとして振る舞います。
 
-- ボタン / スティック → キーボードキー、マウスボタン、システムアクションへマッピング。
-- **アプリ別マッピング** — フロントアプリに応じて自動切替。
-- **シンプルキャプチャモード** — キーボードを 1 度押すだけで割当 & 自動確定。組合せキーは詳細モードで対応。
-- **Sync from Default** — デフォルトプロファイルを 1 クリックでアプリ別マッピングに上書き（Undo 対応）。
-- **アプリ別パススルー（PS / Xbox / MFi のみ）** — 非任天堂コントローラでは、指定アプリでマッピングを行わず純正ゲームパッドとして利用できます。Joy-Con / Pro Controller での制約は [既知の制限](#既知の制限) を参照。
-- **コントローラ一覧にモデル名を表示**（Joy-Con (L) / Joy-Con (R) / Pro Controller / SNES / Famicom 1 / Famicom 2）。
-- **アクセシビリティ権限のガイド** — 初回起動時にシステム権限の付与手順を案内。
-- システム外観（ライト / ダーク）に追従する AppKit ネイティブ UI。
+> 注意：Joy-Con / Pro Controller は macOS 上で **排他 seize モード** で開かれます — AgentPad 起動中はゲームと共有できません。詳細は [既知の制限](#既知の制限)。
 
-現在対応するコントローラ：Joy-Con (L) / Joy-Con (R) / Pro Controller / Famicom 1・2 / SNES Online Controller。DualShock 4 / DualSense / Xbox / MFi は今後対応予定（[docs/plan.md](../../docs/plan.md) 参照）。
+---
 
-## GitHub からインストール
+## インストール
 
-1. [Releases](<TODO: repo-url>/releases) から `AgentPad-vX.X.X.dmg` をダウンロード。
-2. `AgentPad.app` を `/Applications` にコピー。
+1. [Releases](https://github.com/rtx3/AgentPad/releases) から `AgentPad-vX.X.X.dmg` をダウンロード。
+2. `AgentPad.app` を `/Applications` にドラッグ。
+3. 一度起動し、アクセシビリティ権限を許可。
 
-![screenshot_install](screenshot_2.png)
+Developer ID 署名 + 公証済みのため、Gatekeeper は初回起動からそのまま受け入れます — 右クリック→開く の操作は不要です。
 
-## 使い方
+![install](screenshot_2.png)
 
-1. Bluetooth でコントローラを Mac に接続
+---
 
-    1.1. 「システム設定」>「Bluetooth」を開く
+## 権限について
 
-    1.2. コントローラのシンクロボタンを長押し
+アクセシビリティ権限が必要な機能：
 
-    1.3. Mac で「接続」ボタンを押す
+- 画面に見えているターミナルウィンドウの読み取り（セッションファイルを書かないエージェントの状態フォールバック）
+- コントローラからのキーストローク送信
 
-    ![screenshot_usage_1_3](screenshot_3.png)
+初回起動時に許可しても、後回しでも OK — Monitor は JSONL だけのデグラデーションモードでも動きますし、Controller はそもそもオプトインなので。
 
-2. キー設定
-
-    2.1 AgentPad.app を起動
-
-    2.2 メニューから「設定…」を選択
-
-    ![screenshot_usage_2_2](screenshot_4.png)
-
-    2.3 アプリ別マッピングを行うアプリを追加（任意）。**Sync from Default** でデフォルトマッピングをコピー、**Passthrough** チェックボックスで対象アプリではマッピングを停止できます。
-
-    ![screenshot_usage_2_3](screenshot_5.png)
-
-    2.4 ボタンをクリックしてキー設定。キャプチャダイアログには 2 つのモード：
-
-    - **Simple** — キーを 1 度押すだけで割当、自動でクローズ。
-    - **Detailed** — キー + ⌘ / ⌥ / ⌃ / ⇧ 修飾キー、もしくはマウスボタンを選択。
-
-    ![screenshot_usage_2_4_1](screenshot_6.png)
-
-    ![screenshot_usage_2_4_2](screenshot_7.png)
-
-3. AgentPad に「アクセシビリティ」を許可
-
-    3.1 コントローラ使用時にアプリ内ガイド（またはシステムアラート）が表示されます。
-
-    ![screenshot_usage_3_1](screenshot_8.png)
-
-    3.2 「システム設定」>「プライバシーとセキュリティ」>「アクセシビリティ」で「AgentPad.app」を有効化。
-
-    ![screenshot_usage_3_2](screenshot_9.png)
+---
 
 ## 既知の制限
 
-### AgentPad 起動中は任天堂コントローラをゲームで使用できません
+**AgentPad 起動中、任天堂コントローラはゲームで使えません。** AgentPad は IOKit 排他 seize モードで Joy-Con / Pro Controller を開きます（macOS 上で振動・IMU・LED・全ボタンを得られる唯一の経路）。ゲームから使い直すには、AgentPad を終了したうえで、コントローラの電源を入れ直すか Bluetooth から外して再ペアリングしてください。
 
-AgentPad は Joy-Con / Pro Controller を読み取るために IOKit HID API を **排他 seize モード** で開いています。これは macOS 上で振動 / IMU / プレイヤー LED / 全ボタンに完全アクセスできる唯一の経路ですが、AgentPad が seize している間は **Switch エミュレータ、Steam、その他ゲームを含むいかなる他プロセスもこれらのコントローラから入力を読めません**。
+PlayStation / Xbox / MFi コントローラは `GameController.framework` 経由（共有システム経路）のため、Passthrough が通常通り動きます。
 
-Passthrough 設定および AgentPad の終了はどちらも IOKit ハンドルを閉じますが、macOS は Bluetooth 接続の任天堂コントローラを seize セッション終了後に他クライアントへ再公開しません。**Joy-Con / Pro Controller をゲームで使うには、AgentPad を終了した後、Mac の Bluetooth メニューから一度コントローラを切断（またはコントローラの電源を入れ直し）し、再接続してください。**
-
-この制限は任天堂コントローラのみに該当します。**PlayStation / Xbox / MFi コントローラは `GameController.framework` 経由**（共有システム経路）で動作するため、アプリ別パススルーが通常通り使えます。
+---
 
 ## ロードマップ
 
-- `GameController.framework` 経由で DualShock 4 / DualSense / Xbox / MFi に対応。
-- GitHub 配布版に Sparkle 2 で自動アップデート。
+- DualShock 4 / DualSense / Xbox / MFi 対応
+- エージェントが Idle になったら LED 点滅 / 振動で通知
+- Popover から特定エージェントのターミナルウィンドウへ一発フォーカス
+- Sparkle 2 によるアプリ内自動アップデート
+- エージェント単位の稼働 / 状態統計
 
-詳細は [docs/plan.md](../../docs/plan.md) を参照。
+全計画：[docs/plan.md](../../docs/plan.md)
+
+---
 
 ## ソースからビルド
-
-Xcode と CocoaPods が必要です。
 
 ```sh
 pod install
 open AgentPad.xcworkspace
 ```
 
-`AgentPad` スキームでビルド & 実行。
+`AgentPad` スキームでビルド & 実行。Xcode と CocoaPods が必要です。
 
-## 参考
+---
 
-[JoyConSwift](https://github.com/magicien/JoyConSwift) — Joy-Con / Pro Controller 用 IOKit ラッパー（macOS, Swift）。AgentPad の Joy-Con バックエンドで利用しています。
+Nintendo コントローラの IO は [JoyConSwift](https://github.com/magicien/JoyConSwift) に依拠しています。
