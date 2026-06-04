@@ -108,4 +108,26 @@ final class CodexJSONLProbeTests: XCTestCase {
         let cls = CodexJSONLProbe.classify(record: rec, lastWriteAt: Date())
         XCTAssertNil(cls)
     }
+
+    // MARK: - error
+
+    /// payload.type=="error" → error；payload.error 文本作为 reason。
+    func testEventMsgErrorClassifiesAsError() {
+        let line = "{\"type\":\"event_msg\",\"payload\":{\"type\":\"error\",\"error\":\"429 rate_limit\"}}"
+        let rec = JSONLRecord.parse(line: line)
+        let cls = CodexJSONLProbe.classify(record: rec, lastWriteAt: Date())
+        XCTAssertEqual(cls?.state, .error)
+        if case .errored(let reason) = cls?.detail {
+            XCTAssertEqual(reason, "429 rate_limit")
+        } else {
+            XCTFail("expected .errored")
+        }
+    }
+
+    /// turn_aborted 维持 idle，不归 error（用户主动按 ESC 中断是常态）。
+    func testTurnAbortedStaysIdleNotError() {
+        let rec = makeRecord(type: "event_msg", payloadType: "turn_aborted")
+        let cls = CodexJSONLProbe.classify(record: rec, lastWriteAt: Date())
+        XCTAssertEqual(cls?.state, .idle)
+    }
 }

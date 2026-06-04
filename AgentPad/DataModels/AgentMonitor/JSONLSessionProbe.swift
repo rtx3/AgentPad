@@ -233,6 +233,14 @@ enum JSONLSessionProbe {
                          stalenessThreshold: TimeInterval = 90) -> (state: AgentState, detail: AgentStateDetail)? {
         guard let rec = record else { return nil }
 
+        // permission-mode 永不 stale：claude 写这行后等用户回答，期间不会再写
+        // jsonl，且实测这类行常缺 timestamp 字段（fallback 到 fileMtime 也偏旧）。
+        // 跑 staleness 闸门会把"用户没在 5 分钟内点 y/n"误降为 idle，与 querying
+        // 产品意图相反——必须在闸门之前判定。
+        if rec.type == "permission-mode" {
+            return (.querying, .querying(question: "permission"))
+        }
+
         // staleness 闸门：末行时间距 now 超过阈值 → 强制 idle。
         // 仅当 lastWriteAt 已知时启用；未知时按原逻辑走。
         if let writeAt = lastWriteAt, now.timeIntervalSince(writeAt) > stalenessThreshold {
@@ -268,9 +276,11 @@ enum JSONLSessionProbe {
             // 期间跳过这些行的 lastStateSignalRecord 更新，正常路径走不到这里；
             // 这里是双重保险（initial bind 后只读到装饰行时仍需保护）。
             //
-            // 例外：携带 errorMessage 的 system 行（claude 写 api_error / 校验失败时）
-            // 仍归 error。装饰行通常不带 error 字段，所以这里几乎不会假阳性。
-            if rec.errorMessage != nil {
+            // 例外：仅 type=="system" 携带 errorMessage 时归 error。
+            // - claude 用 system+subtype=api_error 报告 API 失败，是真错误信号。
+            // - 其它装饰行（summary / ai-title 等）即使意外带 error 字段也不该高亮整组——
+            //   ai-title 生成失败之类的异常不是 agent 状态错误。
+            if rec.type == "system", rec.errorMessage != nil {
                 return (.error, .errored(reason: rec.errorMessage))
             }
             return nil

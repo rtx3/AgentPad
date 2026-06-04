@@ -30,16 +30,21 @@ APP_ENTITLEMENTS="${PROJECT_ROOT}/AgentPad/AgentPad.entitlements"
 DMG_PATH="${TMP_DIR}/AgentPad-${VERSION}.dmg"
 BUNDLE_ID="com.rtx3.agentpad"
 
-if [ "${APP_API_USER}" == "" ]; then
-  read -p "App Connect User: " APP_API_USER
-fi
-
 if [ "${APP_API_ISSUER}" == "" ]; then
-  read -p "App Connect Issuer: " APP_API_ISSUER
+  read -p "App Store Connect Issuer ID: " APP_API_ISSUER
 fi
 
 if [ "${APP_API_KEY_ID}" == "" ]; then
-  read -p "App Connect Key ID: " APP_API_KEY_ID
+  read -p "App Store Connect Key ID: " APP_API_KEY_ID
+fi
+
+if [ "${APP_API_KEY_PATH}" == "" ]; then
+  read -p "App Store Connect Key Path (.p8 file): " APP_API_KEY_PATH
+fi
+
+if [ ! -f "${APP_API_KEY_PATH}" ]; then
+  echo "error: API key file not found: ${APP_API_KEY_PATH}"
+  exit 3
 fi
 
 # Copy App
@@ -71,52 +76,16 @@ if [ $? -ne 0 ]; then
   exit 6
 fi
 
-# Notarize the dmg file
+# Notarize the dmg file (synchronous: --wait blocks until Apple finishes)
 echo "Notarizing the dmg file..."
-RESULT=`xcrun altool --notarize-app \
-  --primary-bundle-id "${BUNDLE_ID}" \
-  -u "${APP_API_USER}" \
-  --apiKey "${APP_API_KEY_ID}" \
-  --apiIssuer "${APP_API_ISSUER}" \
-  -t osx -f "${DMG_PATH}"`
-
-echo "${RESULT}"
-REQUEST_UUID=`echo "${RESULT}" | grep "RequestUUID = " | sed "s/RequestUUID = \(.*\)$/\1/"`
-if [ "${REQUEST_UUID}" == "" ]; then
-  echo "error: Failed to notarize the dmg file"
+xcrun notarytool submit "${DMG_PATH}" \
+  --key "${APP_API_KEY_PATH}" \
+  --key-id "${APP_API_KEY_ID}" \
+  --issuer "${APP_API_ISSUER}" \
+  --wait
+if [ $? -ne 0 ]; then
+  echo "error: Notarization failed"
   exit 7
-fi
-
-echo "Waiting for the approval..."
-echo "It would take few minutes"
-RETRY=20
-APPROVED=false
-for i in `seq ${RETRY}`; do
-  sleep 30
-  RESULT=`xcrun altool --notarization-history 0 \
-    -u "${APP_API_USER}" \
-    --apiKey "${APP_API_KEY_ID}" \
-    --apiIssuer "${APP_API_ISSUER}"`
-  STATUS=`echo "${RESULT}" | grep "${REQUEST_UUID}" | cut -f 5- -d " "`
-
-  if `echo "${STATUS}" | grep "Package Approved" > /dev/null`; then
-    APPROVED=true
-    break
-  elif [ "${STATUS}" == "" ]; then
-    echo "waiting for updating the notarization history..."
-  elif `echo "${STATUS}" | grep "in progress" > /dev/null`; then
-    echo "in progress..."
-  else
-    echo "${RESULT}"
-    echo "error: Invalid notarization status: ${STATUS}"
-    exit 8
-  fi
-done
-
-echo "${RESULT}"
-if [ ${APPROVED} = false ] ; then
-  echo "error: Approval timeout"
-  exit 9
 fi
 
 # Staple a ticket to the dmg file

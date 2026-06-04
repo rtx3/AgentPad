@@ -8,36 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		49B4DBC043C8057C97E15A25 /* Pods_AgentPad.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */; };
-		DDA9000100000001 /* AgentMacroStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000200000001 /* AgentMacroStep.swift */; };
-		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
-		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
-		DDA9000700000001 /* AgentMacroEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000800000001 /* AgentMacroEditorView.swift */; };
-		DDAB001100000001 /* AgentProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000100000001 /* AgentProcess.swift */; };
-		DDAB001200000001 /* ProcessScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000200000001 /* ProcessScanner.swift */; };
-		DDAB001300000001 /* TerminalHostResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000300000001 /* TerminalHostResolver.swift */; };
-		DDAB001400000001 /* PTYStateProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000400000001 /* PTYStateProbe.swift */; };
-		DDAB001500000001 /* SessionLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000500000001 /* SessionLocator.swift */; };
-		DDAB001600000001 /* JSONLSessionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000600000001 /* JSONLSessionProbe.swift */; };
-		DDAB001700000001 /* AgentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000700000001 /* AgentMonitor.swift */; };
-		DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001000000001 /* StatusBarIconRenderer.swift */; };
-		DDAD002A00000001 /* AgentMenuRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001A00000001 /* AgentMenuRowView.swift */; };
-		DDAD002100000001 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001100000001 /* StatusBarController.swift */; };
-		DDAD002200000001 /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001200000001 /* AgentRowView.swift */; };
-		DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001300000001 /* AgentMonitorEmptyView.swift */; };
-		DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001400000001 /* AgentMonitorErrorView.swift */; };
-		DDAD002500000001 /* AgentMonitorPopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001500000001 /* AgentMonitorPopoverController.swift */; };
-		DDAD002600000001 /* AgentMonitorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001600000001 /* AgentMonitorViewController.swift */; };
-		DDAD002700000001 /* AgentMonitorSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001700000001 /* AgentMonitorSettingsViewController.swift */; };
-		DDAD002800000001 /* AgentPadWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001800000001 /* AgentPadWindowController.swift */; };
-		DDAC003000000001 /* JSONLSessionProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001000000001 /* JSONLSessionProbeTests.swift */; };
-		DDAC003100000001 /* PTYStateProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001100000001 /* PTYStateProbeTests.swift */; };
-		DDAC003200000001 /* SessionLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001200000001 /* SessionLocatorTests.swift */; };
-		DDAC003300000001 /* ProcessScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001300000001 /* ProcessScannerTests.swift */; };
-		DDAC003400000001 /* CodexJSONLProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001400000001 /* CodexJSONLProbeTests.swift */; };
-		DDAC004000000001 /* streaming.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002000000001 /* streaming.jsonl */; };
-		DDAC004100000001 /* tool_use.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002100000001 /* tool_use.jsonl */; };
-		DDAC004200000001 /* completed.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002200000001 /* completed.jsonl */; };
-		DDAC004300000001 /* waiting_user.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002300000001 /* waiting_user.jsonl */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
@@ -45,7 +15,6 @@
 		DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */; };
 		DD05303924272D920091B3C6 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303724272D920091B3C6 /* Notifications.swift */; };
 		DD05303A24272D920091B3C6 /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303824272D920091B3C6 /* Utils.swift */; };
-		DDB20B30000000000000B030 /* ControllerButtonNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A30000000000000A030 /* ControllerButtonNames.swift */; };
 		DD05305024272DAA0091B3C6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303C24272DAA0091B3C6 /* ViewController.swift */; };
 		DD05305124272DAA0091B3C6 /* KeyConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */; };
 		DD05305224272DAA0091B3C6 /* KeyConfigComboBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */; };
@@ -71,7 +40,37 @@
 		DDA072B1246699C500F9B80B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = DDA072B3246699C500F9B80B /* Localizable.strings */; };
 		DDA11B0501010001000A0A0A /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */; };
 		DDA11B0701010001000A0A0A /* AccessibilityOnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */; };
+		DDA9000100000001 /* AgentMacroStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000200000001 /* AgentMacroStep.swift */; };
+		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
+		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
+		DDA9000700000001 /* AgentMacroEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000800000001 /* AgentMacroEditorView.swift */; };
+		DDAB001100000001 /* AgentProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000100000001 /* AgentProcess.swift */; };
+		DDAB001200000001 /* ProcessScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000200000001 /* ProcessScanner.swift */; };
+		DDAB001300000001 /* TerminalHostResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000300000001 /* TerminalHostResolver.swift */; };
+		DDAB001400000001 /* PTYStateProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000400000001 /* PTYStateProbe.swift */; };
+		DDAB001500000001 /* SessionLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000500000001 /* SessionLocator.swift */; };
+		DDAB001600000001 /* JSONLSessionProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000600000001 /* JSONLSessionProbe.swift */; };
+		DDAB001700000001 /* AgentMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000700000001 /* AgentMonitor.swift */; };
+		DDAC003000000001 /* JSONLSessionProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001000000001 /* JSONLSessionProbeTests.swift */; };
+		DDAC003100000001 /* PTYStateProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001100000001 /* PTYStateProbeTests.swift */; };
+		DDAC003200000001 /* SessionLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001200000001 /* SessionLocatorTests.swift */; };
+		DDAC003300000001 /* ProcessScannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001300000001 /* ProcessScannerTests.swift */; };
+		DDAC003400000001 /* CodexJSONLProbeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC001400000001 /* CodexJSONLProbeTests.swift */; };
+		DDAC004000000001 /* streaming.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002000000001 /* streaming.jsonl */; };
+		DDAC004100000001 /* tool_use.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002100000001 /* tool_use.jsonl */; };
+		DDAC004200000001 /* completed.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002200000001 /* completed.jsonl */; };
+		DDAC004300000001 /* waiting_user.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = DDAC002300000001 /* waiting_user.jsonl */; };
 		DDAC3B4024151C350022FF32 /* AppNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC3B3F24151C350022FF32 /* AppNotifications.swift */; };
+		DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001000000001 /* StatusBarIconRenderer.swift */; };
+		DDAD002100000001 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001100000001 /* StatusBarController.swift */; };
+		DDAD002200000001 /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001200000001 /* AgentRowView.swift */; };
+		DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001300000001 /* AgentMonitorEmptyView.swift */; };
+		DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001400000001 /* AgentMonitorErrorView.swift */; };
+		DDAD002500000001 /* AgentMonitorPopoverController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001500000001 /* AgentMonitorPopoverController.swift */; };
+		DDAD002600000001 /* AgentMonitorViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001600000001 /* AgentMonitorViewController.swift */; };
+		DDAD002700000001 /* AgentMonitorSettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001700000001 /* AgentMonitorSettingsViewController.swift */; };
+		DDAD002800000001 /* AgentPadWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001800000001 /* AgentPadWindowController.swift */; };
+		DDAD002A00000001 /* AgentMenuRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001A00000001 /* AgentMenuRowView.swift */; };
 		DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */; };
 		DDB20B01000000000000B001 /* ControllerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A01000000000000A001 /* ControllerButton.swift */; };
 		DDB20B02000000000000B002 /* ControllerStick.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A02000000000000A002 /* ControllerStick.swift */; };
@@ -83,8 +82,19 @@
 		DDB20B08000000000000B008 /* JoyConDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A08000000000000A008 /* JoyConDiscovery.swift */; };
 		DDB20B09000000000000B009 /* GCControllerBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A09000000000000A009 /* GCControllerBackend.swift */; };
 		DDB20B0A000000000000B00A /* GCControllerDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A0A000000000000A00A /* GCControllerDiscovery.swift */; };
+		DDB20B30000000000000B030 /* ControllerButtonNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB20A30000000000000A030 /* ControllerButtonNames.swift */; };
 		DDC0FEA02497D911009090BE /* PassthroughCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DDAC170000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DD0AE2D922DAB13100B68F05 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DD0AE2E022DAB13100B68F05;
+			remoteInfo = AgentPad;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		DD87448D2414B89600B3AB11 /* CopyFiles */ = {
@@ -103,37 +113,6 @@
 		291932F3A44BA30E0D45ADA1 /* Pods-AgentPad.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AgentPad.debug.xcconfig"; path = "Target Support Files/Pods-AgentPad/Pods-AgentPad.debug.xcconfig"; sourceTree = "<group>"; };
 		42872285F01B63D4297263E6 /* Pods-AgentPad.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AgentPad.release.xcconfig"; path = "Target Support Files/Pods-AgentPad/Pods-AgentPad.release.xcconfig"; sourceTree = "<group>"; };
 		CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AgentPad.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		DDA9000200000001 /* AgentMacroStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroStep.swift; sourceTree = "<group>"; };
-		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
-		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
-		DDA9000800000001 /* AgentMacroEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroEditorView.swift; sourceTree = "<group>"; };
-		DDAB000100000001 /* AgentProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProcess.swift; sourceTree = "<group>"; };
-		DDAB000200000001 /* ProcessScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScanner.swift; sourceTree = "<group>"; };
-		DDAB000300000001 /* TerminalHostResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalHostResolver.swift; sourceTree = "<group>"; };
-		DDAB000400000001 /* PTYStateProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbe.swift; sourceTree = "<group>"; };
-		DDAB000500000001 /* SessionLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocator.swift; sourceTree = "<group>"; };
-		DDAB000600000001 /* JSONLSessionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbe.swift; sourceTree = "<group>"; };
-		DDAB000700000001 /* AgentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitor.swift; sourceTree = "<group>"; };
-		DDAC001000000001 /* JSONLSessionProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbeTests.swift; sourceTree = "<group>"; };
-		DDAC001100000001 /* PTYStateProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbeTests.swift; sourceTree = "<group>"; };
-		DDAC001200000001 /* SessionLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocatorTests.swift; sourceTree = "<group>"; };
-		DDAC001300000001 /* ProcessScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScannerTests.swift; sourceTree = "<group>"; };
-		DDAC001400000001 /* CodexJSONLProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexJSONLProbeTests.swift; sourceTree = "<group>"; };
-		DDAC002000000001 /* streaming.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = streaming.jsonl; sourceTree = "<group>"; };
-		DDAC002100000001 /* tool_use.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = tool_use.jsonl; sourceTree = "<group>"; };
-		DDAC002200000001 /* completed.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = completed.jsonl; sourceTree = "<group>"; };
-		DDAC002300000001 /* waiting_user.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = waiting_user.jsonl; sourceTree = "<group>"; };
-		DDAC190000000001 /* AgentPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		DDAD001000000001 /* StatusBarIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarIconRenderer.swift; sourceTree = "<group>"; };
-		DDAD001A00000001 /* AgentMenuRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMenuRowView.swift; sourceTree = "<group>"; };
-		DDAD001100000001 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
-		DDAD001200000001 /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
-		DDAD001300000001 /* AgentMonitorEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorEmptyView.swift; sourceTree = "<group>"; };
-		DDAD001400000001 /* AgentMonitorErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorErrorView.swift; sourceTree = "<group>"; };
-		DDAD001500000001 /* AgentMonitorPopoverController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorPopoverController.swift; sourceTree = "<group>"; };
-		DDAD001600000001 /* AgentMonitorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorViewController.swift; sourceTree = "<group>"; };
-		DDAD001700000001 /* AgentMonitorSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorSettingsViewController.swift; sourceTree = "<group>"; };
-		DDAD001800000001 /* AgentPadWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPadWindowController.swift; sourceTree = "<group>"; };
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
@@ -141,7 +120,6 @@
 		DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameControllerIcon.swift; sourceTree = "<group>"; };
 		DD05303724272D920091B3C6 /* Notifications.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		DD05303824272D920091B3C6 /* Utils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utils.swift; sourceTree = "<group>"; };
-		DDB20A30000000000000A030 /* ControllerButtonNames.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerButtonNames.swift; sourceTree = "<group>"; };
 		DD05303C24272DAA0091B3C6 /* ViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		DD05303E24272DAA0091B3C6 /* KeyConfigViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigViewController.swift; sourceTree = "<group>"; };
 		DD05303F24272DAA0091B3C6 /* KeyConfigComboBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyConfigComboBox.swift; sourceTree = "<group>"; };
@@ -175,7 +153,38 @@
 		DDA072B4246699CA00F9B80B /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityOnboardingWindowController.swift; sourceTree = "<group>"; };
+		DDA9000200000001 /* AgentMacroStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroStep.swift; sourceTree = "<group>"; };
+		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
+		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
+		DDA9000800000001 /* AgentMacroEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroEditorView.swift; sourceTree = "<group>"; };
+		DDAB000100000001 /* AgentProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProcess.swift; sourceTree = "<group>"; };
+		DDAB000200000001 /* ProcessScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScanner.swift; sourceTree = "<group>"; };
+		DDAB000300000001 /* TerminalHostResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalHostResolver.swift; sourceTree = "<group>"; };
+		DDAB000400000001 /* PTYStateProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbe.swift; sourceTree = "<group>"; };
+		DDAB000500000001 /* SessionLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocator.swift; sourceTree = "<group>"; };
+		DDAB000600000001 /* JSONLSessionProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbe.swift; sourceTree = "<group>"; };
+		DDAB000700000001 /* AgentMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitor.swift; sourceTree = "<group>"; };
+		DDAC001000000001 /* JSONLSessionProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONLSessionProbeTests.swift; sourceTree = "<group>"; };
+		DDAC001100000001 /* PTYStateProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTYStateProbeTests.swift; sourceTree = "<group>"; };
+		DDAC001200000001 /* SessionLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionLocatorTests.swift; sourceTree = "<group>"; };
+		DDAC001300000001 /* ProcessScannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScannerTests.swift; sourceTree = "<group>"; };
+		DDAC001400000001 /* CodexJSONLProbeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexJSONLProbeTests.swift; sourceTree = "<group>"; };
+		DDAC002000000001 /* streaming.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = streaming.jsonl; sourceTree = "<group>"; };
+		DDAC002100000001 /* tool_use.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = tool_use.jsonl; sourceTree = "<group>"; };
+		DDAC002200000001 /* completed.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = completed.jsonl; sourceTree = "<group>"; };
+		DDAC002300000001 /* waiting_user.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = waiting_user.jsonl; sourceTree = "<group>"; };
+		DDAC190000000001 /* AgentPadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentPadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDAC3B3F24151C350022FF32 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
+		DDAD001000000001 /* StatusBarIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarIconRenderer.swift; sourceTree = "<group>"; };
+		DDAD001100000001 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		DDAD001200000001 /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
+		DDAD001300000001 /* AgentMonitorEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorEmptyView.swift; sourceTree = "<group>"; };
+		DDAD001400000001 /* AgentMonitorErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorErrorView.swift; sourceTree = "<group>"; };
+		DDAD001500000001 /* AgentMonitorPopoverController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorPopoverController.swift; sourceTree = "<group>"; };
+		DDAD001600000001 /* AgentMonitorViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorViewController.swift; sourceTree = "<group>"; };
+		DDAD001700000001 /* AgentMonitorSettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorSettingsViewController.swift; sourceTree = "<group>"; };
+		DDAD001800000001 /* AgentPadWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPadWindowController.swift; sourceTree = "<group>"; };
+		DDAD001A00000001 /* AgentMenuRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMenuRowView.swift; sourceTree = "<group>"; };
 		DDB13F0024272DAA0091B3C6 /* KeyCaptureField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyCaptureField.swift; sourceTree = "<group>"; };
 		DDB20A01000000000000A001 /* ControllerButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerButton.swift; sourceTree = "<group>"; };
 		DDB20A02000000000000A002 /* ControllerStick.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerStick.swift; sourceTree = "<group>"; };
@@ -187,6 +196,7 @@
 		DDB20A08000000000000A008 /* JoyConDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoyConDiscovery.swift; sourceTree = "<group>"; };
 		DDB20A09000000000000A009 /* GCControllerBackend.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCControllerBackend.swift; sourceTree = "<group>"; };
 		DDB20A0A000000000000A00A /* GCControllerDiscovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GCControllerDiscovery.swift; sourceTree = "<group>"; };
+		DDB20A30000000000000A030 /* ControllerButtonNames.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerButtonNames.swift; sourceTree = "<group>"; };
 		DDC0FE9F2497D911009090BE /* PassthroughCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PassthroughCoordinator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -249,30 +259,6 @@
 			path = DataModels;
 			sourceTree = "<group>";
 		};
-		DDA9000900000001 /* Agent */ = {
-			isa = PBXGroup;
-			children = (
-				DDA9000200000001 /* AgentMacroStep.swift */,
-				DDA9000400000001 /* AgentMacroRunner.swift */,
-				DDA9000600000001 /* Writeback.swift */,
-			);
-			path = Agent;
-			sourceTree = "<group>";
-		};
-		DDAB000000000001 /* AgentMonitor */ = {
-			isa = PBXGroup;
-			children = (
-				DDAB000100000001 /* AgentProcess.swift */,
-				DDAB000200000001 /* ProcessScanner.swift */,
-				DDAB000300000001 /* TerminalHostResolver.swift */,
-				DDAB000400000001 /* PTYStateProbe.swift */,
-				DDAB000500000001 /* SessionLocator.swift */,
-				DDAB000600000001 /* JSONLSessionProbe.swift */,
-				DDAB000700000001 /* AgentMonitor.swift */,
-			);
-			path = AgentMonitor;
-			sourceTree = "<group>";
-		};
 		DD05303624272D920091B3C6 /* Misc */ = {
 			isa = PBXGroup;
 			children = (
@@ -301,37 +287,6 @@
 				DDAD000200000001 /* AgentMonitorSettings */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		DDAD000000000001 /* StatusBar */ = {
-			isa = PBXGroup;
-			children = (
-				DDAD001000000001 /* StatusBarIconRenderer.swift */,
-				DDAD001100000001 /* StatusBarController.swift */,
-				DDAD001A00000001 /* AgentMenuRowView.swift */,
-			);
-			path = StatusBar;
-			sourceTree = "<group>";
-		};
-		DDAD000100000001 /* AgentMonitor */ = {
-			isa = PBXGroup;
-			children = (
-				DDAD001200000001 /* AgentRowView.swift */,
-				DDAD001300000001 /* AgentMonitorEmptyView.swift */,
-				DDAD001400000001 /* AgentMonitorErrorView.swift */,
-				DDAD001500000001 /* AgentMonitorPopoverController.swift */,
-				DDAD001600000001 /* AgentMonitorViewController.swift */,
-			);
-			path = AgentMonitor;
-			sourceTree = "<group>";
-		};
-		DDAD000200000001 /* AgentMonitorSettings */ = {
-			isa = PBXGroup;
-			children = (
-				DDAD001700000001 /* AgentMonitorSettingsViewController.swift */,
-				DDAD001800000001 /* AgentPadWindowController.swift */,
-			);
-			path = AgentMonitorSettings;
 			sourceTree = "<group>";
 		};
 		DD05303D24272DAA0091B3C6 /* KeyConfigView */ = {
@@ -407,38 +362,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		DDAC000000000001 /* AgentPadTests */ = {
-			isa = PBXGroup;
-			children = (
-				DDAC000100000001 /* AgentMonitorTests */,
-			);
-			path = AgentPadTests;
-			sourceTree = "<group>";
-		};
-		DDAC000100000001 /* AgentMonitorTests */ = {
-			isa = PBXGroup;
-			children = (
-				DDAC001000000001 /* JSONLSessionProbeTests.swift */,
-				DDAC001100000001 /* PTYStateProbeTests.swift */,
-				DDAC001200000001 /* SessionLocatorTests.swift */,
-				DDAC001300000001 /* ProcessScannerTests.swift */,
-				DDAC001400000001 /* CodexJSONLProbeTests.swift */,
-				DDAC000200000001 /* Fixtures */,
-			);
-			path = AgentMonitorTests;
-			sourceTree = "<group>";
-		};
-		DDAC000200000001 /* Fixtures */ = {
-			isa = PBXGroup;
-			children = (
-				DDAC002000000001 /* streaming.jsonl */,
-				DDAC002100000001 /* tool_use.jsonl */,
-				DDAC002200000001 /* completed.jsonl */,
-				DDAC002300000001 /* waiting_user.jsonl */,
-			);
-			path = Fixtures;
-			sourceTree = "<group>";
-		};
 		DD0AE2E322DAB13100B68F05 /* AgentPad */ = {
 			isa = PBXGroup;
 			children = (
@@ -472,6 +395,93 @@
 				DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		DDA9000900000001 /* Agent */ = {
+			isa = PBXGroup;
+			children = (
+				DDA9000200000001 /* AgentMacroStep.swift */,
+				DDA9000400000001 /* AgentMacroRunner.swift */,
+				DDA9000600000001 /* Writeback.swift */,
+			);
+			path = Agent;
+			sourceTree = "<group>";
+		};
+		DDAB000000000001 /* AgentMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				DDAB000100000001 /* AgentProcess.swift */,
+				DDAB000200000001 /* ProcessScanner.swift */,
+				DDAB000300000001 /* TerminalHostResolver.swift */,
+				DDAB000400000001 /* PTYStateProbe.swift */,
+				DDAB000500000001 /* SessionLocator.swift */,
+				DDAB000600000001 /* JSONLSessionProbe.swift */,
+				DDAB000700000001 /* AgentMonitor.swift */,
+			);
+			path = AgentMonitor;
+			sourceTree = "<group>";
+		};
+		DDAC000000000001 /* AgentPadTests */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC000100000001 /* AgentMonitorTests */,
+			);
+			path = AgentPadTests;
+			sourceTree = "<group>";
+		};
+		DDAC000100000001 /* AgentMonitorTests */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC001000000001 /* JSONLSessionProbeTests.swift */,
+				DDAC001100000001 /* PTYStateProbeTests.swift */,
+				DDAC001200000001 /* SessionLocatorTests.swift */,
+				DDAC001300000001 /* ProcessScannerTests.swift */,
+				DDAC001400000001 /* CodexJSONLProbeTests.swift */,
+				DDAC000200000001 /* Fixtures */,
+			);
+			path = AgentMonitorTests;
+			sourceTree = "<group>";
+		};
+		DDAC000200000001 /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				DDAC002000000001 /* streaming.jsonl */,
+				DDAC002100000001 /* tool_use.jsonl */,
+				DDAC002200000001 /* completed.jsonl */,
+				DDAC002300000001 /* waiting_user.jsonl */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		DDAD000000000001 /* StatusBar */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001000000001 /* StatusBarIconRenderer.swift */,
+				DDAD001100000001 /* StatusBarController.swift */,
+				DDAD001A00000001 /* AgentMenuRowView.swift */,
+			);
+			path = StatusBar;
+			sourceTree = "<group>";
+		};
+		DDAD000100000001 /* AgentMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001200000001 /* AgentRowView.swift */,
+				DDAD001300000001 /* AgentMonitorEmptyView.swift */,
+				DDAD001400000001 /* AgentMonitorErrorView.swift */,
+				DDAD001500000001 /* AgentMonitorPopoverController.swift */,
+				DDAD001600000001 /* AgentMonitorViewController.swift */,
+			);
+			path = AgentMonitor;
+			sourceTree = "<group>";
+		};
+		DDAD000200000001 /* AgentMonitorSettings */ = {
+			isa = PBXGroup;
+			children = (
+				DDAD001700000001 /* AgentMonitorSettingsViewController.swift */,
+				DDAD001800000001 /* AgentPadWindowController.swift */,
+			);
+			path = AgentMonitorSettings;
 			sourceTree = "<group>";
 		};
 		DDB20A0000000000000000A0 /* Input */ = {
@@ -551,24 +561,6 @@
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
-
-/* Begin PBXContainerItemProxy section */
-		DDAC170000000001 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DD0AE2D922DAB13100B68F05 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = DD0AE2E022DAB13100B68F05;
-			remoteInfo = AgentPad;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXTargetDependency section */
-		DDAC180000000001 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = DD0AE2E022DAB13100B68F05 /* AgentPad */;
-			targetProxy = DDAC170000000001 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXProject section */
 		DD0AE2D922DAB13100B68F05 /* Project object */ = {
@@ -658,9 +650,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AgentPad/Pods-AgentPad-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-AgentPad/Pods-AgentPad-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -797,6 +793,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DDAC180000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DD0AE2E022DAB13100B68F05 /* AgentPad */;
+			targetProxy = DDAC170000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		DD0AE2ED22DAB13200B68F05 /* Main.storyboard */ = {
@@ -953,11 +957,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AgentPad/AgentPad.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/System/Library/PrivateFrameworks,
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/AgentPad/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -965,19 +974,15 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"/System/Library/PrivateFrameworks",
-				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					SkyLight,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -989,11 +994,16 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = AgentPad/AgentPad.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = STLD27C5KT;
 				ENABLE_HARDENED_RUNTIME = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/System/Library/PrivateFrameworks,
+				);
 				INFOPLIST_FILE = "$(SRCROOT)/AgentPad/Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1001,19 +1011,15 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"/System/Library/PrivateFrameworks",
-				);
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-framework",
 					SkyLight,
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = NO;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -1044,6 +1050,32 @@
 			};
 			name = Debug;
 		};
+		DD87448C241495A900B3AB11 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = AgentPadLauncher/AgentPadLauncher.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = STLD27C5KT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/AgentPadLauncher/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.launcher;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		DDAC150000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1055,7 +1087,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
-					"/System/Library/PrivateFrameworks",
+					/System/Library/PrivateFrameworks,
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1082,7 +1114,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
-					"/System/Library/PrivateFrameworks",
+					/System/Library/PrivateFrameworks,
 				);
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1095,32 +1127,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentPad.app/Contents/MacOS/AgentPad";
-			};
-			name = Release;
-		};
-		DD87448C241495A900B3AB11 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = AgentPadLauncher/AgentPadLauncher.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = STLD27C5KT;
-				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "$(SRCROOT)/AgentPadLauncher/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = com.rtx3.agentpad.launcher;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
-				SKIP_INSTALL = YES;
-				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

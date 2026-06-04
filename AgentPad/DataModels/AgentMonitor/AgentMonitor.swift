@@ -242,17 +242,17 @@ final class AgentMonitor {
             )
             if let cls = cls {
                 let sid = url.deletingPathExtension().lastPathComponent
-                // 方案 X：当 JSONL 给出弱 streaming 信号（assistant+stop_reason==nil）时，
-                // 补一次 PTY 探测；PTY 返回 querying 则用强信号覆盖弱信号。
-                // 触发条件严格限定在这个窄路径，避免影响真正的 streaming case。
-                if cls.state == .callingAPI,
-                   case .streaming = cls.detail,
-                   ctx.lastStateSignalRecord?.type == "assistant",
-                   ctx.lastStateSignalRecord?.stopReason == nil,
+                // 方案 X（放宽版）：当 JSONL 给出 callingAPI 或 working 结论时，补一次 PTY 探测；
+                // PTY 命中 querying 则用强信号覆盖。覆盖以下两种场景：
+                // 1) callingAPI.streaming + assistant.stop_reason==nil（claude turn 中、未确定的 streaming）
+                // 2) working.toolUse（claude 写出 tool_use 行，但 terminal 上是 "Do you want to allow Bash...?"
+                //    在等用户授权；或 codex 写出 function_call，同理）
+                // 不覆盖：error（error > querying）；querying（已经是目标）；idle（语义不冲突）。
+                if (cls.state == .callingAPI || cls.state == .working),
                    enablePTY,
                    let pty = PTYStateProbe.probe(forAgentPID: primary.pid),
                    pty.state == .querying {
-                    NSLog("[agent.monitor]     pty-override group=\(key) jstate=callingAPI → pty=querying snippet=\(pty.snippet)")
+                    NSLog("[agent.monitor]     pty-override group=\(key) jstate=\(cls.state) → pty=querying snippet=\(pty.snippet)")
                     return AgentProject(
                         id: key,
                         cwd: cwd,
@@ -367,8 +367,11 @@ final class AgentMonitor {
 
     /// classify 返回 nil 时的状态沿用决策。pure / 可单测。
     ///
-    /// - 仅当上一拍是「非 idle」且其 `lastActivityAt` 距 now 不超过 staleness 时，
+    /// - 仅当上一拍是「非 idle 且非 error」且其 `lastActivityAt` 距 now 不超过 staleness 时，
     ///   才沿用其 state / detail / source。
+    /// - 排除 error：error 状态契约是「不粘性」——下一拍新 record 应立即覆盖。
+    ///   若 jsonl 写入装饰行（system/summary/...）让 classify 返回 nil，
+    ///   不应让 error 通过 carryover 残留最长 staleness 秒。
     /// - 沿用版本保留 prev 的 `lastActivityAt`，使下一拍能基于同一时间点继续判定 staleness。
     /// - 沿用失败返回 nil → 调用方按原路走 PTY → idle 兜底。
     static func carryover(prev: AgentProject?,
@@ -382,6 +385,7 @@ final class AgentMonitor {
                           now: Date) -> AgentProject? {
         guard let prev = prev,
               prev.state != .idle,
+              prev.state != .error,
               let act = prev.lastActivityAt,
               now.timeIntervalSince(act) <= staleness else {
             return nil

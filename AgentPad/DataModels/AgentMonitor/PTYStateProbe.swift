@@ -17,7 +17,8 @@ struct PTYProbeResult: Equatable {
 }
 
 enum PTYStateProbe {
-    /// 默认关键词表。命中即返回对应状态。多个状态同时命中按 Working > CallingAPI > Idle 取高。
+    /// 默认关键词表。命中按 `classify` 内的优先级返回。
+    /// 优先级（见 classify 注释）：querying-keyword > error > 末行? > working > callingAPI > idle。
     struct Keywords {
         var querying: [String]
         var error: [String]
@@ -84,7 +85,9 @@ enum PTYStateProbe {
             return PTYProbeResult(state: .querying, detail: .querying(question: kw), snippet: kw)
         }
         if let kw = keywords.error.first(where: { lowered.contains($0.lowercased()) }) {
-            return PTYProbeResult(state: .error, detail: .errored(reason: kw), snippet: kw)
+            // detail.reason 留空：keyword 本身（如 "api error" / "401"）作为副行展示没信息量；
+            // snippet 已承载触发原因，UI 可单独展示。需要更详细的错误文本时由 jsonl 路径提供。
+            return PTYProbeResult(state: .error, detail: .errored(reason: nil), snippet: kw)
         }
         if endsWithQuestionMark(tail) {
             return PTYProbeResult(state: .querying, detail: .querying(question: nil), snippet: "?")
