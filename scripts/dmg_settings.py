@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
-import biplist
 import os.path
 
-app = defines.get('app', './dmg/ControllerKeyMapper.app')
+app = defines.get('app', './dmg/AgentPad.app')
 appname = os.path.basename(app)
 
 # Basics
