@@ -45,13 +45,30 @@ enum StatusBarIconRenderer {
         }
     }
 
-    /// 两行布局：icon (20pt) + 右侧两行文字 R{n} / I{n}。
-    /// 边界情况：只有一个非 0 时退化成单行；全 0 时只显示 icon。
-    static func twoLineImage(running: Int, idle: Int) -> NSImage {
+    /// 两行布局：
+    ///   第一行：!{error} ▶{active}（红色：error 需立刻处理；绿/橙：真在跑）
+    ///   第二行：?{querying} ⏸{paused}（黄：等用户回话；灰：等输入；同属非活跃）
+    ///
+    /// 退化规则：
+    ///   全 0 → 只显示 icon
+    ///   只有第一行或只有第二行有内容 → 单行垂直居中
+    static func twoLineImage(active: Int, paused: Int, querying: Int, error: Int) -> NSImage {
         let baseIcon = NSImage(named: "menu_icon")
 
+        // 第一行：!K ▶N（各自 > 0 才显示）
+        var topParts: [String] = []
+        if error > 0 { topParts.append("!\(error)") }
+        if active > 0 { topParts.append("▶\(active)") }
+        let topText = topParts.joined(separator: " ")
+
+        // 第二行：?M ⏸L（各自 > 0 才显示）
+        var bottomParts: [String] = []
+        if querying > 0 { bottomParts.append("?\(querying)") }
+        if paused > 0 { bottomParts.append("⏸\(paused)") }
+        let bottomText = bottomParts.joined(separator: " ")
+
         // 全 0：只显示 icon
-        if running == 0 && idle == 0 {
+        if topText.isEmpty && bottomText.isEmpty {
             let img = NSImage(size: NSSize(width: twoLineIconHeight, height: twoLineIconHeight))
             img.lockFocus()
             baseIcon?.draw(in: NSRect(x: 0, y: 0, width: twoLineIconHeight, height: twoLineIconHeight))
@@ -60,55 +77,46 @@ enum StatusBarIconRenderer {
             return img
         }
 
-        // 只有一个非 0：单行布局（icon + 垂直居中文字）
-        if running == 0 || idle == 0 {
-            let text = running > 0 ? "▶\(running)" : "⏸\(idle)"
+        // 只有单行：垂直居中
+        if topText.isEmpty || bottomText.isEmpty {
+            let text = topText.isEmpty ? bottomText : topText
             let textSize = sizeOfText(text, fontSize: twoLineFontSize)
             let totalWidth = twoLineIconHeight + labelGap + textSize.width
 
             let img = NSImage(size: NSSize(width: totalWidth, height: twoLineIconHeight))
             img.lockFocus()
-
-            // icon 垂直居中
             baseIcon?.draw(in: NSRect(x: 0, y: 0, width: twoLineIconHeight, height: twoLineIconHeight))
-
-            // 文字垂直居中
             let textY = (twoLineIconHeight - textSize.height) / 2
             drawText(text, at: NSPoint(x: twoLineIconHeight + labelGap, y: textY),
                     color: .labelColor, fontSize: twoLineFontSize)
-
             img.unlockFocus()
             img.isTemplate = true
             return img
         }
 
         // 两行布局
-        let runningText = "▶ \(running)"
-        let idleText = "⏸ \(idle)"
-        let runningSize = sizeOfText(runningText, fontSize: twoLineFontSize)
-        let idleSize = sizeOfText(idleText, fontSize: twoLineFontSize)
-        let maxTextWidth = max(runningSize.width, idleSize.width)
+        let topSize = sizeOfText(topText, fontSize: twoLineFontSize)
+        let bottomSize = sizeOfText(bottomText, fontSize: twoLineFontSize)
+        let maxTextWidth = max(topSize.width, bottomSize.width)
         let totalWidth = twoLineIconHeight + labelGap + maxTextWidth
 
         let lineSpacing: CGFloat = 0
-        let totalTextHeight = runningSize.height + lineSpacing + idleSize.height
+        let totalTextHeight = topSize.height + lineSpacing + bottomSize.height
         let totalHeight = max(twoLineIconHeight, totalTextHeight)
 
         let img = NSImage(size: NSSize(width: totalWidth, height: totalHeight))
         img.lockFocus()
 
-        // icon 垂直居中
         let iconY = (totalHeight - twoLineIconHeight) / 2
         baseIcon?.draw(in: NSRect(x: 0, y: iconY, width: twoLineIconHeight, height: twoLineIconHeight))
 
-        // 两行文字垂直居中
         let textBlockY = (totalHeight - totalTextHeight) / 2
-        let runningY = textBlockY + idleSize.height + lineSpacing
-        let idleY = textBlockY
+        let topY = textBlockY + bottomSize.height + lineSpacing
+        let bottomY = textBlockY
 
-        drawText(runningText, at: NSPoint(x: twoLineIconHeight + labelGap, y: runningY),
+        drawText(topText, at: NSPoint(x: twoLineIconHeight + labelGap, y: topY),
                 color: .labelColor, fontSize: twoLineFontSize)
-        drawText(idleText, at: NSPoint(x: twoLineIconHeight + labelGap, y: idleY),
+        drawText(bottomText, at: NSPoint(x: twoLineIconHeight + labelGap, y: bottomY),
                 color: .labelColor, fontSize: twoLineFontSize)
 
         img.unlockFocus()
@@ -214,8 +222,10 @@ enum StatusBarIconRenderer {
 
     static func color(for state: AgentState) -> NSColor {
         switch state {
+        case .error:      return .systemRed
         case .working:    return .systemGreen
         case .callingAPI: return .systemOrange
+        case .querying:   return .systemYellow
         case .idle:       return .systemGray
         }
     }

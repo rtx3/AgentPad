@@ -63,30 +63,37 @@ final class StatusBarController: NSObject {
             return
         }
 
-        let (running, idle) = countsFromEvent(lastEvent)
-        let icon = StatusBarIconRenderer.twoLineImage(running: running, idle: idle)
+        let (active, paused, querying, errored) = countsFromEvent(lastEvent)
+        let icon = StatusBarIconRenderer.twoLineImage(active: active, paused: paused, querying: querying, error: errored)
         statusItem.button?.image = icon
     }
 
-    /// 从 AgentMonitorEvent 提取 running 和 idle 计数。
-    /// 计数单位为 **project（按 cwd 聚合）**，而不是进程：同 cwd 多个 claude 实例只算一次。
-    /// running = working + callingAPI，idle = idle。
-    private func countsFromEvent(_ event: AgentMonitorEvent) -> (running: Int, idle: Int) {
+    /// active = working + callingAPI（第一行 ▶N）
+    /// paused = idle（第二行 ⏸L）
+    /// querying 单独计数（第二行 ?M）
+    /// errored 单独计数（第一行 !K）
+    private func countsFromEvent(_ event: AgentMonitorEvent) -> (active: Int, paused: Int, querying: Int, errored: Int) {
         switch event {
         case .empty, .pollingFailed:
-            return (0, 0)
+            return (0, 0, 0, 0)
         case .updated(let projects):
-            var running = 0
-            var idle = 0
+            var active = 0
+            var paused = 0
+            var querying = 0
+            var errored = 0
             for p in projects {
                 switch p.state {
                 case .working, .callingAPI:
-                    running += 1
+                    active += 1
+                case .querying:
+                    querying += 1
+                case .error:
+                    errored += 1
                 case .idle:
-                    idle += 1
+                    paused += 1
                 }
             }
-            return (running, idle)
+            return (active, paused, querying, errored)
         }
     }
 }

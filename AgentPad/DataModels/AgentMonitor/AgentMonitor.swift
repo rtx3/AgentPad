@@ -242,6 +242,31 @@ final class AgentMonitor {
             )
             if let cls = cls {
                 let sid = url.deletingPathExtension().lastPathComponent
+                // 方案 X：当 JSONL 给出弱 streaming 信号（assistant+stop_reason==nil）时，
+                // 补一次 PTY 探测；PTY 返回 querying 则用强信号覆盖弱信号。
+                // 触发条件严格限定在这个窄路径，避免影响真正的 streaming case。
+                if cls.state == .callingAPI,
+                   case .streaming = cls.detail,
+                   ctx.lastStateSignalRecord?.type == "assistant",
+                   ctx.lastStateSignalRecord?.stopReason == nil,
+                   enablePTY,
+                   let pty = PTYStateProbe.probe(forAgentPID: primary.pid),
+                   pty.state == .querying {
+                    NSLog("[agent.monitor]     pty-override group=\(key) jstate=callingAPI → pty=querying snippet=\(pty.snippet)")
+                    return AgentProject(
+                        id: key,
+                        cwd: cwd,
+                        agentKind: kindLower,
+                        state: pty.state,
+                        detail: pty.detail,
+                        source: .pty(snippet: pty.snippet),
+                        instanceCount: snaps.count,
+                        primaryPid: primary.pid,
+                        earliestStartedAt: earliest,
+                        sessionId: sid,
+                        lastActivityAt: classifyWriteAt
+                    )
+                }
                 return AgentProject(
                     id: key,
                     cwd: cwd,

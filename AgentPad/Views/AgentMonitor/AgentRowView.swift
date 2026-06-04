@@ -146,10 +146,18 @@ final class AgentRowView: NSTableCellView {
         case .waitingInput(let prompt):
             if let p = prompt, !p.isEmpty { return "waiting: \(p)" }
             return "waiting input"
+        case .querying(let question):
+            if let q = question, !q.isEmpty { return "? \(q)" }
+            return "querying"
+        case .errored(let reason):
+            if let r = reason, !r.isEmpty { return "error: \(r)" }
+            return "error"
         case .unknown:
             switch state {
             case .working:    return "working"
             case .callingAPI: return "calling API"
+            case .querying:   return "querying"
+            case .error:      return "error"
             case .idle:       return "idle"
             }
         }

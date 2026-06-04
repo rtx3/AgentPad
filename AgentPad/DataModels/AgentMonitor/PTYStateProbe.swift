@@ -19,31 +19,37 @@ struct PTYProbeResult: Equatable {
 enum PTYStateProbe {
     /// 默认关键词表。命中即返回对应状态。多个状态同时命中按 Working > CallingAPI > Idle 取高。
     struct Keywords {
+        var querying: [String]
+        var error: [String]
         var working: [String]
         var callingAPI: [String]
         var idle: [String]
 
         static let `default` = Keywords(
+            querying: [
+                // Claude Code 等待用户 y/n / plan 确认 / 权限授予
+                "do you want to", "(y/n)", "press enter", "(esc to cancel)",
+                "would you like", "shall i", "confirm"
+            ],
+            error: [
+                // 严格的 error 关键词——避免被普通 "error:" / "failed:" 输出污染。
+                // 命中即报红：用户跑测试时不会触发这些精确字符串。
+                "api error", "401", "403", "429", "500",
+                "rate limit", "overloaded", "context_length_exceeded"
+            ],
             working: [
-                // Claude Code 在跑 tool 时底栏会显示 "esc to interrupt" / "ctrl+b to background"
-                // 用 "to interrupt" 取代 "esc to interrupt"，兼容 ctrl 提示行变体。
                 "to interrupt",
                 "running ", "tool_use(", "⏵⏵"
             ],
             callingAPI: [
                 "thinking", "streaming",
-                // 旧版 Claude Code spinner
                 "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏",
-                // 新版 Claude Code（4.6+）改用"烹饪动词"系列做进度文案：
-                // 实测见 `✻ Churned for 3m 29s` / `✢ Caramelizing… (12s · still thinking with xhigh effort)`
-                // 子串匹配 + 小写，因此 "Churned"/"churned" 都能命中。
                 "churned", "caramelizing", "simmering", "whisking", "folding",
                 "braising", "searing", "reducing", "proofing", "kneading",
                 "marinating", "sautéing", "sauteing", "blanching", "poaching",
-                // 进度装饰符号（出现在每一行前缀），命中其一即认为在 calling。
                 "✻", "✢"
             ],
-            idle: ["do you want to", "(y/n)"]
+            idle: []
         )
     }
 
@@ -64,8 +70,25 @@ enum PTYStateProbe {
     }
 
     /// 把文本按关键词分类。公开以便单元测试不依赖 AX。
+    /// 优先级：querying（关键词）> error > querying（末行 ?）> working > callingAPI > idle。
+    ///
+    /// error 紧跟 querying 关键词桶后面：
+    /// - querying 关键词命中是"用户主动确认"的强信号，比 error 更早响应；
+    /// - error 优先于 working/callingAPI，因为发现 api error 比发现在跑更需要展示。
+    /// - 末行 ? 形态判定放在 error 后：避免 "API Error: ... continue?" 这类
+    ///   末尾带 ? 但本质是 error 的文本被错抢成 querying。
     static func classify(text: String, keywords: Keywords = .default) -> PTYProbeResult? {
-        let lowered = lastLines(of: text, count: lastLinesForMatch).lowercased()
+        let tail = lastLines(of: text, count: lastLinesForMatch)
+        let lowered = tail.lowercased()
+        if let kw = keywords.querying.first(where: { lowered.contains($0.lowercased()) }) {
+            return PTYProbeResult(state: .querying, detail: .querying(question: kw), snippet: kw)
+        }
+        if let kw = keywords.error.first(where: { lowered.contains($0.lowercased()) }) {
+            return PTYProbeResult(state: .error, detail: .errored(reason: kw), snippet: kw)
+        }
+        if endsWithQuestionMark(tail) {
+            return PTYProbeResult(state: .querying, detail: .querying(question: nil), snippet: "?")
+        }
         if let kw = keywords.working.first(where: { lowered.contains($0.lowercased()) }) {
             return PTYProbeResult(state: .working, detail: .toolUse(name: kw), snippet: kw)
         }
@@ -76,6 +99,20 @@ enum PTYStateProbe {
             return PTYProbeResult(state: .idle, detail: .waitingInput(prompt: kw), snippet: kw)
         }
         return nil
+    }
+
+    /// 取 `text` 末 N 行里最后一个非空行，trim 行尾空白后末字符是否为问号。
+    /// 末行常是 spinner / 装饰 / 空白，因此倒着扫，找第一个有内容的行。
+    /// `?` 与全角 `？` 都算。internal 以便单测覆盖。
+    static func endsWithQuestionMark(_ tail: String) -> Bool {
+        let lines = tail.split(omittingEmptySubsequences: false, whereSeparator: { $0 == "\n" })
+        for line in lines.reversed() {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty { continue }
+            guard let last = trimmed.last else { return false }
+            return last == "?" || last == "？"
+        }
+        return false
     }
 
     // MARK: - AX 文本抓取

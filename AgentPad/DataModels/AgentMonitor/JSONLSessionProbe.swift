@@ -135,6 +135,11 @@ struct JSONLRecord {
     let hasToolResult: Bool           // claude: message.content[] 含 tool_result 时为 true
     let sessionId: String?
     let timestamp: Date?              // record.timestamp 解析后；用于 freshness 判定
+    /// 错误信息文本，用于 error 状态副行展示。三路解析：
+    /// 1) `dict["error"]`（平铺）
+    /// 2) `message.error`（Claude 嵌套）
+    /// 3) `payload.error`（Codex 嵌套）
+    let errorMessage: String?
 
     static func parse(line: String) -> JSONLRecord? {
         guard let data = line.data(using: .utf8) else { return nil }
@@ -172,6 +177,15 @@ struct JSONLRecord {
         // Codex: payload.type 是状态判定主信号
         let payloadType = (dict["payload"] as? [String: Any])?["type"] as? String
 
+        // 错误信息：dict["error"] / message.error / payload.error；取首个 string 命中。
+        var errorMessage: String? = dict["error"] as? String
+        if errorMessage == nil, let m = dict["message"] as? [String: Any] {
+            errorMessage = m["error"] as? String
+        }
+        if errorMessage == nil, let p = dict["payload"] as? [String: Any] {
+            errorMessage = p["error"] as? String
+        }
+
         return JSONLRecord(
             type: type,
             payloadType: payloadType,
@@ -179,7 +193,8 @@ struct JSONLRecord {
             toolUseName: toolUseName,
             hasToolResult: hasToolResult,
             sessionId: sessionId,
-            timestamp: timestamp
+            timestamp: timestamp,
+            errorMessage: errorMessage
         )
     }
 
@@ -229,6 +244,9 @@ enum JSONLSessionProbe {
             if let tool = rec.toolUseName {
                 return (.working, .toolUse(name: tool))
             }
+            if rec.stopReason == "error" {
+                return (.error, .errored(reason: rec.errorMessage))
+            }
             if rec.stopReason == nil {
                 return (.callingAPI, .streaming)
             }
@@ -249,11 +267,16 @@ enum JSONLSessionProbe {
             // 注意：JSONLProbeContext 也用同一个 decorativeTypes 集合在 tick()
             // 期间跳过这些行的 lastStateSignalRecord 更新，正常路径走不到这里；
             // 这里是双重保险（initial bind 后只读到装饰行时仍需保护）。
+            //
+            // 例外：携带 errorMessage 的 system 行（claude 写 api_error / 校验失败时）
+            // 仍归 error。装饰行通常不带 error 字段，所以这里几乎不会假阳性。
+            if rec.errorMessage != nil {
+                return (.error, .errored(reason: rec.errorMessage))
+            }
             return nil
         case "permission-mode":
-            // claude 在等用户授权（y/n / 接受 edit）。状态上仍属 idle（等待输入），
-            // 但 detail 用 waitingInput("permission") 标记，UI 可高亮副行。
-            return (.idle, .waitingInput(prompt: "permission"))
+            // claude 在等用户授权（y/n / 接受 edit）→ 升级为 querying，UI 单独分桶显示 ?N。
+            return (.querying, .querying(question: "permission"))
         case "attachment":
             // SessionStart hook / 附件刚被注入，紧接着会有 user → assistant 流。
             return (.callingAPI, .streaming)
@@ -300,7 +323,11 @@ enum CodexJSONLProbe {
         case "task_started":
             return (.working, .toolUse(name: nil))
         case "task_complete", "turn_aborted", "context_compacted":
+            // turn_aborted 不归 error：用户主动按 ESC 中断是常态，不应该高亮红色。
+            // 真正的"agent 自爆"会走 payload.type=error 路径。
             return (.idle, .unknown)
+        case "error":
+            return (.error, .errored(reason: rec.errorMessage))
         case "agent_message":
             // assistant 完整消息写出；turn 通常还未 task_complete。
             return (.callingAPI, .streaming)

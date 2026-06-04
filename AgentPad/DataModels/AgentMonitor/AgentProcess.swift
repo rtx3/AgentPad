@@ -45,11 +45,13 @@ struct AgentProject: Identifiable, Equatable {
     let lastActivityAt: Date?
 }
 
-/// 三态。`Comparable` 仅用于 UI 排序：Working > CallingAPI > Idle。
+/// 五态。`Comparable` 仅用于 UI 排序：error > querying > working > callingAPI > idle。
 enum AgentState: Int, Comparable {
     case idle = 1
     case callingAPI = 2
     case working = 3
+    case querying = 4
+    case error = 5
 
     static func < (lhs: AgentState, rhs: AgentState) -> Bool {
         return lhs.rawValue < rhs.rawValue
@@ -61,6 +63,8 @@ enum AgentStateDetail: Equatable {
     case toolUse(name: String?)
     case streaming
     case waitingInput(prompt: String?)
+    case querying(question: String?)
+    case errored(reason: String?)
     case unknown
 }
 
