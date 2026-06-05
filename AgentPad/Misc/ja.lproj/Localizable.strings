@@ -181,6 +181,26 @@
 "Granted" = "許可済み";
 "Not granted" = "未許可";
 
+// Onboarding wizard (M0.6)
+"onboarding.step.monitor.title" = "AI エージェントを監視";
+"onboarding.step.monitor.body" = "メニューバーからどのエージェントが作業中、モデル呼び出し中、または入力待ちかを確認できます。設定不要です。";
+"onboarding.step.controller.title" = "コントローラーリモート（オプション）";
+"onboarding.step.controller.body" = "ゲームコントローラーをキーボードショートカットにマッピング。ボタンでエージェントを承認、トリガーで差分をスクロール——コントローラーから手を離さずに操作できます。";
+"onboarding.step.accessibility.title" = "アクセシビリティ権限";
+"onboarding.step.accessibility.body" = "ターミナルウィンドウの読み取りとコントローラーキーストロークの送信に必要です。この権限がなくても、監視機能は制限モードで動作します。";
+"onboarding.button.skip" = "スキップ";
+"onboarding.button.back" = "戻る";
+"onboarding.button.next" = "次へ";
+"onboarding.button.done" = "完了";
+"onboarding.mapping.button.a" = "A";
+"onboarding.mapping.button.b" = "B";
+"onboarding.mapping.button.lr" = "L / R";
+"onboarding.mapping.button.start" = "Start";
+"onboarding.mapping.action.approve" = "y  （承認）";
+"onboarding.mapping.action.reject" = "n  （拒否）";
+"onboarding.mapping.action.scroll" = "差分スクロール";
+"onboarding.mapping.action.interrupt" = "Ctrl+C";
+
 // Controller kinds (M2 / M3)
 "DualShock 4" = "DualShock 4";
 "DualSense" = "DualSense";
@@ -251,3 +271,19 @@
 "Macro step %d failed: %@" = "マクロ ステップ %d 失敗: %@";
 "App window not on active Space: %@" = "App のウィンドウが現在の Space にありません: %@";
 "Done. Click to copy." = "完了。クリックでコピー。";
+
+// Language settings
+"Language" = "言語";
+"Restart required to apply language change" = "言語変更を適用するには再起動が必要です";
+
+// Missing translations
+"Settings..." = "設定...";
+"Quit" = "終了";
+"Passthrough" = "パススルー";
+"Agent (%d steps)" = "エージェント（%d ステップ）";
+"Export key mappings" = "キーマッピングを書き出す";
+"Import key mappings" = "キーマッピングを読み込む";
+"Save key mapping data" = "キーマッピングデータを保存";
+"Sync from Default" = "デフォルトから同期";
+"Overwrite the key mapping for %@ with the default configuration?" = "%@ のキーマッピングをデフォルト設定で上書きしますか？";
+"This cannot be undone for this app's existing key mapping." = "この操作は現在の App のキーマッピングに対して取り消せません。";

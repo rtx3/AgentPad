@@ -105,3 +105,5 @@ Build & run the `AgentPad` scheme. Requires Xcode and CocoaPods.
 ---
 
 Backed by [JoyConSwift](https://github.com/magicien/JoyConSwift) for Nintendo controller IO.
+
+Forked from [JoyKeyMapper](https://github.com/magicien/JoyKeyMapper) by [@magicien](https://github.com/magicien) — thanks for the original project that made this possible.

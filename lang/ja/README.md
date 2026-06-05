@@ -105,3 +105,5 @@ open AgentPad.xcworkspace
 ---
 
 Nintendo コントローラの IO は [JoyConSwift](https://github.com/magicien/JoyConSwift) に依拠しています。
+
+[@magicien](https://github.com/magicien) の [JoyKeyMapper](https://github.com/magicien/JoyKeyMapper) をフォークしたものです。本プロジェクトを可能にした原作に感謝します。

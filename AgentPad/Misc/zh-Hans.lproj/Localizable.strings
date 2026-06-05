@@ -181,6 +181,26 @@
 "Granted" = "已授权";
 "Not granted" = "未授权";
 
+// Onboarding wizard (M0.6)
+"onboarding.step.monitor.title" = "监控你的 AI Agent";
+"onboarding.step.monitor.body" = "从菜单栏查看哪个 agent 正在工作、调用模型或等待你的输入。无需配置。";
+"onboarding.step.controller.title" = "手柄遥控（可选）";
+"onboarding.step.controller.body" = "将游戏手柄映射到键盘快捷键。用按钮批准 agent 请求，用扳机滚动差异——双手不离手柄。";
+"onboarding.step.accessibility.title" = "辅助功能权限";
+"onboarding.step.accessibility.body" = "用于读取终端窗口和发送手柄按键。没有此权限，监控功能会以受限模式运行。";
+"onboarding.button.skip" = "跳过";
+"onboarding.button.back" = "返回";
+"onboarding.button.next" = "下一步";
+"onboarding.button.done" = "完成";
+"onboarding.mapping.button.a" = "A";
+"onboarding.mapping.button.b" = "B";
+"onboarding.mapping.button.lr" = "L / R";
+"onboarding.mapping.button.start" = "Start";
+"onboarding.mapping.action.approve" = "y  （批准）";
+"onboarding.mapping.action.reject" = "n  （拒绝）";
+"onboarding.mapping.action.scroll" = "滚动差异";
+"onboarding.mapping.action.interrupt" = "Ctrl+C";
+
 // Controller kinds (M2 / M3)
 "DualShock 4" = "DualShock 4";
 "DualSense" = "DualSense";
@@ -255,3 +275,15 @@
 // Language settings
 "Language" = "语言";
 "Restart required to apply language change" = "需要重启应用以应用语言更改";
+
+// Missing translations
+"Settings..." = "设置...";
+"Quit" = "退出";
+"Passthrough" = "透传";
+"Agent (%d steps)" = "Agent（%d 步）";
+"Export key mappings" = "导出键位映射";
+"Import key mappings" = "导入键位映射";
+"Save key mapping data" = "保存键位映射数据";
+"Sync from Default" = "从默认同步";
+"Overwrite the key mapping for %@ with the default configuration?" = "用默认配置覆盖 %@ 的键位映射？";
+"This cannot be undone for this app's existing key mapping." = "此操作无法撤销当前 App 的键位映射。";

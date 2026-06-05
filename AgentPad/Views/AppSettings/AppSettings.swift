@@ -92,9 +92,18 @@ class AppSettings {
             return UserDefaults.standard.string(forKey: "AppLanguage") ?? "en"
         }
         set {
+            // 同时写两个 key：
+            // - AppLanguage 是应用层 key，AppDelegate.applicationWillFinishLaunching
+            //   作为兜底从这里读出再注入 AppleLanguages。
+            // - AppleLanguages 是 NSBundle 解析 lproj 时直接读取的 OS key；
+            //   App 未启用 sandbox（entitlements 中 app-sandbox=false），
+            //   可直接持久化到 ~/Library/Preferences/com.rtx3.agentpad.plist。
+            // 写完调 CFPreferencesAppSynchronize 强制 cfprefsd flush，避免用户
+            // 立即 Quit 重启时新值还在内存缓冲里没落盘，导致下次启动读到旧值
+            // —— 这是用户报告"切不回英文，等几秒后再启动就 ok"的根因。
             UserDefaults.standard.set(newValue, forKey: "AppLanguage")
             UserDefaults.standard.set([newValue], forKey: "AppleLanguages")
-            UserDefaults.standard.synchronize()
+            CFPreferencesAppSynchronize(kCFPreferencesCurrentApplication)
         }
     }
 }

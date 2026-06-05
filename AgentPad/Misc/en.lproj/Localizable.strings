@@ -181,6 +181,26 @@
 "Granted" = "Granted";
 "Not granted" = "Not granted";
 
+// Onboarding wizard (M0.6)
+"onboarding.step.monitor.title" = "Monitor Your AI Agents";
+"onboarding.step.monitor.body" = "See which agent is working, calling the model, or waiting for you — all from the menu bar. No configuration needed.";
+"onboarding.step.controller.title" = "Controller Remote (Optional)";
+"onboarding.step.controller.body" = "Map game controllers to keyboard shortcuts. Approve agents with a button press, scroll diffs with triggers — keep your hands on the controller.";
+"onboarding.step.accessibility.title" = "Accessibility Permission";
+"onboarding.step.accessibility.body" = "Required for reading Terminal windows and sending controller keystrokes. Monitor works in limited mode without it.";
+"onboarding.button.skip" = "Skip";
+"onboarding.button.back" = "Back";
+"onboarding.button.next" = "Next";
+"onboarding.button.done" = "Done";
+"onboarding.mapping.button.a" = "A";
+"onboarding.mapping.button.b" = "B";
+"onboarding.mapping.button.lr" = "L / R";
+"onboarding.mapping.button.start" = "Start";
+"onboarding.mapping.action.approve" = "y  (approve)";
+"onboarding.mapping.action.reject" = "n  (reject)";
+"onboarding.mapping.action.scroll" = "scroll diff";
+"onboarding.mapping.action.interrupt" = "Ctrl+C";
+
 // Controller kinds (M2 / M3)
 "DualShock 4" = "DualShock 4";
 "DualSense" = "DualSense";
@@ -251,3 +271,19 @@
 "Macro step %d failed: %@" = "Macro step %d failed: %@";
 "App window not on active Space: %@" = "App window not on active Space: %@";
 "Done. Click to copy." = "Done. Click to copy.";
+
+// Language settings
+"Language" = "Language";
+"Restart required to apply language change" = "Restart required to apply language change";
+
+// Missing translations
+"Settings..." = "Settings...";
+"Quit" = "Quit";
+"Passthrough" = "Passthrough";
+"Agent (%d steps)" = "Agent (%d steps)";
+"Export key mappings" = "Export key mappings";
+"Import key mappings" = "Import key mappings";
+"Save key mapping data" = "Save key mapping data";
+"Sync from Default" = "Sync from Default";
+"Overwrite the key mapping for %@ with the default configuration?" = "Overwrite the key mapping for %@ with the default configuration?";
+"This cannot be undone for this app's existing key mapping." = "This cannot be undone for this app's existing key mapping.";

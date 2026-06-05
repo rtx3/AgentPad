@@ -47,6 +47,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     /// menuWillOpen 时记录的 header item 引用，poll 期间更新计数文案。
     private weak var agentHeaderItem: NSMenuItem?
 
+    func applicationWillFinishLaunching(_ aNotification: Notification) {
+        // 必须在 didFinishLaunching 之前完成：NSBundle 第一次解析 lproj 时读取
+        // AppleLanguages。didChangeLanguage 只持久化 AppLanguage（应用层 key），
+        // 这里在每次进程启动最早期把它注入到 AppleLanguages，下一次 NSLocalizedString
+        // 解析才能命中正确的 lproj。
+        if let lang = UserDefaults.standard.string(forKey: "AppLanguage") {
+            UserDefaults.standard.set([lang], forKey: "AppleLanguages")
+        }
+    }
+
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         
