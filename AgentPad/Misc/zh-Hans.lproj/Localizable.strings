@@ -1,0 +1,257 @@
+// Common
+"Cancel" = "取消";
+"OK" = "确定";
+
+// AppDelegate.swift
+"Enable key mappings" = "启用按键映射";
+"Disconnect" = "断开连接";
+"charging" = "充电中";
+"Battery" = "电池";
+"No controllers connected" = "未连接控制器";
+"Disconnect controller?" = "断开控制器？";
+"Do you want to disconnect %@?" = "确定要断开 %@ 吗？";
+"Could not save changes while quitting. Quit anyway?" = "退出时无法保存更改。仍要退出吗？";
+"Quitting now will lose any changes you have made since the last successful save" = "现在退出将丢失自上次成功保存以来所做的所有更改";
+"Quit anyway" = "仍然退出";
+
+// AppNotifications.swift
+"Battery fully charged" = "电池已充满";
+"Battery level" = "电池电量";
+"Charge started" = "开始充电";
+"Charge stopped" = "停止充电";
+"Controller connected" = "控制器已连接";
+"Controller disconnected" = "控制器已断开";
+
+// GameController.swift
+"Empty" = "无";
+"Critical" = "极低";
+"Low" = "低";
+"Medium" = "中";
+"Full" = "满";
+"Unknown" = "未知";
+
+// ViewController.swift
+"Choose an app to add" = "选择要添加的应用";
+"Do you really want to delete the settings for %@?" = "确定要删除 %@ 的设置吗？";
+
+// ViewController+NSCollectionViewDelegate
+"Connected" = "已连接";
+
+// ControllerViewItem.swift
+"Enable key mappings" = "启用按键映射";
+"Disconnect" = "断开连接";
+"Remove" = "移除";
+"Do you really want to remove the controller?" = "确定要移除该控制器吗？";
+
+// StickConfigCellView.swift
+"Mouse" = "鼠标";
+"Key" = "按键";
+
+// SpecialKeyName.swiift
+"Section" = "Section";
+"Return" = "Return";
+"Tab" = "Tab";
+"Space" = "Space";
+"Delete" = "Delete";
+"Escape" = "Escape";
+"⌘" = "⌘";
+"⇧" = "⇧";
+"CapsLock" = "CapsLock";
+"⌥" = "⌥";
+"⌃" = "⌃";
+"Right⇧" = "Right⇧";
+"Right⌥" = "Right⌥";
+"Right⌃" = "Right⌃";
+"fn" = "fn";
+"F1" = "F1";
+"F2" = "F2";
+"F3" = "F3";
+"F4" = "F4";
+"F5" = "F5";
+"F6" = "F6";
+"F7" = "F7";
+"F8" = "F8";
+"F9" = "F9";
+"F10" = "F10";
+"F11" = "F11";
+"F12" = "F12";
+"F13" = "F13";
+"F14" = "F14";
+"F15" = "F15";
+"F16" = "F16";
+"F17" = "F17";
+"F18" = "F18";
+"F19" = "F19";
+"F20" = "F20";
+"Keypad 0" = "Keypad 0";
+"Keypad 1" = "Keypad 1";
+"Keypad 2" = "Keypad 2";
+"Keypad 3" = "Keypad 3";
+"Keypad 4" = "Keypad 4";
+"Keypad 5" = "Keypad 5";
+"Keypad 6" = "Keypad 6";
+"Keypad 7" = "Keypad 7";
+"Keypad 8" = "Keypad 8";
+"Keypad 9" = "Keypad 9";
+"Keypad *" = "Keypad *";
+"Keypad +" = "Keypad +";
+"Keypad Clear" = "Keypad Clear";
+"Keypad ," = "Keypad ,";
+"Keypad Enter" = "Keypad Enter";
+"Keypad -" = "Keypad -";
+"Keypad /" = "Keypad /";
+"Keypad =" = "Keypad =";
+"Keypad Decimal" = "Keypad Decimal";
+"VolumeUp" = "VolumeUp";
+"VolumeDown" = "VolumeDown";
+"Mute" = "Mute";
+"¥" = "¥";
+"_" = "_";
+"Eisu" = "Eisu";
+"Kana" = "Kana";
+"Help" = "Help";
+"Home" = "Home";
+"PageUp" = "PageUp";
+"PageDown" = "PageDown";
+"ForwardDelete" = "ForwardDelete";
+"End" = "End";
+"←" = "←";
+"→" = "→";
+"↓" = "↓";
+"↑" = "↑";
+
+// ViewController+NSOutlineViewDelegate.swift
+"Up" = "上";
+"Right" = "右";
+"Down" = "下";
+"Left" = "左";
+"A" = "A";
+"B" = "B";
+"X" = "X";
+"Y" = "Y";
+"L" = "L";
+"ZL" = "ZL";
+"R" = "R";
+"ZR" = "ZR";
+"Minus" = "减号";
+"Plus" = "加号";
+"Capture" = "截图";
+"Home" = "主页";
+"LStick Push" = "左摇杆按下";
+"RStick Push" = "右摇杆按下";
+"Left SL" = "左 SL";
+"Left SR" = "左 SR";
+"Right SL" = "右 SL";
+"Right SR" = "右 SR";
+"Left Stick" = "左摇杆";
+"Right Stick" = "右摇杆";
+"Mouse Wheel" = "鼠标滚轮";
+"None" = "无";
+"Speed" = "速度";
+
+// KeyConfigViewController.swift
+"%@ Button Key Config" = "%@ 按键配置";
+"Simple" = "简单";
+"Detailed" = "详细";
+"Press a key…" = "按下一个按键…";
+"Press any key on your keyboard. It will be assigned immediately." = "按下键盘上的任意按键，将立即分配。";
+
+// Utils.swift
+"none" = "无";
+"Left Click" = "左键点击";
+"Right Click" = "右键点击";
+"Center Click" = "中键点击";
+
+// Passthrough (M1.5)
+"Keep as controller (don't map)" = "保持为控制器（不映射）";
+"This app uses the controller directly. No mapping." = "此应用直接使用控制器，无映射。";
+"Mapping" = "映射中";
+"Passthrough → %@" = "透传 → %@";
+"Reclaiming controller…" = "正在回收控制器…";
+
+// Accessibility onboarding (M0.5)
+"Accessibility access" = "辅助功能访问";
+"Accessibility permission required" = "需要辅助功能权限";
+"Required for keyboard / mouse mapping" = "键盘 / 鼠标映射所需";
+"AgentPad needs Accessibility permission to send keyboard and mouse events. Without it, controller mappings will be silently ignored by the system." = "AgentPad 需要辅助功能权限来发送键盘和鼠标事件。没有此权限，控制器映射将被系统静默忽略。";
+"Open Privacy Settings" = "打开隐私设置";
+"Open Privacy Settings…" = "打开隐私设置…";
+"Later" = "稍后";
+"Don't show again" = "不再显示";
+"Granted" = "已授权";
+"Not granted" = "未授权";
+
+// Controller kinds (M2 / M3)
+"DualShock 4" = "DualShock 4";
+"DualSense" = "DualSense";
+"Xbox Controller" = "Xbox 控制器";
+"MFi Controller" = "MFi 控制器";
+"Generic Controller" = "通用控制器";
+
+// Controller button display names (M3) — independent NSLocalizedString keys
+// so PS / Xbox face buttons don't collide with Nintendo A/B/X/Y.
+"Cross" = "×";
+"Circle" = "○";
+"Square" = "□";
+"Triangle" = "△";
+"Xbox A" = "A";
+"Xbox B" = "B";
+"Xbox X" = "X";
+"Xbox Y" = "Y";
+"L1" = "L1";
+"R1" = "R1";
+"L2" = "L2";
+"R2" = "R2";
+"LB" = "LB";
+"RB" = "RB";
+"LT" = "LT";
+"RT" = "RT";
+"Options" = "选项";
+"Share" = "分享";
+"Menu" = "菜单";
+"View" = "视图";
+"Start" = "开始";
+"Select" = "选择";
+"Up Right" = "右上";
+"Down Right" = "右下";
+"Down Left" = "左下";
+"Up Left" = "左上";
+"Neutral" = "中立";
+
+// Agent Monitor (plan B)
+"agent.monitor.header.title" = "智能体监视器";
+"agent.monitor.header.count.fmt" = "%1$d 工作中 · %2$d 空闲";
+"agent.monitor.header.idle" = "空闲";
+"agent.monitor.empty.title" = "无智能体运行";
+"agent.monitor.empty.subtitle" = "在终端启动 Claude Code / opencode / codex 以监视它。";
+"agent.monitor.error.title" = "无法枚举进程。";
+"agent.monitor.error.retry" = "重试";
+"agent.monitor.state.working" = "工作中";
+"agent.monitor.state.callingAPI" = "调用 API 中";
+"agent.monitor.state.idle" = "空闲";
+"settings.tab.general" = "通用";
+"settings.tab.agentMonitor" = "智能体监视器";
+"settings.agentMonitor.patterns.title" = "监视的进程模式";
+"settings.agentMonitor.patterns.hint" = "不区分大小写的子串";
+"settings.agentMonitor.sessionRoot.title" = "会话根目录";
+"settings.agentMonitor.interval" = "轮询间隔";
+"settings.agentMonitor.showCount" = "在菜单栏显示计数";
+"settings.agentMonitor.showStatusBadge" = "在菜单栏显示状态徽章";
+"settings.agentMonitor.launchAtLogin" = "登录时启动";
+
+// AgentMacro (plan 5)
+"Agent" = "智能体";
+"Macro (up to 5 steps)" = "宏（最多 5 步）";
+"Add a step to get started" = "添加一个步骤开始";
+"Activate app" = "激活应用";
+"Switch input method" = "切换输入法";
+"Input phrase" = "输入短语";
+"Delay (ms)" = "延迟（毫秒）";
+"Type the text to insert." = "输入要插入的文本。";
+"Macro step %d failed: %@" = "宏步骤 %d 失败：%@";
+"App window not on active Space: %@" = "应用窗口不在当前空间：%@";
+"Done. Click to copy." = "完成。点击复制。";
+
+// Language settings
+"Language" = "语言";
+"Restart required to apply language change" = "需要重启应用以应用语言更改";

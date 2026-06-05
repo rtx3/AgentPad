@@ -15,6 +15,7 @@ class AppSettingsViewController: NSViewController {
     @IBOutlet weak var notifyBatteryCharge: NSButton!
     @IBOutlet weak var notifyBatteryFull: NSButton!
     @IBOutlet weak var launchOnLogin: NSButton!
+    private let languagePopup = NSPopUpButton()
     private let accessibilityStatusBadge = NSTextField(labelWithString: "")
     private let accessibilitySettingsButton = NSButton(title: "", target: nil, action: nil)
     private var accessibilityStatusTimer: Timer?
@@ -28,6 +29,8 @@ class AppSettingsViewController: NSViewController {
         self.notifyBatteryCharge.state = AppSettings.notifyBatteryCharge ? .on : .off
         self.notifyBatteryFull.state = AppSettings.notifyBatteryFull ? .on : .off
         self.launchOnLogin.state = AppSettings.launchOnLogin ? .on : .off
+
+        self.installLanguageRow()
         self.installAccessibilityStatusRow()
     }
 
@@ -70,6 +73,71 @@ class AppSettingsViewController: NSViewController {
         AppSettings.launchOnLogin = self.launchOnLogin.state == .on
     }
 
+    private func installLanguageRow() {
+        let titleLabel = NSTextField(labelWithString: NSLocalizedString("Language", comment: "Language setting title"))
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        languagePopup.translatesAutoresizingMaskIntoConstraints = false
+        languagePopup.removeAllItems()
+        languagePopup.addItem(withTitle: "English")
+        languagePopup.addItem(withTitle: "日本語")
+        languagePopup.addItem(withTitle: "简体中文")
+
+        let currentLanguage = AppSettings.language
+        switch currentLanguage {
+        case "en":
+            languagePopup.selectItem(at: 0)
+        case "ja":
+            languagePopup.selectItem(at: 1)
+        case "zh-Hans":
+            languagePopup.selectItem(at: 2)
+        default:
+            languagePopup.selectItem(at: 0)
+        }
+
+        languagePopup.target = self
+        languagePopup.action = #selector(didChangeLanguage(_:))
+
+        view.addSubview(titleLabel)
+        view.addSubview(languagePopup)
+
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            titleLabel.topAnchor.constraint(equalTo: self.launchOnLogin.bottomAnchor, constant: 20),
+
+            languagePopup.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
+            languagePopup.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            languagePopup.widthAnchor.constraint(greaterThanOrEqualToConstant: 150),
+        ])
+    }
+
+    @objc private func didChangeLanguage(_ sender: NSPopUpButton) {
+        let selectedIndex = sender.indexOfSelectedItem
+        let languageCode: String
+
+        switch selectedIndex {
+        case 0:
+            languageCode = "en"
+        case 1:
+            languageCode = "ja"
+        case 2:
+            languageCode = "zh-Hans"
+        default:
+            languageCode = "en"
+        }
+
+        if languageCode != AppSettings.language {
+            AppSettings.language = languageCode
+
+            let alert = NSAlert()
+            alert.messageText = NSLocalizedString("Language", comment: "")
+            alert.informativeText = NSLocalizedString("Restart required to apply language change", comment: "")
+            alert.addButton(withTitle: NSLocalizedString("OK", comment: ""))
+            alert.alertStyle = .informational
+            alert.runModal()
+        }
+    }
+
     @objc private func didPushAccessibilitySettings(_ sender: NSButton) {
         AccessibilityPermission.requestTrust()
         AccessibilityPermission.openSettings()
@@ -101,7 +169,7 @@ class AppSettingsViewController: NSViewController {
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
-            titleLabel.topAnchor.constraint(equalTo: self.launchOnLogin.bottomAnchor, constant: 10),
+            titleLabel.topAnchor.constraint(equalTo: self.languagePopup.bottomAnchor, constant: 20),
 
             subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
@@ -115,7 +183,7 @@ class AppSettingsViewController: NSViewController {
             accessibilityStatusBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: 70),
         ])
 
-        let minimumHeight: CGFloat = 312
+        let minimumHeight: CGFloat = 360
         if self.view.frame.height < minimumHeight {
             self.view.setFrameSize(NSSize(width: self.view.frame.width, height: minimumHeight))
         }

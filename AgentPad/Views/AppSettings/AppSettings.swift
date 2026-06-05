@@ -86,6 +86,17 @@ class AppSettings {
             }
         }
     }
+
+    static var language: String {
+        get {
+            return UserDefaults.standard.string(forKey: "AppLanguage") ?? "en"
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: "AppLanguage")
+            UserDefaults.standard.set([newValue], forKey: "AppleLanguages")
+            UserDefaults.standard.synchronize()
+        }
+    }
 }
 
 extension AppSettings {
