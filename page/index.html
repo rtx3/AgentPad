@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGENTPAD/01 — HARDWARE SPECIFICATION · macOS</title>
+    <meta
+      name="description"
+      content="AgentPad technical specification sheet. Menu-bar console for AI coding agents on macOS."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@300;400;500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --white: #ffffff;
+        --paper: #fafafa;
+        --black: #000000;
+        --orange: #ff4500;
+        --orange-dim: rgba(255, 69, 0, 0.1);
+        --line: #000000;
+        --line-soft: rgba(0, 0, 0, 0.14);
+        --gray: #595959;
+        --gray-soft: #8a8a8a;
+        --ultra: "Archivo Black", -apple-system, BlinkMacSystemFont, sans-serif;
+        --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--white);
+        color: var(--black);
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      /* engineering grid background */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.025) 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── header bar ─────────────────────────────────────────────── */
+      .topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 30;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 24px;
+        height: 36px;
+        padding: 0 18px;
+        background: var(--black);
+        color: var(--white);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .topbar .left { display: flex; gap: 20px; align-items: center; }
+      .topbar .right {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        justify-content: flex-end;
+      }
+      .topbar .mid {
+        font-family: var(--ultra);
+        font-size: 11px;
+        letter-spacing: 0.24em;
+      }
+      .topbar b { color: var(--orange); }
+
+      .nav {
+        position: fixed;
+        top: 36px;
+        left: 0;
+        right: 0;
+        z-index: 28;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 16px;
+        height: 64px;
+        padding: 0 18px;
+        background: var(--white);
+        border-bottom: 2px solid var(--black);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--ultra);
+        font-size: 16px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .brand img {
+        width: 28px;
+        height: 28px;
+        border: 1px solid var(--black);
+        border-radius: 2px;
+      }
+      .brand .slash {
+        color: var(--orange);
+      }
+      .nav-mid {
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gray);
+      }
+      .nav-mid b { color: var(--black); }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        justify-content: flex-end;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .nav-links a {
+        padding: 10px 14px;
+        border: 1px solid transparent;
+        transition: all 120ms ease;
+      }
+      .nav-links a:hover {
+        border-color: var(--black);
+      }
+      .nav-cta {
+        padding: 10px 16px !important;
+        color: var(--white) !important;
+        background: var(--black);
+        border: 1px solid var(--black) !important;
+      }
+      .nav-cta:hover {
+        background: var(--orange) !important;
+        border-color: var(--orange) !important;
+      }
+
+      /* ── hero ───────────────────────────────────────────────────── */
+      .hero {
+        position: relative;
+        padding: 140px 18px 60px;
+        border-bottom: 2px solid var(--black);
+      }
+      .hero-inner {
+        position: relative;
+        width: min(1440px, 100%);
+        margin: 0 auto;
+      }
+
+      .hero-meta {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        padding-bottom: 24px;
+        margin-bottom: 32px;
+        border-bottom: 1px solid var(--black);
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gray);
+      }
+      .hero-meta b {
+        display: block;
+        margin-bottom: 6px;
+        font-family: var(--ultra);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--black);
+      }
+      .hero-meta .accent b {
+        color: var(--orange);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 32px;
+      }
+
+      .hero-num {
+        font-family: var(--ultra);
+        font-size: 72px;
+        line-height: 0.86;
+        letter-spacing: 0;
+      }
+      .hero-num .slash {
+        color: var(--orange);
+      }
+
+      h1.title {
+        font-family: var(--ultra);
+        font-weight: 900;
+        font-size: clamp(72px, 13vw, 220px);
+        line-height: 0.84;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+      }
+      h1.title .row { display: block; }
+      h1.title .accent {
+        color: var(--orange);
+      }
+      h1.title .strike {
+        position: relative;
+        display: inline-block;
+      }
+      h1.title .strike::after {
+        content: "";
+        position: absolute;
+        left: -3%;
+        right: -3%;
+        top: 50%;
+        height: 18px;
+        background: var(--orange);
+        transform: translateY(-50%) rotate(-2deg);
+        z-index: -1;
+      }
+
+      .hero-flag {
+        margin-top: 32px;
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        max-width: 720px;
+      }
+      .hero-flag .bar {
+        width: 8px;
+        background: var(--orange);
+      }
+      .hero-flag .text {
+        flex: 1;
+        padding: 18px 22px;
+        background: var(--black);
+        color: var(--white);
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 500;
+      }
+      .hero-flag .text b {
+        color: var(--orange);
+        font-weight: 700;
+      }
+
+      .hero-actions {
+        margin-top: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        height: 56px;
+        padding: 0 28px;
+        font-family: var(--ultra);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: 2px solid var(--black);
+        background: var(--white);
+        color: var(--black);
+        cursor: pointer;
+        margin-right: -2px;
+        transition: all 120ms ease;
+      }
+      .btn:hover {
+        background: var(--black);
+        color: var(--white);
+      }
+      .btn.primary {
+        background: var(--orange);
+        color: var(--black);
+        border-color: var(--black);
+      }
+      .btn.primary:hover {
+        background: var(--black);
+        color: var(--orange);
+      }
+      .btn .arrow {
+        font-family: var(--mono);
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      /* ── hero figure (oversized) ────────────────────────────────── */
+      .hero-figure {
+        margin-top: 56px;
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr);
+        gap: 32px;
+        border-top: 2px solid var(--black);
+        padding-top: 32px;
+      }
+      .figure-frame {
+        position: relative;
+        padding: 0;
+        border: 2px solid var(--black);
+        background: var(--black);
+      }
+      .figure-frame img {
+        opacity: 0.92;
+        filter: contrast(1.05);
+      }
+      .figure-frame .corner {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background: var(--orange);
+      }
+      .figure-frame .corner.tl { top: -8px; left: -8px; }
+      .figure-frame .corner.tr { top: -8px; right: -8px; }
+      .figure-frame .corner.bl { bottom: -8px; left: -8px; }
+      .figure-frame .corner.br { bottom: -8px; right: -8px; }
+      .figure-frame .label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 6px 10px;
+        background: var(--orange);
+        color: var(--black);
+        font-family: var(--ultra);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .figure-spec {
+        font-family: var(--mono);
+      }
+      .figure-spec h3 {
+        font-family: var(--ultra);
+        font-size: 22px;
+        margin: 0 0 20px;
+        text-transform: uppercase;
+        letter-spacing: -0.005em;
+        line-height: 1.1;
+      }
+      .figure-spec .table {
+        border-top: 1px solid var(--black);
+      }
+      .figure-spec .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 16px;
+        padding: 12px 0;
+        font-size: 12px;
+        border-bottom: 1px solid var(--line-soft);
+        align-items: baseline;
+      }
+      .figure-spec .row .k {
+        color: var(--gray);
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+      .figure-spec .row .v {
+        font-family: var(--ultra);
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .figure-spec .row .v.acc {
+        color: var(--orange);
+      }
+
+      /* ── section frame ──────────────────────────────────────────── */
+      .section {
+        position: relative;
+        padding: 80px 18px 92px;
+        border-bottom: 2px solid var(--black);
+      }
+      .section.inverse {
+        background: var(--black);
+        color: var(--white);
+      }
+      .section.inverse a { color: var(--white); }
+      .section.paper {
+        background: var(--paper);
+      }
+      .section-inner {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+      }
+
+      .section-marker {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 24px;
+        align-items: center;
+        padding-bottom: 18px;
+        margin-bottom: 56px;
+        border-bottom: 1px solid currentColor;
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+      .section-marker .num {
+        font-family: var(--ultra);
+        font-size: 15px;
+        letter-spacing: 0.08em;
+      }
+      .section-marker .num .slash {
+        color: var(--orange);
+      }
+      .section-marker .line {
+        height: 1px;
+        background: currentColor;
+        opacity: 0.4;
+      }
+      .section-marker .id {
+        color: var(--orange);
+      }
+
+      h2.section-title {
+        font-family: var(--ultra);
+        font-weight: 900;
+        font-size: clamp(48px, 8vw, 132px);
+        line-height: 0.88;
+        letter-spacing: -0.035em;
+        text-transform: uppercase;
+        max-width: 1100px;
+      }
+      h2.section-title .row { display: block; }
+      h2.section-title .acc { color: var(--orange); }
+      h2.section-title .small {
+        font-size: 0.5em;
+        opacity: 0.4;
+      }
+
+      .section-lede {
+        margin-top: 28px;
+        max-width: 720px;
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.65;
+        font-weight: 500;
+      }
+      .section-lede b {
+        font-family: var(--ultra);
+        font-weight: 900;
+        background: var(--orange);
+        color: var(--black);
+        padding: 0 4px;
+      }
+
+      /* ── why grid (3 spec cards) ────────────────────────────────── */
+      .specs-3 {
+        margin-top: 56px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        border-top: 2px solid currentColor;
+        border-left: 2px solid currentColor;
+      }
+      .spec-card {
+        position: relative;
+        padding: 24px 24px 32px;
+        border-right: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+        background: var(--white);
+      }
+      .section.inverse .spec-card {
+        background: var(--black);
+      }
+      .spec-card .spec-num {
+        font-family: var(--ultra);
+        font-size: 84px;
+        line-height: 0.86;
+        letter-spacing: -0.04em;
+      }
+      .spec-card .spec-num .slash {
+        color: var(--orange);
+      }
+      .spec-card h3 {
+        margin: 28px 0 0;
+        font-family: var(--ultra);
+        font-size: 26px;
+        line-height: 1.04;
+        letter-spacing: -0.015em;
+        text-transform: uppercase;
+      }
+      .spec-card p {
+        margin: 20px 0 0;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.65;
+        color: var(--gray);
+      }
+      .section.inverse .spec-card p {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .spec-card .meta {
+        margin-top: 28px;
+        padding-top: 14px;
+        border-top: 1px solid var(--line-soft);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gray);
+      }
+      .section.inverse .spec-card .meta {
+        border-top-color: rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .spec-card .meta b {
+        font-family: var(--ultra);
+        background: var(--orange);
+        color: var(--black);
+        padding: 4px 8px;
+        font-size: 11px;
+      }
+      .spec-card .corner-tl {
+        position: absolute;
+        top: 16px;
+        right: 18px;
+        width: 24px;
+        height: 24px;
+        border-top: 2px solid var(--orange);
+        border-right: 2px solid var(--orange);
+      }
+
+      /* ── monitor: oversized screen ──────────────────────────────── */
+      .monitor-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+        gap: 48px;
+        align-items: stretch;
+      }
+      .screen-bay {
+        position: relative;
+        padding: 0;
+        border: 2px solid currentColor;
+        background: var(--paper);
+        min-height: 580px;
+        display: flex;
+        flex-direction: column;
+      }
+      .section.inverse .screen-bay { background: #0a0a0a; }
+      .screen-bay .bay-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 18px;
+        border-bottom: 2px solid currentColor;
+        font-family: var(--ultra);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .screen-bay .bay-head .acc { color: var(--orange); }
+      .screen-bay .bay-stack {
+        position: relative;
+        flex: 1;
+        padding: 28px;
+      }
+      .screen-bay .bay-stack img.main {
+        width: min(620px, 92%);
+        border: 2px solid var(--black);
+      }
+      .screen-bay .bay-stack img.bar {
+        position: absolute;
+        right: 28px;
+        bottom: 28px;
+        width: min(380px, 50%);
+        border: 2px solid var(--orange);
+        box-shadow: 8px 8px 0 var(--black);
+      }
+      .section.inverse .screen-bay .bay-stack img.main {
+        border-color: var(--white);
+      }
+
+      .state-table {
+        font-family: var(--mono);
+        border-top: 2px solid currentColor;
+      }
+      .state-row {
+        display: grid;
+        grid-template-columns: 100px 1fr auto;
+        align-items: center;
+        gap: 24px;
+        padding: 24px 0;
+        border-bottom: 2px solid currentColor;
+      }
+      .state-code {
+        font-family: var(--ultra);
+        font-size: 64px;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+      }
+      .state-code.acc { color: var(--orange); }
+      .state-name {
+        font-family: var(--ultra);
+        font-size: 22px;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+      }
+      .state-desc {
+        margin-top: 8px;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--gray);
+      }
+      .section.inverse .state-desc { color: rgba(255, 255, 255, 0.65); }
+      .state-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        padding: 6px 10px;
+        background: var(--black);
+        color: var(--orange);
+      }
+      .section.inverse .state-tag {
+        background: var(--orange);
+        color: var(--black);
+      }
+
+      /* ── controller (input map) ─────────────────────────────────── */
+      .remote-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 48px;
+        align-items: stretch;
+      }
+      .input-map {
+        font-family: var(--mono);
+        border-top: 2px solid var(--black);
+      }
+      .input-row {
+        display: grid;
+        grid-template-columns: 80px 1fr auto;
+        align-items: center;
+        gap: 20px;
+        padding: 22px 0;
+        border-bottom: 2px solid var(--black);
+      }
+      .input-key {
+        display: grid;
+        place-items: center;
+        width: 64px;
+        height: 64px;
+        background: var(--black);
+        color: var(--white);
+        font-family: var(--ultra);
+        font-size: 30px;
+        letter-spacing: 0;
+        border: 2px solid var(--black);
+      }
+      .input-key.acc {
+        background: var(--orange);
+        color: var(--black);
+      }
+      .input-key.outline {
+        background: var(--white);
+        color: var(--black);
+      }
+      .input-action {
+        font-family: var(--ultra);
+        font-size: 22px;
+        text-transform: uppercase;
+        letter-spacing: -0.01em;
+        line-height: 1;
+      }
+      .input-detail {
+        margin-top: 6px;
+        color: var(--gray);
+        font-size: 12px;
+        letter-spacing: 0.04em;
+      }
+      .input-keystroke {
+        font-family: var(--ultra);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 8px 10px;
+        background: var(--black);
+        color: var(--white);
+        white-space: nowrap;
+      }
+
+      .controller-frame {
+        position: relative;
+        padding: 0;
+        border: 2px solid var(--black);
+        background: var(--paper);
+        display: flex;
+        flex-direction: column;
+      }
+      .controller-frame .ctrl-head {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 18px;
+        border-bottom: 2px solid var(--black);
+        background: var(--orange);
+        font-family: var(--ultra);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .controller-frame .ctrl-body {
+        flex: 1;
+        padding: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .controller-frame img {
+        border: 2px solid var(--black);
+        box-shadow: 8px 8px 0 var(--orange);
+      }
+
+      /* ── install / deploy ───────────────────────────────────────── */
+      .install-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 48px;
+        align-items: stretch;
+      }
+      .deploy-frame {
+        padding: 24px;
+        border: 2px solid var(--white);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .deploy-frame img {
+        border: 2px solid var(--white);
+      }
+      .deploy-copy p {
+        margin-top: 28px;
+        max-width: 580px;
+        font-family: var(--mono);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+      .deploy-copy p b {
+        font-family: var(--ultra);
+        background: var(--orange);
+        color: var(--black);
+        padding: 0 6px;
+      }
+      .deploy-actions {
+        margin-top: 40px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+      }
+      .section.inverse .btn {
+        background: var(--black);
+        color: var(--white);
+        border-color: var(--white);
+      }
+      .section.inverse .btn:hover {
+        background: var(--white);
+        color: var(--black);
+      }
+      .section.inverse .btn.primary {
+        background: var(--orange);
+        color: var(--black);
+        border-color: var(--orange);
+      }
+      .section.inverse .btn.primary:hover {
+        background: var(--white);
+        color: var(--black);
+        border-color: var(--white);
+      }
+
+      .barcode {
+        margin-top: 48px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+      .barcode .bars {
+        flex: 1;
+        height: 48px;
+        background:
+          repeating-linear-gradient(
+            90deg,
+            var(--white) 0px,
+            var(--white) 2px,
+            transparent 2px,
+            transparent 5px,
+            var(--white) 5px,
+            var(--white) 6px,
+            transparent 6px,
+            transparent 9px,
+            var(--white) 9px,
+            var(--white) 12px,
+            transparent 12px,
+            transparent 14px
+          );
+      }
+      .barcode .code {
+        font-family: var(--ultra);
+        font-size: 14px;
+        letter-spacing: 0.14em;
+        color: var(--orange);
+      }
+
+      /* ── footer ─────────────────────────────────────────────────── */
+      .foot {
+        padding: 36px 18px 48px;
+        background: var(--white);
+      }
+      .foot-inner {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 24px;
+        align-items: center;
+        padding-top: 24px;
+        border-top: 2px solid var(--black);
+        font-family: var(--mono);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gray);
+      }
+      .foot b {
+        font-family: var(--ultra);
+        color: var(--black);
+      }
+      .foot .mid {
+        justify-self: center;
+        background: var(--orange);
+        color: var(--black);
+        padding: 6px 12px;
+      }
+      .foot .right { justify-self: end; }
+
+      /* reveal */
+      .rise {
+        opacity: 0;
+        transform: translateY(16px);
+        animation: rise 0.8s 0.1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      .rise.d2 { animation-delay: 0.22s; }
+      .rise.d3 { animation-delay: 0.34s; }
+      .rise.d4 { animation-delay: 0.46s; }
+      .rise.d5 { animation-delay: 0.58s; }
+      @keyframes rise {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1080px) {
+        .hero-figure,
+        .specs-3,
+        .monitor-grid,
+        .remote-grid,
+        .install-grid {
+          grid-template-columns: 1fr;
+        }
+        .spec-card {
+          border-right: 2px solid currentColor;
+        }
+        .hero-meta {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 720px) {
+        .topbar .mid { display: none; }
+        .nav { grid-template-columns: 1fr auto; }
+        .nav-mid { display: none; }
+        .nav-links a:not(.nav-cta) { display: none; }
+        .hero-grid { grid-template-columns: 1fr; }
+        .hero-num { font-size: 48px; }
+        h1.title { font-size: 64px; }
+        h2.section-title { font-size: 56px; }
+        .state-row { grid-template-columns: 60px 1fr; }
+        .state-row .state-tag { grid-column: 2; justify-self: start; }
+        .state-code { font-size: 42px; }
+        .input-row { grid-template-columns: 60px 1fr; }
+        .input-row .input-keystroke { grid-column: 2; justify-self: start; }
+        .foot-inner { grid-template-columns: 1fr; }
+        .foot .right, .foot .mid { justify-self: start; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- top status strip -->
+      <div class="topbar">
+        <div class="left">
+          <span>MODEL · <b>AGENTPAD/01</b></span>
+          <span>REV · A</span>
+        </div>
+        <div class="mid">HARDWARE SPECIFICATION</div>
+        <div class="right">
+          <span>BUILD · <b>1.0.0</b></span>
+          <span>2026/06</span>
+        </div>
+      </div>
+
+      <!-- nav -->
+      <nav class="nav" aria-label="Primary">
+        <a class="brand" href="#top">
+          <img src="../AgentPad/Assets.xcassets/AppIcon.appiconset/app-icon_1024.png" alt="" />
+          <span>AGENT<span class="slash">/</span>PAD</span>
+        </a>
+        <div class="nav-mid">FILE · <b>SPEC.01</b> · 06 PAGES</div>
+        <div class="nav-links">
+          <a href="#monitor">MONITOR</a>
+          <a href="#remote">REMOTE</a>
+          <a href="https://github.com/rtx3/AgentPad" target="_blank" rel="noopener noreferrer">SRC</a>
+          <a href="#install" class="nav-cta">DOWNLOAD →</a>
+        </div>
+      </nav>
+
+      <!-- HERO -->
+      <section class="hero" id="top">
+        <div class="hero-inner">
+          <div class="hero-meta">
+            <div><b>UNIT</b><br />Menu-bar console</div>
+            <div class="accent"><b>STATES</b><br />03 discrete</div>
+            <div><b>INPUT</b><br />Game controller</div>
+            <div><b>HOST</b><br />macOS · AppKit</div>
+          </div>
+
+          <div class="hero-grid">
+            <div class="hero-num rise">01<span class="slash">/</span></div>
+            <div>
+              <h1 class="title rise d2">
+                <span class="row">AGENT</span>
+                <span class="row"><span class="strike">CONSOLE</span></span>
+                <span class="row accent">FOR macOS.</span>
+              </h1>
+
+              <div class="hero-flag rise d3">
+                <div class="bar"></div>
+                <div class="text">
+                  AgentPad reads the local <b>JSONL session tail</b> of every running
+                  AI coding agent — Claude Code, Codex, opencode — and routes approve /
+                  reject onto a <b>game controller</b>. Menu-bar resident. Zero network.
+                </div>
+              </div>
+
+              <div class="hero-actions rise d4">
+                <a class="btn primary" href="https://github.com/rtx3/AgentPad/releases" target="_blank" rel="noopener noreferrer">
+                  <span>DOWNLOAD</span>
+                  <span class="arrow">↓</span>
+                </a>
+                <a class="btn" href="https://github.com/rtx3/AgentPad" target="_blank" rel="noopener noreferrer">
+                  <span>VIEW SOURCE</span>
+                  <span class="arrow">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- oversized monitor figure -->
+          <div class="hero-figure rise d5">
+            <div class="figure-frame">
+              <span class="corner tl"></span>
+              <span class="corner tr"></span>
+              <span class="corner bl"></span>
+              <span class="corner br"></span>
+              <span class="label">FIG · 01 / AGENT MONITOR</span>
+              <img src="../resources/screenshot/screenshot_monitor_hero.png" alt="AgentPad agent monitor preview" />
+            </div>
+            <div class="figure-spec">
+              <h3>UNIT 01 / AGENT MONITOR</h3>
+              <div class="table">
+                <div class="row"><span class="k">Position</span><span class="v">Menu bar</span></div>
+                <div class="row"><span class="k">States</span><span class="v acc">W · A · I</span></div>
+                <div class="row"><span class="k">Update</span><span class="v">Live tail</span></div>
+                <div class="row"><span class="k">Source</span><span class="v">JSONL</span></div>
+                <div class="row"><span class="k">Fallback</span><span class="v">PTY · A11y</span></div>
+                <div class="row"><span class="k">Network</span><span class="v acc">None</span></div>
+                <div class="row"><span class="k">Targets</span><span class="v">claude · codex · opencode</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCTRINE / SPEC GRID -->
+      <section class="section paper">
+        <div class="section-inner">
+          <div class="section-marker">
+            <span class="num">02<span class="slash">/</span></span>
+            <span class="line"></span>
+            <span class="id">DOCTRINE</span>
+          </div>
+
+          <h2 class="section-title">
+            <span class="row">PARALLEL AGENTS.</span>
+            <span class="row acc">STATUS = CONSOLE.</span>
+          </h2>
+          <p class="section-lede">
+            AgentPad is engineered for developers who keep long-running AI coding sessions open all day.
+            It does <b>not</b> try to replace the editor; it puts the two things that ever matter —
+            <b>what's happening</b> and <b>what to do next</b> — where your eyes already land.
+          </p>
+
+          <div class="specs-3">
+            <article class="spec-card">
+              <span class="corner-tl"></span>
+              <div class="spec-num">01<span class="slash">/</span></div>
+              <h3>GLANCE,<br />DON'T SWITCH.</h3>
+              <p>
+                Coloured dots in the menu bar read out Working, Calling API or Idle.
+                Multi-project work stops requiring Cmd-Tab to learn who is busy.
+              </p>
+              <div class="meta"><span>SIGNAL</span><b>LIVE</b></div>
+            </article>
+            <article class="spec-card">
+              <span class="corner-tl"></span>
+              <div class="spec-num">02<span class="slash">/</span></div>
+              <h3>LOCAL<br />TELEMETRY.</h3>
+              <p>
+                Reads the JSONL session tail the agent writes itself. PTY probe via
+                Accessibility only kicks in as fallback. The network is left untouched.
+              </p>
+              <div class="meta"><span>SOURCE</span><b>JSONL</b></div>
+            </article>
+            <article class="spec-card">
+              <span class="corner-tl"></span>
+              <div class="spec-num">03<span class="slash">/</span></div>
+              <h3>THUMB THE<br />DECISION.</h3>
+              <p>
+                A / B become approve / reject. L / R move through hunks. Read the
+                diff and answer it without ever switching seats.
+              </p>
+              <div class="meta"><span>LATENCY</span><b>&lt;16ms</b></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- MONITOR -->
+      <section class="section inverse" id="monitor">
+        <div class="section-inner">
+          <div class="section-marker">
+            <span class="num">03<span class="slash">/</span></span>
+            <span class="line"></span>
+            <span class="id">AGENT.MONITOR</span>
+          </div>
+
+          <h2 class="section-title">
+            <span class="row">THE RADAR</span>
+            <span class="row acc">IN THE BAR.</span>
+          </h2>
+          <p class="section-lede">
+            Three states — Working, Calling API, Idle. The smallest vocabulary that
+            still tells you exactly what every session in the fleet wants from you.
+          </p>
+
+          <div class="monitor-grid" style="margin-top:56px;">
+            <div class="screen-bay">
+              <div class="bay-head">
+                <span>MONITOR / 03·A</span>
+                <span class="acc">LIVE TAIL · -F</span>
+              </div>
+              <div class="bay-stack">
+                <img class="main" src="../resources/screenshot/screenshot_monitor_menu.png" alt="AgentPad agent monitor popover" />
+                <img class="bar" src="../resources/screenshot/screenshot_monitor_menubar.png" alt="AgentPad menu bar status dots" />
+              </div>
+            </div>
+
+            <div class="state-table">
+              <div class="state-row">
+                <div class="state-code acc">W</div>
+                <div>
+                  <div class="state-name">WORKING</div>
+                  <div class="state-desc">
+                    A shell command is running, a tool call is in flight, or there's an
+                    unclosed tool_result waiting for the model to come back.
+                  </div>
+                </div>
+                <span class="state-tag">PRIORITY · 1</span>
+              </div>
+              <div class="state-row">
+                <div class="state-code acc">A</div>
+                <div>
+                  <div class="state-name">CALLING API</div>
+                  <div class="state-desc">
+                    Request open or response streaming. Takes priority over Idle so the
+                    live signal arrives at your eye first.
+                  </div>
+                </div>
+                <span class="state-tag">PRIORITY · 2</span>
+              </div>
+              <div class="state-row">
+                <div class="state-code">I</div>
+                <div>
+                  <div class="state-name">IDLE</div>
+                  <div class="state-desc">
+                    The session has parked on a prompt, a confirmation question, or is
+                    simply awaiting your next instruction.
+                  </div>
+                </div>
+                <span class="state-tag">PRIORITY · 3</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- REMOTE -->
+      <section class="section" id="remote">
+        <div class="section-inner">
+          <div class="section-marker">
+            <span class="num">04<span class="slash">/</span></span>
+            <span class="line"></span>
+            <span class="id">CONTROLLER.REMOTE</span>
+          </div>
+
+          <h2 class="section-title">
+            <span class="row">CONTROLLER</span>
+            <span class="row acc">= DECIDER.</span>
+          </h2>
+          <p class="section-lede">
+            Per-app profiles keep bindings honest. Terminal, Cursor and your browser
+            each remember their own map. Pick up a game and any passthrough-capable
+            controller drops cleanly back into native gamepad mode.
+          </p>
+
+          <div class="remote-grid" style="margin-top:56px;">
+            <div class="input-map">
+              <div class="input-row">
+                <div class="input-key acc">A</div>
+                <div>
+                  <div class="input-action">APPROVE</div>
+                  <div class="input-detail">Say yes to the current diff or prompt</div>
+                </div>
+                <span class="input-keystroke">→ Y · ⏎</span>
+              </div>
+              <div class="input-row">
+                <div class="input-key">B</div>
+                <div>
+                  <div class="input-action">REJECT</div>
+                  <div class="input-detail">Say no, ask the agent to revise</div>
+                </div>
+                <span class="input-keystroke">→ N · ⎋</span>
+              </div>
+              <div class="input-row">
+                <div class="input-key outline">L</div>
+                <div>
+                  <div class="input-action">SCROLL · UP</div>
+                  <div class="input-detail">Jump to the previous hunk</div>
+                </div>
+                <span class="input-keystroke">→ ⇧⌘[</span>
+              </div>
+              <div class="input-row">
+                <div class="input-key outline">R</div>
+                <div>
+                  <div class="input-action">SCROLL · DOWN</div>
+                  <div class="input-detail">Jump to the next hunk</div>
+                </div>
+                <span class="input-keystroke">→ ⇧⌘]</span>
+              </div>
+            </div>
+
+            <div class="controller-frame">
+              <div class="ctrl-head">
+                <span>UNIT 04 / INPUT MAP</span>
+                <span>PER-APP</span>
+              </div>
+              <div class="ctrl-body">
+                <img src="../resources/screenshot/screenshot_7.png" alt="AgentPad controller mapping settings" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- INSTALL -->
+      <section class="section inverse" id="install">
+        <div class="section-inner">
+          <div class="section-marker">
+            <span class="num">05<span class="slash">/</span></span>
+            <span class="line"></span>
+            <span class="id">DEPLOY · GH RELEASE</span>
+          </div>
+
+          <h2 class="section-title">
+            <span class="row">NATIVE macOS.</span>
+            <span class="row acc">DROP. RUN. SHIP.</span>
+          </h2>
+
+          <div class="install-grid" style="margin-top:56px;">
+            <div class="deploy-frame">
+              <img src="../resources/screenshot/screenshot_2.png" alt="AgentPad DMG install window" />
+            </div>
+            <div class="deploy-copy">
+              <p>
+                Built with <b>APPKIT</b>. Menu-bar resident, zero Dock icon. Default targets
+                are <b>CLAUDE</b>, <b>CODEX</b> and <b>OPENCODE</b>; add any process-name
+                pattern in Settings. Distributed as a signed DMG via GitHub Releases.
+              </p>
+              <div class="deploy-actions">
+                <a class="btn primary" href="https://github.com/rtx3/AgentPad/releases" target="_blank" rel="noopener noreferrer">
+                  <span>GET AGENTPAD</span>
+                  <span class="arrow">↓</span>
+                </a>
+                <a class="btn" href="https://github.com/rtx3/AgentPad" target="_blank" rel="noopener noreferrer">
+                  <span>REPOSITORY</span>
+                  <span class="arrow">↗</span>
+                </a>
+              </div>
+
+              <div class="barcode">
+                <span class="bars" aria-hidden="true"></span>
+                <span class="code">AP/01/1.0.0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- foot -->
+      <footer class="foot">
+        <div class="foot-inner">
+          <span><b>AGENTPAD</b> · HARDWARE SPEC · REV A</span>
+          <span class="mid">END OF FILE</span>
+          <a class="right" href="https://github.com/rtx3/AgentPad" target="_blank" rel="noopener noreferrer">
+            GITHUB.COM/RTX3/AGENTPAD ↗
+          </a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
