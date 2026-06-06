@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AgentPad Sparkle appcast.
+
+  Hosted via GitHub Pages at https://agentpad.rtx3.com/appcast.xml.
+  Each release is appended as an <item> by scripts/release.sh, which uses
+  Sparkle's generate_appcast to compute the EdDSA signature with the
+  Keychain-stored private key (matching SUPublicEDKey in Info.plist).
+
+  Item template (filled in by generate_appcast):
+
+    <item>
+      <title>Version X.Y.Z</title>
+      <pubDate>RFC 2822 date</pubDate>
+      <sparkle:version>buildNumber</sparkle:version>
+      <sparkle:shortVersionString>X.Y.Z</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>
+        https://github.com/rtx3/AgentPad/releases/tag/vX.Y.Z
+      </sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/rtx3/AgentPad/releases/download/vX.Y.Z/AgentPad-vX.Y.Z.dmg"
+        sparkle:edSignature="…"
+        length="…"
+        type="application/octet-stream" />
+    </item>
+-->
+<rss version="2.0"
+     xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"
+     xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>AgentPad</title>
+    <link>https://agentpad.rtx3.com/appcast.xml</link>
+    <description>Most recent updates to AgentPad</description>
+    <language>en</language>
+  </channel>
+</rss>
