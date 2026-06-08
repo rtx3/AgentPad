@@ -33,5 +33,17 @@
     <link>https://agentpad.rtx3.com/appcast.xml</link>
     <description>Most recent updates to AgentPad</description>
     <language>en</language>
+    <item>
+      <title>Version 1.0.2</title>
+      <pubDate>Mon, 08 Jun 2026 14:54:48 +0000</pubDate>
+      <sparkle:version>72</sparkle:version>
+      <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/rtx3/AgentPad/releases/tag/v1.0.2</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/rtx3/AgentPad/releases/download/v1.0.2/AgentPad-v1.0.2.dmg"
+        sparkle:edSignature="mupbq7TddEfajyB2kskWQlENR6AyloHqSgQVn2bKqyVWEDj21lhu9p3RdfIOTj7zjLIhzI+iZ/Cl1FqZwagXBA==" length="9301217"
+        type="application/octet-stream" />
+    </item>
   </channel>
 </rss>
