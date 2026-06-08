@@ -3,9 +3,10 @@
 //  AgentPad
 //
 //  Storyboard 加 customClass="AgentPadWindowController"。
-//  在 windowDidLoad 时给 window 装 NSToolbar，并把现有 contentViewController（splitView 三栏）
-//  作为 "Controllers"，AgentMonitorSettingsViewController 作为 "Agent Monitor"。
-//  toolbar 选择切换 window.contentViewController。
+//  在 windowDidLoad 时给 window 装 NSToolbar。三个 tab：
+//    - Agent Monitor (默认): AgentMonitorSettingsViewController
+//    - Controllers: storyboard segue 装好的 splitView ViewController
+//    - General: storyboard scene "AppSettingsViewController"（已存在）
 //
 
 import AppKit
@@ -13,6 +14,7 @@ import AppKit
 enum AgentPadSettingsTab: String {
     case controller
     case agentMonitor
+    case general
 }
 
 final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
@@ -20,9 +22,11 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
     private let toolbarIdentifier = "AgentPadWindowToolbar"
     private let controllerItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.controller")
     private let agentMonitorItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.agentMonitor")
+    private let generalItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.general")
 
     private var controllerVC: NSViewController?
     private var agentMonitorVC: AgentMonitorSettingsViewController?
+    private var generalVC: NSViewController?
 
     override func windowDidLoad() {
         super.windowDidLoad()
@@ -62,19 +66,30 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
             if agentMonitorVC == nil { agentMonitorVC = AgentMonitorSettingsViewController() }
             if let am = agentMonitorVC { window?.contentViewController = am }
             window?.toolbar?.selectedItemIdentifier = agentMonitorItemID
+        case .general:
+            if generalVC == nil {
+                // Reuse the AppSettingsViewController scene that previously
+                // got presented as a sheet via didPushOptions:. It still lives
+                // in the storyboard under that identifier.
+                generalVC = storyboard?.instantiateController(
+                    withIdentifier: "AppSettingsViewController"
+                ) as? NSViewController
+            }
+            if let g = generalVC { window?.contentViewController = g }
+            window?.toolbar?.selectedItemIdentifier = generalItemID
         }
     }
 
     // MARK: - NSToolbarDelegate
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [agentMonitorItemID, controllerItemID]
+        return [agentMonitorItemID, controllerItemID, generalItemID]
     }
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [agentMonitorItemID, controllerItemID]
+        return [agentMonitorItemID, controllerItemID, generalItemID]
     }
     func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [agentMonitorItemID, controllerItemID]
+        return [agentMonitorItemID, controllerItemID, generalItemID]
     }
 
     func toolbar(_ toolbar: NSToolbar,
@@ -97,6 +112,10 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
             item.label = NSLocalizedString("settings.tab.agentMonitor", comment: "")
             item.paletteLabel = item.label
             item.image = NSImage(named: NSImage.networkName)
+        } else if itemIdentifier == generalItemID {
+            item.label = NSLocalizedString("settings.tab.general", comment: "")
+            item.paletteLabel = item.label
+            item.image = NSImage(named: NSImage.preferencesGeneralName)
         }
         return item
     }
@@ -104,5 +123,6 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
     @objc private func toolbarItemSelected(_ sender: NSToolbarItem) {
         if sender.itemIdentifier == controllerItemID { select(tab: .controller) }
         else if sender.itemIdentifier == agentMonitorItemID { select(tab: .agentMonitor) }
+        else if sender.itemIdentifier == generalItemID { select(tab: .general) }
     }
 }

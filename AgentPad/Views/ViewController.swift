@@ -76,6 +76,11 @@ class ViewController: NSViewController {
         
         self.updateAppAddRemoveButtonState()
 
+        // Options sheet has been promoted to the "General" tab in the Settings
+        // window. Hide the button here so there's a single entry point; the
+        // outlet + IBAction stay to keep the storyboard connection valid.
+        self.optionsButton?.isHidden = true
+
         self.installSyncFromDefaultButton()
         self.updateSyncButtonState()
         self.installPassthroughOverlay()

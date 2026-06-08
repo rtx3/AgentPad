@@ -250,6 +250,7 @@
 "agent.monitor.state.callingAPI" = "Calling API";
 "agent.monitor.state.idle" = "Idle";
 "settings.tab.controller" = "Controllers";
+"settings.tab.general" = "General";
 "settings.tab.agentMonitor" = "Agent Monitor";
 "settings.agentMonitor.patterns.title" = "Monitored process patterns";
 "settings.agentMonitor.patterns.hint" = "case-insensitive substring";

@@ -250,6 +250,7 @@
 "agent.monitor.state.callingAPI" = "调用 API 中";
 "agent.monitor.state.idle" = "空闲";
 "settings.tab.controller" = "控制器";
+"settings.tab.general" = "通用";
 "settings.tab.agentMonitor" = "智能体监视器";
 "settings.agentMonitor.patterns.title" = "监视的进程模式";
 "settings.agentMonitor.patterns.hint" = "不区分大小写的子串";
