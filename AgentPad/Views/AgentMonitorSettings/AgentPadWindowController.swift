@@ -4,34 +4,34 @@
 //
 //  Storyboard 加 customClass="AgentPadWindowController"。
 //  在 windowDidLoad 时给 window 装 NSToolbar，并把现有 contentViewController（splitView 三栏）
-//  作为 "General"，AgentMonitorSettingsViewController 作为 "Agent Monitor"。
+//  作为 "Controllers"，AgentMonitorSettingsViewController 作为 "Agent Monitor"。
 //  toolbar 选择切换 window.contentViewController。
 //
 
 import AppKit
 
 enum AgentPadSettingsTab: String {
-    case general
+    case controller
     case agentMonitor
 }
 
 final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
 
     private let toolbarIdentifier = "AgentPadWindowToolbar"
-    private let generalItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.general")
+    private let controllerItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.controller")
     private let agentMonitorItemID = NSToolbarItem.Identifier("AgentPadWindowToolbar.agentMonitor")
 
-    private var generalVC: NSViewController?
+    private var controllerVC: NSViewController?
     private var agentMonitorVC: AgentMonitorSettingsViewController?
 
     override func windowDidLoad() {
         super.windowDidLoad()
 
         // 既有 storyboard segue 已经把 splitView ViewController 装到 window.contentViewController。
-        generalVC = window?.contentViewController
+        controllerVC = window?.contentViewController
 
         installToolbar()
-        select(tab: .general)
+        select(tab: .agentMonitor)
     }
 
     private func installToolbar() {
@@ -55,9 +55,9 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
 
     private func select(tab: AgentPadSettingsTab) {
         switch tab {
-        case .general:
-            if let g = generalVC { window?.contentViewController = g }
-            window?.toolbar?.selectedItemIdentifier = generalItemID
+        case .controller:
+            if let g = controllerVC { window?.contentViewController = g }
+            window?.toolbar?.selectedItemIdentifier = controllerItemID
         case .agentMonitor:
             if agentMonitorVC == nil { agentMonitorVC = AgentMonitorSettingsViewController() }
             if let am = agentMonitorVC { window?.contentViewController = am }
@@ -68,13 +68,13 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
     // MARK: - NSToolbarDelegate
 
     func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [generalItemID, agentMonitorItemID]
+        return [agentMonitorItemID, controllerItemID]
     }
     func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [generalItemID, agentMonitorItemID]
+        return [agentMonitorItemID, controllerItemID]
     }
     func toolbarSelectableItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        return [generalItemID, agentMonitorItemID]
+        return [agentMonitorItemID, controllerItemID]
     }
 
     func toolbar(_ toolbar: NSToolbar,
@@ -83,10 +83,16 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
         let item = NSToolbarItem(itemIdentifier: itemIdentifier)
         item.target = self
         item.action = #selector(toolbarItemSelected(_:))
-        if itemIdentifier == generalItemID {
-            item.label = NSLocalizedString("settings.tab.general", comment: "")
+        if itemIdentifier == controllerItemID {
+            item.label = NSLocalizedString("settings.tab.controller", comment: "")
             item.paletteLabel = item.label
-            item.image = NSImage(named: NSImage.preferencesGeneralName)
+            // SF Symbol "gamecontroller.fill" available on macOS 11+.
+            // Fallback to preferencesGeneralName (gear) for 10.14 / 10.15.
+            if #available(macOS 11.0, *) {
+                item.image = NSImage(systemSymbolName: "gamecontroller.fill", accessibilityDescription: nil)
+            } else {
+                item.image = NSImage(named: NSImage.preferencesGeneralName)
+            }
         } else if itemIdentifier == agentMonitorItemID {
             item.label = NSLocalizedString("settings.tab.agentMonitor", comment: "")
             item.paletteLabel = item.label
@@ -96,7 +102,7 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
     }
 
     @objc private func toolbarItemSelected(_ sender: NSToolbarItem) {
-        if sender.itemIdentifier == generalItemID { select(tab: .general) }
+        if sender.itemIdentifier == controllerItemID { select(tab: .controller) }
         else if sender.itemIdentifier == agentMonitorItemID { select(tab: .agentMonitor) }
     }
 }

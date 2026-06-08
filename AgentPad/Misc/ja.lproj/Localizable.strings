@@ -249,7 +249,7 @@
 "agent.monitor.state.working" = "実行中";
 "agent.monitor.state.callingAPI" = "API 呼び出し中";
 "agent.monitor.state.idle" = "アイドル";
-"settings.tab.general" = "一般";
+"settings.tab.controller" = "コントローラー";
 "settings.tab.agentMonitor" = "エージェントモニター";
 "settings.agentMonitor.patterns.title" = "監視するプロセスパターン";
 "settings.agentMonitor.patterns.hint" = "大文字小文字を区別しない部分一致";
