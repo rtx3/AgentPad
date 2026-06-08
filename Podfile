@@ -7,6 +7,7 @@ target 'AgentPad' do
 
   # Pods for AgentPad
   pod 'JoyConSwift', '0.2.1'
+  pod 'Sparkle', '~> 2.6'
 
 end
 
