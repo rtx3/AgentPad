@@ -32,9 +32,9 @@ class AppSettingsViewController: NSViewController {
         self.notifyBatteryFull.state = AppSettings.notifyBatteryFull ? .on : .off
         self.launchOnLogin.state = AppSettings.launchOnLogin ? .on : .off
 
+        self.installAutoUpdateRow()
         self.installLanguageRow()
         self.installAccessibilityStatusRow()
-        self.installAutoUpdateRow()
     }
 
     override func viewWillAppear() {
