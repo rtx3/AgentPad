@@ -258,6 +258,7 @@
 "settings.agentMonitor.showCount" = "Show count in menu bar";
 "settings.agentMonitor.showStatusBadge" = "Show status badge in menu bar";
 "settings.agentMonitor.launchAtLogin" = "Launch at login";
+"settings.agentMonitor.autoUpdate" = "Automatically check for updates";
 
 // AgentMacro (plan 5)
 "Agent" = "Agent";
@@ -278,7 +279,6 @@
 
 // Sparkle (auto-update)
 "Check for Updates…" = "Check for Updates…";
-"Automatically check for updates" = "Automatically check for updates";
 
 // Missing translations
 "Settings..." = "Settings...";

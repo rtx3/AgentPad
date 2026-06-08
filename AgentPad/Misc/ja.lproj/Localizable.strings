@@ -258,6 +258,7 @@
 "settings.agentMonitor.showCount" = "メニューバーに件数を表示";
 "settings.agentMonitor.showStatusBadge" = "メニューバーにステータスバッジを表示";
 "settings.agentMonitor.launchAtLogin" = "ログイン時に起動";
+"settings.agentMonitor.autoUpdate" = "自動的にアップデートを確認";
 
 // AgentMacro (plan 5)
 "Agent" = "エージェント";
@@ -278,7 +279,6 @@
 
 // Sparkle (auto-update)
 "Check for Updates…" = "アップデートを確認…";
-"Automatically check for updates" = "自動的にアップデートを確認";
 
 // Missing translations
 "Settings..." = "設定...";

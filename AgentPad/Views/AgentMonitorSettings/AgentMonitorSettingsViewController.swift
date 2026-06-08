@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import Sparkle
 
 final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDataSource, NSTableViewDelegate {
 
@@ -19,6 +20,7 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
     private let showCountCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let showStatusBadgeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let launchAtLoginCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+    private let autoUpdateCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
 
     private let patternColumnID = NSUserInterfaceItemIdentifier("pattern")
     private let rootColumnID = NSUserInterfaceItemIdentifier("sessionRoot")
@@ -80,6 +82,11 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
         launchAtLoginCheckbox.action = #selector(launchAtLoginChanged(_:))
         launchAtLoginCheckbox.translatesAutoresizingMaskIntoConstraints = false
 
+        autoUpdateCheckbox.title = NSLocalizedString("settings.agentMonitor.autoUpdate", comment: "")
+        autoUpdateCheckbox.target = self
+        autoUpdateCheckbox.action = #selector(autoUpdateChanged(_:))
+        autoUpdateCheckbox.translatesAutoresizingMaskIntoConstraints = false
+
         root.addSubview(patternsLabel)
         root.addSubview(scrollView)
         root.addSubview(addBtn)
@@ -90,6 +97,7 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
         root.addSubview(showCountCheckbox)
         root.addSubview(showStatusBadgeCheckbox)
         root.addSubview(launchAtLoginCheckbox)
+        root.addSubview(autoUpdateCheckbox)
 
         NSLayoutConstraint.activate([
             root.widthAnchor.constraint(greaterThanOrEqualToConstant: 480),
@@ -125,7 +133,10 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
 
             launchAtLoginCheckbox.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
             launchAtLoginCheckbox.topAnchor.constraint(equalTo: showStatusBadgeCheckbox.bottomAnchor, constant: 8),
-            launchAtLoginCheckbox.bottomAnchor.constraint(lessThanOrEqualTo: root.bottomAnchor, constant: -20),
+
+            autoUpdateCheckbox.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
+            autoUpdateCheckbox.topAnchor.constraint(equalTo: launchAtLoginCheckbox.bottomAnchor, constant: 8),
+            autoUpdateCheckbox.bottomAnchor.constraint(lessThanOrEqualTo: root.bottomAnchor, constant: -20),
         ])
 
         self.view = root
@@ -161,6 +172,7 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
         showCountCheckbox.state = AppSettings.AgentMonitor.showCountInMenuBar ? .on : .off
         showStatusBadgeCheckbox.state = AppSettings.AgentMonitor.showStatusBadge ? .on : .off
         launchAtLoginCheckbox.state = AppSettings.launchOnLogin ? .on : .off
+        autoUpdateCheckbox.state = (self.sparkleUpdater?.automaticallyChecksForUpdates ?? true) ? .on : .off
         tableView.reloadData()
     }
 
@@ -205,6 +217,18 @@ final class AgentMonitorSettingsViewController: NSViewController, NSTableViewDat
 
     @objc private func launchAtLoginChanged(_ sender: Any?) {
         AppSettings.launchOnLogin = (launchAtLoginCheckbox.state == .on)
+    }
+
+    @objc private func autoUpdateChanged(_ sender: Any?) {
+        // Sparkle persists this to UserDefaults under SUEnableAutomaticChecks,
+        // overriding the Info.plist default.
+        self.sparkleUpdater?.automaticallyChecksForUpdates = (autoUpdateCheckbox.state == .on)
+    }
+
+    /// Reach into AppDelegate's Sparkle controller. Settings is only opened
+    /// after applicationDidFinishLaunching, so the lookup is reliable here.
+    private var sparkleUpdater: SPUUpdater? {
+        return (NSApp.delegate as? AppDelegate)?.updaterController?.updater
     }
 
     // MARK: - NSTableView

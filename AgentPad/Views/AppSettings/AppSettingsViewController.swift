@@ -7,7 +7,6 @@
 //
 
 import AppKit
-import Sparkle
 
 class AppSettingsViewController: NSViewController {
     @IBOutlet weak var disconnectTime: NSPopUpButton!
@@ -17,7 +16,6 @@ class AppSettingsViewController: NSViewController {
     @IBOutlet weak var notifyBatteryFull: NSButton!
     @IBOutlet weak var launchOnLogin: NSButton!
     private let languagePopup = NSPopUpButton()
-    private let autoUpdateCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     private let accessibilityStatusBadge = NSTextField(labelWithString: "")
     private let accessibilitySettingsButton = NSButton(title: "", target: nil, action: nil)
     private var accessibilityStatusTimer: Timer?
@@ -31,8 +29,10 @@ class AppSettingsViewController: NSViewController {
         self.notifyBatteryCharge.state = AppSettings.notifyBatteryCharge ? .on : .off
         self.notifyBatteryFull.state = AppSettings.notifyBatteryFull ? .on : .off
         self.launchOnLogin.state = AppSettings.launchOnLogin ? .on : .off
+        // launchOnLogin lives in Agent Monitor tab now; storyboard outlet kept
+        // to avoid breaking the connection, but hide it from the General tab.
+        self.launchOnLogin.isHidden = true
 
-        self.installAutoUpdateRow()
         self.installLanguageRow()
         self.installAccessibilityStatusRow()
     }
@@ -76,37 +76,6 @@ class AppSettingsViewController: NSViewController {
         AppSettings.launchOnLogin = self.launchOnLogin.state == .on
     }
 
-    private func installAutoUpdateRow() {
-        autoUpdateCheckbox.translatesAutoresizingMaskIntoConstraints = false
-        autoUpdateCheckbox.title = NSLocalizedString("Automatically check for updates", comment: "Sparkle auto-update checkbox")
-        autoUpdateCheckbox.target = self
-        autoUpdateCheckbox.action = #selector(didChangeAutoUpdate(_:))
-
-        // Initial state mirrors Sparkle's current preference. UserDefaults
-        // overrides Info.plist's SUEnableAutomaticChecks once the user toggles
-        // this — that's exactly what we want.
-        let enabled = self.sparkleUpdater?.automaticallyChecksForUpdates ?? true
-        autoUpdateCheckbox.state = enabled ? .on : .off
-
-        view.addSubview(autoUpdateCheckbox)
-
-        NSLayoutConstraint.activate([
-            autoUpdateCheckbox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
-            autoUpdateCheckbox.topAnchor.constraint(equalTo: self.launchOnLogin.bottomAnchor, constant: 12),
-        ])
-    }
-
-    @objc private func didChangeAutoUpdate(_ sender: NSButton) {
-        self.sparkleUpdater?.automaticallyChecksForUpdates = (sender.state == .on)
-    }
-
-    /// Reach into AppDelegate's Sparkle controller. nil before AppDelegate
-    /// finishes `applicationDidFinishLaunching`, but Settings is opened after,
-    /// so the lookup is reliable at viewDidLoad time.
-    private var sparkleUpdater: SPUUpdater? {
-        return (NSApp.delegate as? AppDelegate)?.updaterController?.updater
-    }
-
     private func installLanguageRow() {
         let titleLabel = NSTextField(labelWithString: NSLocalizedString("Language", comment: "Language setting title"))
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -137,7 +106,9 @@ class AppSettingsViewController: NSViewController {
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
-            titleLabel.topAnchor.constraint(equalTo: self.autoUpdateCheckbox.bottomAnchor, constant: 20),
+            // launchOnLogin is hidden in this tab (moved to Agent Monitor),
+            // so anchor below the last visible row instead.
+            titleLabel.topAnchor.constraint(equalTo: self.notifyBatteryFull.bottomAnchor, constant: 20),
 
             languagePopup.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
             languagePopup.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),

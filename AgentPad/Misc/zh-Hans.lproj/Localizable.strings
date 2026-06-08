@@ -258,6 +258,7 @@
 "settings.agentMonitor.showCount" = "在菜单栏显示计数";
 "settings.agentMonitor.showStatusBadge" = "在菜单栏显示状态徽章";
 "settings.agentMonitor.launchAtLogin" = "登录时启动";
+"settings.agentMonitor.autoUpdate" = "自动检查更新";
 
 // AgentMacro (plan 5)
 "Agent" = "智能体";
@@ -278,7 +279,6 @@
 
 // Sparkle (auto-update)
 "Check for Updates…" = "检查更新…";
-"Automatically check for updates" = "自动检查更新";
 
 // Missing translations
 "Settings..." = "设置...";
