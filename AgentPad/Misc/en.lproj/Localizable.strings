@@ -276,6 +276,10 @@
 "Language" = "Language";
 "Restart required to apply language change" = "Restart required to apply language change";
 
+// Sparkle (auto-update)
+"Check for Updates…" = "Check for Updates…";
+"Automatically check for updates" = "Automatically check for updates";
+
 // Missing translations
 "Settings..." = "Settings...";
 "Quit" = "Quit";

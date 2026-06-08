@@ -276,6 +276,10 @@
 "Language" = "言語";
 "Restart required to apply language change" = "言語変更を適用するには再起動が必要です";
 
+// Sparkle (auto-update)
+"Check for Updates…" = "アップデートを確認…";
+"Automatically check for updates" = "自動的にアップデートを確認";
+
 // Missing translations
 "Settings..." = "設定...";
 "Quit" = "終了";
