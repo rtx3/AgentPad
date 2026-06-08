@@ -106,9 +106,10 @@ class AppSettingsViewController: NSViewController {
 
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
-            // launchOnLogin is hidden in this tab (moved to Agent Monitor),
-            // so anchor below the last visible row instead.
-            titleLabel.topAnchor.constraint(equalTo: self.notifyBatteryFull.bottomAnchor, constant: 20),
+            // launchOnLogin is hidden in this tab but still participates in
+            // layout — its bottomAnchor sits right under the Notification
+            // NSBox, which is the correct visual anchor for Language.
+            titleLabel.topAnchor.constraint(equalTo: self.launchOnLogin.bottomAnchor, constant: 20),
 
             languagePopup.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
             languagePopup.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),

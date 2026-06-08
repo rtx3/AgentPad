@@ -115,7 +115,13 @@ final class AgentPadWindowController: NSWindowController, NSToolbarDelegate {
         } else if itemIdentifier == generalItemID {
             item.label = NSLocalizedString("settings.tab.general", comment: "")
             item.paletteLabel = item.label
-            item.image = NSImage(named: NSImage.preferencesGeneralName)
+            // SF Symbol "slider.horizontal.3" on macOS 11+. Fallback to the
+            // classic preferences gear for 10.14 / 10.15.
+            if #available(macOS 11.0, *) {
+                item.image = NSImage(systemSymbolName: "slider.horizontal.3", accessibilityDescription: nil)
+            } else {
+                item.image = NSImage(named: NSImage.preferencesGeneralName)
+            }
         }
         return item
     }
