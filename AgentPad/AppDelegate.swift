@@ -10,6 +10,7 @@ import AppKit
 import ServiceManagement
 import UserNotifications
 import JoyConSwift
+import Sparkle
 
 let helperAppID: CFString = "com.rtx3.agentpad.launcher" as CFString
 
@@ -38,6 +39,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     var agentMonitor: AgentMonitor?
     /// 计划 B：菜单栏图标 + Popover 控制器。
     var statusBarController: StatusBarController?
+
+    /// Sparkle 自动更新控制器。
+    /// Feed URL / 公钥 / 自动检查间隔由 Info.plist 配置（SUFeedURL / SUPublicEDKey /
+    /// SUEnableAutomaticChecks / SUScheduledCheckInterval）。
+    var updaterController: SPUStandardUpdaterController?
 
     /// 状态栏 NSMenu 是否处于打开状态。打开期间 poll 事件需原地刷新已存在的行视图，
     /// 因为 NSMenu tracking 期间不接受 item 增删。
@@ -122,6 +128,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             self?.accessibilityOnboardingWindowController = AccessibilityOnboardingWindowController.presentIfNeeded()
         }
 
+        // Sparkle 自动更新：初始化标准 updater controller。
+        // startingUpdater: true → 立即按 Info.plist 中的 SUFeedURL 启动调度。
+        // 公钥 / Feed URL / 检查间隔均由 Info.plist 配置驱动。
+        self.updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
+        self.installCheckForUpdatesMenuItem()
+
         // Agent monitor backend (计划 A)。事件同时扇出给 StatusBarController（菜单栏图标）
         // 与已展开的状态栏 NSMenu（原地刷新行视图与 header 计数）。
         let monitor = AgentMonitor()
@@ -156,8 +172,36 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
     // MARK: - Menu
     
     @IBAction func openAbout(_ sender: Any) {
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        NSApplication.shared.orderFrontStandardAboutPanel(NSApplication.shared)
+        AboutWindowController.present(updater: self.updaterController)
+    }
+
+    /// 在主应用菜单（"AgentPad"）中注入 Sparkle 的「Check for Updates…」菜单项。
+    /// 位置：About 之后、第一个分隔符之前。target/action 走 SPUStandardUpdaterController.checkForUpdates(_:)。
+    /// 用代码注入而非改 storyboard，避免 3 个 lproj 各自维护。
+    private func installCheckForUpdatesMenuItem() {
+        guard let updater = self.updaterController else { return }
+        guard let mainMenu = NSApp.mainMenu else { return }
+        guard let appMenuItem = mainMenu.items.first, let appMenu = appMenuItem.submenu else { return }
+
+        // 已存在则不重复注入。
+        let selector = #selector(SPUStandardUpdaterController.checkForUpdates(_:))
+        if appMenu.items.contains(where: { $0.action == selector }) { return }
+
+        let item = NSMenuItem(
+            title: NSLocalizedString("Check for Updates…", comment: "Sparkle menu item"),
+            action: selector,
+            keyEquivalent: ""
+        )
+        item.target = updater
+
+        // 插入到 About 之后（即第一个 separator 之前）。
+        let insertIndex: Int
+        if let aboutIdx = appMenu.items.firstIndex(where: { $0.action == #selector(NSApplication.orderFrontStandardAboutPanel(_:)) }) {
+            insertIndex = aboutIdx + 1
+        } else {
+            insertIndex = 0
+        }
+        appMenu.insertItem(item, at: insertIndex)
     }
     
     @IBAction func openSettings(_ sender: Any) {

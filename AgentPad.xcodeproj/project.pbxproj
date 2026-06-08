@@ -40,6 +40,7 @@
 		DDA072B1246699C500F9B80B /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = DDA072B3246699C500F9B80B /* Localizable.strings */; };
 		DDA11B0501010001000A0A0A /* AccessibilityPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */; };
 		DDA11B0701010001000A0A0A /* AccessibilityOnboardingWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */; };
+		DDAB00A200000001 /* AboutWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB00A100000001 /* AboutWindowController.swift */; };
 		DDA9000100000001 /* AgentMacroStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000200000001 /* AgentMacroStep.swift */; };
 		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
 		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
@@ -155,6 +156,7 @@
 		BB345262DA5A4DED8A8D7B19 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		DDA11B0401010001000A0A0A /* AccessibilityPermission.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityPermission.swift; sourceTree = "<group>"; };
 		DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AccessibilityOnboardingWindowController.swift; sourceTree = "<group>"; };
+		DDAB00A100000001 /* AboutWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AboutWindowController.swift; sourceTree = "<group>"; };
 		DDA9000200000001 /* AgentMacroStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroStep.swift; sourceTree = "<group>"; };
 		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
 		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
@@ -284,6 +286,7 @@
 				DD05303D24272DAA0091B3C6 /* KeyConfigView */,
 				DD05304024272DAA0091B3C6 /* AppSettings */,
 				DDA11B0801010001000A0A0A /* Onboarding */,
+				DDAB00A300000001 /* About */,
 				DDAD000000000001 /* StatusBar */,
 				DDAD000100000001 /* AgentMonitor */,
 				DDAD000200000001 /* AgentMonitorSettings */,
@@ -397,6 +400,14 @@
 				DDA11B0601010001000A0A0A /* AccessibilityOnboardingWindowController.swift */,
 			);
 			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		DDAB00A300000001 /* About */ = {
+			isa = PBXGroup;
+			children = (
+				DDAB00A100000001 /* AboutWindowController.swift */,
+			);
+			path = About;
 			sourceTree = "<group>";
 		};
 		DDA9000900000001 /* Agent */ = {
@@ -756,6 +767,7 @@
 				DDB13F0124272DAA0091B3C6 /* KeyCaptureField.swift in Sources */,
 				DDA11B0501010001000A0A0A /* AccessibilityPermission.swift in Sources */,
 				DDA11B0701010001000A0A0A /* AccessibilityOnboardingWindowController.swift in Sources */,
+				DDAB00A200000001 /* AboutWindowController.swift in Sources */,
 				DDB20B01000000000000B001 /* ControllerButton.swift in Sources */,
 				DDB20B02000000000000B002 /* ControllerStick.swift in Sources */,
 				DDB20B03000000000000B003 /* BatteryLevel.swift in Sources */,
