@@ -76,17 +76,52 @@ if [ $? -ne 0 ]; then
   exit 6
 fi
 
-# Notarize the dmg file (synchronous: --wait blocks until Apple finishes)
+# Notarize the dmg file.
+# notarytool is unstable on macOS 26 (Tahoe): both `--wait` and bare `submit`
+# can crash with "Bus error: 10" *after* the upload has already succeeded and
+# the submission ID has been printed. So: never use --wait, ignore submit's
+# exit code, and instead trust the parsed submission ID and poll info ourselves.
 echo "Notarizing the dmg file..."
-xcrun notarytool submit "${DMG_PATH}" \
+SUBMIT_OUTPUT=$(xcrun notarytool submit "${DMG_PATH}" \
   --key "${APP_API_KEY_PATH}" \
   --key-id "${APP_API_KEY_ID}" \
-  --issuer "${APP_API_ISSUER}" \
-  --wait
-if [ $? -ne 0 ]; then
-  echo "error: Notarization failed"
+  --issuer "${APP_API_ISSUER}" 2>&1)
+echo "${SUBMIT_OUTPUT}"
+
+SUBMISSION_ID=$(echo "${SUBMIT_OUTPUT}" | grep -E '^[[:space:]]*id:' | head -1 | awk '{print $2}')
+if [ -z "${SUBMISSION_ID}" ]; then
+  echo "error: notarytool submit produced no submission ID"
   exit 7
 fi
+echo "Submission ID: ${SUBMISSION_ID}"
+
+echo "Waiting for notarization to complete..."
+NOTARIZE_STATUS=""
+# 240 * 15s = 60 minutes. Apple notary normally finishes in <15 min, but
+# occasional backend backlog has been observed to stretch past 30 min.
+for i in $(seq 1 240); do
+  sleep 15
+  INFO_OUTPUT=$(xcrun notarytool info "${SUBMISSION_ID}" \
+    --key "${APP_API_KEY_PATH}" \
+    --key-id "${APP_API_KEY_ID}" \
+    --issuer "${APP_API_ISSUER}" 2>&1)
+  NOTARIZE_STATUS=$(echo "${INFO_OUTPUT}" | grep -E '^[[:space:]]*status:' | head -1 | sed 's/.*status:[[:space:]]*//')
+  echo "  [${i}/240] status: ${NOTARIZE_STATUS}"
+  if [ -n "${NOTARIZE_STATUS}" ] && [ "${NOTARIZE_STATUS}" != "In Progress" ]; then
+    break
+  fi
+done
+
+if [ "${NOTARIZE_STATUS}" != "Accepted" ]; then
+  echo "error: Notarization not accepted (status: ${NOTARIZE_STATUS})"
+  echo "Fetching notarization log..."
+  xcrun notarytool log "${SUBMISSION_ID}" \
+    --key "${APP_API_KEY_PATH}" \
+    --key-id "${APP_API_KEY_ID}" \
+    --issuer "${APP_API_ISSUER}"
+  exit 7
+fi
+echo "Notarization accepted."
 
 # Staple a ticket to the dmg file
 xcrun stapler staple "${DMG_PATH}"
