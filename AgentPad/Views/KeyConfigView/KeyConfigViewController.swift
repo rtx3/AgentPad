@@ -10,7 +10,11 @@ import AppKit
 import InputMethodKit
 
 protocol KeyConfigSetDelegate {
-    func setKeyConfig(controller: KeyConfigViewController)
+    /// sheet 写回完成后回调。
+    /// - Parameter keyMap: 本次更新的 KeyMap 引用（用于 delegate 端必要时定位被改的按钮）。
+    ///   delegate 需要据此刷新运行时绑定（如重建 GameController.currentConfig 字典），
+    ///   仅靠 NSManagedObject 字段引用更新不够——首次新建的 KeyMap 不在字典中。
+    func setKeyConfig(controller: KeyConfigViewController, keyMap: KeyMap)
 }
 
 class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigComboBoxDelegate, KeyCaptureFieldDelegate {
@@ -276,7 +280,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
             keyMap.keyCode = -1
             keyMap.mouseButton = -1
             keyMap.isEnabled = !self.agentEditor.steps.isEmpty
-            self.delegate?.setKeyConfig(controller: self)
+            self.delegate?.setKeyConfig(controller: self, keyMap: keyMap)
             return
         }
 
@@ -292,7 +296,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
             keyMap.keyCode = self.simpleCaptureField.keyCode
             keyMap.mouseButton = -1
             keyMap.isEnabled = (keyMap.keyCode >= 0)
-            self.delegate?.setKeyConfig(controller: self)
+            self.delegate?.setKeyConfig(controller: self, keyMap: keyMap)
             return
         }
 
@@ -335,7 +339,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
 
         keyMap.isEnabled = true
 
-        self.delegate?.setKeyConfig(controller: self)
+        self.delegate?.setKeyConfig(controller: self, keyMap: keyMap)
     }
 
     func comboBoxSelectionDidChange(_ notification: Notification) {

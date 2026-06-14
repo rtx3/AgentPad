@@ -42,21 +42,13 @@ class ViewController: NSViewController {
     var selectedControllerData: ControllerData? {
         return self.selectedController?.data
     }
+    // App 列表在 UI 上已完全隐藏（仅运行时隐藏，Core Data 数据保留）。
+    // 所有手柄统一只使用各自的 defaultConfig；selectedAppConfig 恒为 nil。
     var selectedAppConfig: AppConfig? {
-        guard let data = self.selectedControllerData else {
-            return nil
-        }
-        let row = self.appTableView.selectedRow
-        if row < 1 {
-            return nil
-        }
-        return data.appConfigs?[row - 1] as? AppConfig
+        return nil
     }
     var selectedKeyConfig: KeyConfig? {
-        if self.appTableView.selectedRow < 0 {
-            return nil
-        }
-        return self.selectedAppConfig?.config ?? self.selectedControllerData?.defaultConfig
+        return self.selectedControllerData?.defaultConfig
     }
     var keyDownHandler: Any?
 
@@ -81,10 +73,10 @@ class ViewController: NSViewController {
         // outlet + IBAction stay to keep the storyboard connection valid.
         self.optionsButton?.isHidden = true
 
-        self.installSyncFromDefaultButton()
-        self.updateSyncButtonState()
-        self.installPassthroughOverlay()
-        self.updatePassthroughOverlay()
+        // App 列表整段隐藏（storyboard 不动；outlet 全部保留以维持 IB 连接）。
+        // 旧的 per-App 配置 / passthrough 复选框 / Sync from Default 按钮 / passthrough overlay
+        // 在新形态下都没有意义。所有手柄统一只用各自的 defaultConfig。
+        self.hideAppListSection()
 
         NotificationCenter.default.addObserver(self, selector: #selector(controllerAdded), name: .controllerAdded, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(controllerRemoved), name: .controllerRemoved, object: nil)
@@ -356,6 +348,39 @@ class ViewController: NSViewController {
     func updatePassthroughOverlay() {
         let shouldShow = self.selectedAppConfig?.passthrough ?? false
         self.passthroughOverlay?.isHidden = !shouldShow
+    }
+
+    // MARK: - Hide App list
+
+    /// 隐藏 App 列表所在的左栏 + 加减按钮 + "Apps" 标题。
+    /// storyboard 完全不动；outlet 全部保留；旧 Core Data 数据保留。
+    /// 仅依赖运行时的 isHidden + splitView divider 位置归零。
+    private func hideAppListSection() {
+        // 1) App 表所在的 scrollView 整段隐藏。
+        if let appScrollView = self.appTableView?.enclosingScrollView {
+            appScrollView.isHidden = true
+            // 把分隔条往最左推，让右栏（KeyMap）占满 splitView。
+            if let splitView = appScrollView.superview as? NSSplitView {
+                splitView.setPosition(0, ofDividerAt: 0)
+            }
+        }
+
+        // 2) "+/-" 加减按钮隐藏。
+        self.appAddRemoveButton?.isHidden = true
+
+        // 3) "Apps" 标题：storyboard 里没有 outlet，按文案匹配父视图下的兄弟 textField。
+        //    匹配既要兼容 EN/JA/zh-Hans，所以按"挨着 segmented control 的 textField"找——
+        //    位置上 Apps 标签的底 y 紧贴 appAddRemoveButton 的 segmented control 上方。
+        if let host = self.appAddRemoveButton?.superview {
+            for sub in host.subviews {
+                guard let tf = sub as? NSTextField, !tf.isEditable else { continue }
+                // 不动 "Controllers" 标签（它在窗口左上角，y 比 Apps 标签高很多）。
+                let title = tf.stringValue
+                if title == "Apps" || title == "アプリケーション" || title == "应用" || title == "App" {
+                    tf.isHidden = true
+                }
+            }
+        }
     }
 }
 

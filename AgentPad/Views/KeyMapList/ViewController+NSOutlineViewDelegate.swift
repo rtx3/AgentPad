@@ -561,7 +561,12 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
         self.presentAsSheet(controller)
     }
 
-    func setKeyConfig(controller: KeyConfigViewController) {
+    func setKeyConfig(controller: KeyConfigViewController, keyMap: KeyMap) {
+        // 关键：仅 reload UI 不够——首次给某按钮配置时 didClick(button:) 走的是
+        // createKeyMap + addToKeyMaps 分支，新建的 KeyMap 不在 GameController.currentConfig
+        // 字典里；不刷字典的话，按手柄按键时 buttonPressHandler 拿到的 config 是 nil 直接返回，
+        // 表现就是"Simple 模式按方向键无响应"。这里显式触发字典重建。
+        self.selectedController?.updateKeyMap()
         self.configTableView.reloadData()
     }
     
