@@ -45,6 +45,8 @@
 		DDA9000300000001 /* AgentMacroRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000400000001 /* AgentMacroRunner.swift */; };
 		DDA9000500000001 /* Writeback.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000600000001 /* Writeback.swift */; };
 		DDA9000700000001 /* AgentMacroEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000800000001 /* AgentMacroEditorView.swift */; };
+		DDA9000A00000001 /* SystemAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000B00000001 /* SystemAction.swift */; };
+		DDA9000C00000001 /* SystemActionRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA9000D00000001 /* SystemActionRunner.swift */; };
 		DDAB001100000001 /* AgentProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000100000001 /* AgentProcess.swift */; };
 		DDAB001200000001 /* ProcessScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000200000001 /* ProcessScanner.swift */; };
 		DDAB001300000001 /* TerminalHostResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAB000300000001 /* TerminalHostResolver.swift */; };
@@ -161,6 +163,8 @@
 		DDA9000400000001 /* AgentMacroRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroRunner.swift; sourceTree = "<group>"; };
 		DDA9000600000001 /* Writeback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Writeback.swift; sourceTree = "<group>"; };
 		DDA9000800000001 /* AgentMacroEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMacroEditorView.swift; sourceTree = "<group>"; };
+		DDA9000B00000001 /* SystemAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAction.swift; sourceTree = "<group>"; };
+		DDA9000D00000001 /* SystemActionRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemActionRunner.swift; sourceTree = "<group>"; };
 		DDAB000100000001 /* AgentProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentProcess.swift; sourceTree = "<group>"; };
 		DDAB000200000001 /* ProcessScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessScanner.swift; sourceTree = "<group>"; };
 		DDAB000300000001 /* TerminalHostResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalHostResolver.swift; sourceTree = "<group>"; };
@@ -416,6 +420,8 @@
 				DDA9000200000001 /* AgentMacroStep.swift */,
 				DDA9000400000001 /* AgentMacroRunner.swift */,
 				DDA9000600000001 /* Writeback.swift */,
+				DDA9000B00000001 /* SystemAction.swift */,
+				DDA9000D00000001 /* SystemActionRunner.swift */,
 			);
 			path = Agent;
 			sourceTree = "<group>";
@@ -724,6 +730,8 @@
 				DDA9000300000001 /* AgentMacroRunner.swift in Sources */,
 				DDA9000500000001 /* Writeback.swift in Sources */,
 				DDA9000700000001 /* AgentMacroEditorView.swift in Sources */,
+				DDA9000A00000001 /* SystemAction.swift in Sources */,
+				DDA9000C00000001 /* SystemActionRunner.swift in Sources */,
 				DDAB001100000001 /* AgentProcess.swift in Sources */,
 				DDAB001200000001 /* ProcessScanner.swift in Sources */,
 				DDAB001300000001 /* TerminalHostResolver.swift in Sources */,

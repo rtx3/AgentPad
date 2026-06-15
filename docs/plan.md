@@ -5,7 +5,7 @@
 > 主要语言：Swift / AppKit / Core Data
 > 范围：当前未落地的功能演进
 
-> **进度说明**：原计划 1（简易映射模式）/ 2（其他蓝牙手柄 backend）/ 3（按 App 透传）/ 4（Accessibility 引导）/ 5（Agent 捕获模式 v1）已全部实现并合入主干（见 `git log`），本文档不再保留。计划 5 完整正文已归档至 `docs/completed.md`。剩余存量计划保留原编号（6），新增 Agent 监控相关计划以「A / B」前缀编号。
+> **进度说明**：原计划 1（简易映射模式）/ 2（其他蓝牙手柄 backend）/ 3（按 App 透传）/ 4（Accessibility 引导）/ 5（Agent 捕获模式 v1）已全部实现并合入主干（见 `git log`），本文档不再保留。计划 5 完整正文已归档至 `docs/completed.md`。剩余存量计划保留原编号（6），新增 Agent 监控相关计划以「A / B」前缀编号；新增手柄接管开关计划以「C」前缀编号。
 
 ---
 
@@ -402,3 +402,143 @@ AgentPad/Views/Settings/AgentMonitorSettings/
 - **图标重绘频率**：3s 轮询每次都重绘图标在 M1 上 < 1ms；如未来加 1s 节奏需要做圆点状态去抖。
 - **Popover 失焦关闭与 Settings 跳转的时序**：点击 Footer `Settings` 时 Popover 会先关闭再开窗口，会出现 ≤ 100ms 视觉断层；可在 Settings 窗口 didShow 之前不显式关闭 Popover（让 `.transient` 行为自然触发）。
 
+
+---
+
+## 计划 C：手柄接管实时开关（Takeover ⇄ Gamepad Mode）
+
+### C.1 现状分析
+
+- 当前所有手柄事件都会被 AgentPad 接管：
+  - **JoyCon 路径**：`JoyConSwift` 通过 `IOHIDManagerOpen(manager, kIOHIDOptionsTypeSeizeDevice)` 全局 seize，其他进程（Steam / 游戏）**完全枚举不到设备**。AgentPad 在 Podfile 的 post_install 里注入了 `JoyConManager.setSeized(_:)` 用于切换 seize 模式（见 `Podfile` `# JoyConSwift 0.2.1 opens its IOHIDManager with kIOHIDOptionsTypeSeizeDevice globally` 段）。
+  - **GameController.framework 路径**（PS / Xbox / DualSense / MFi）：由系统级守护进程 `gamecontrollerd` 仲裁，第三方**无法**取得或释放 exclusive ownership（Apple Frameworks Engineer 在 [forums/thread/812774](https://developer.apple.com/forums/thread/812774) 确认）；游戏与 AgentPad 同时收到事件，AgentPad 是否「占用」体现在「是否下发键鼠事件」。
+- 既有「per-controller `Enable key mappings`」右键菜单项（`ControllerViewItem.showMenu`）切的是 `GameController.isEnabled`，**仅挡键映射事件下发，不调 seize**。所以即使关掉，JoyCon 仍被 AgentPad 独占，游戏看不到。
+- `PassthroughCoordinator` 已实现「按前台 App 列表自动 mapping ⇄ passthrough」（全局），尚无「用户级强制 passthrough」覆盖入口；切换前台 App 会立刻调 `requestMapping()` 把用户意图冲掉。
+- **macOS 15.4+ 已知行为**：AgentPad 处于后台时 GC 路径的手柄事件不再投递（[forums/thread/780929](https://developer.apple.com/forums/thread/780929)），与本计划无关，但需在风险里登记。
+
+### C.2 目标
+
+提供一个**实时、全局、瞬态**的接管开关，让用户在「AgentPad 接管手柄做键映射」与「让手柄作为普通游戏手柄被 Steam / 游戏看到」之间一键切换：
+
+- 切到 **Gamepad Mode**（释放接管）：
+  - JoyCon 调 `JoyConManager.setSeized(false)`：其他进程能枚举设备。
+  - GC 手柄：AgentPad 停止下发键鼠事件（系统持续把手柄事件投递给游戏，无需额外处理）。
+- 切回 **Takeover Mode**（重新接管）：恢复 seize + 恢复键映射事件下发；若 seize 被游戏抢占，走 `PassthroughCoordinator` 已有的 `.reclaiming` 重试逻辑。
+- 状态**进程内瞬态、不持久化**：避免崩溃后下次启动锁死在 Gamepad Mode 而用户找不到入口。
+- 与已有「per-controller `Enable key mappings`」职责分离：前者全局阀门、影响 seize；后者只挡某个手柄的键映射，保留不动。
+- 与「按 App 自动 passthrough」职责分离：用户级 Pause 优先级最高，覆盖 App 切换的自动求值。
+
+### C.3 方案设计
+
+#### C.3.1 后端
+
+不新增 `InputTakeoverController`，直接扩展 `PassthroughCoordinator`，避免两层状态机互相覆盖：
+
+```swift
+extension PassthroughCoordinator {
+    /// 用户级强制 passthrough；优先级高于按 App 自动求值。
+    /// 仅进程内瞬态，不持久化（防止崩溃后启动锁死）。
+    private(set) var isUserPaused: Bool
+
+    /// 顶层暴露给 UI 与 GameController 事件守卫使用。
+    var isPaused: Bool { state == .passthrough }
+
+    /// `foregroundIsPassthroughApp` 由调用方按当前前台 App 计算后传入。
+    func setUserPaused(_ paused: Bool, foregroundIsPassthroughApp: Bool)
+}
+```
+
+行为：
+- `setUserPaused(true, _)` → 立即 `requestPassthrough()`；后续 `requestMapping()` 调用被守卫拦截，不影响该状态。
+- `setUserPaused(false, foregroundIsPassthroughApp: true)` → 维持 passthrough（按 App 求值结果一致）。
+- `setUserPaused(false, foregroundIsPassthroughApp: false)` → 调 `requestMapping()` 恢复接管，失败走 `.reclaiming` 重试。
+- `requestMapping()` 首行加守卫：`guard !isUserPaused else { return }`。
+- `requestPassthrough()` 不需要守卫（无论用户级还是 App 级，目标态一致）。
+
+`PassthroughCoordinator` 改为「单例 + AppDelegate 弱引用持有」（`static let shared` + AppDelegate 在创建时赋值给单例），以便 `GameController` 事件回调能查询 `isPaused` 而无需逐个传引用。
+
+#### C.3.2 GC 路径事件下发守卫
+
+`GameController.setBackendHandlers` 中所有事件回调（`buttonPressHandler` / `buttonReleaseHandler` / `stickHandler` / `stickPosHandler`）已有 `if !(self?.isEnabled ?? false) { return }` 兜底，在其下方追加：
+
+```swift
+if PassthroughCoordinator.shared?.isPaused == true { return }
+```
+
+理由：GC 路径无法释放 seize（[forums/thread/812774](https://developer.apple.com/forums/thread/812774)），用户态唯一能做的就是「不再下发键鼠事件」。这条守卫确保 Gamepad Mode 下 AgentPad 完全沉默，游戏独占 GC 输入。
+
+#### C.3.3 UI 入口
+
+**状态栏菜单首项**（在 `AppDelegate.updateControllersMenu` 注入的手柄状态行之上）：
+
+```
+[ ] Use Controllers as Gamepads          ⌃⌥⌘P
+```
+
+- title 动态：`isUserPaused == false` → `Use Controllers as Gamepads`；`isUserPaused == true` → `✓ Currently in Gamepad Mode`。
+- 点击 → `PassthroughCoordinator.shared.setUserPaused(!isUserPaused, foregroundIsPassthroughApp: <按当前前台 App 求值>)`。
+- 求值复用 `AppDelegate.didActivateApp` 已有的逻辑（遍历 `self.controllers` 调 `controller.switchApp(bundleID:)`）；抽到 `currentForegroundIsPassthroughApp()` 私有方法。
+- 全局快捷键 `⌃⌥⌘P`：直接挂在菜单项的 `keyEquivalent` + `keyEquivalentModifierMask` 上即可（AgentPad 是 menu bar app，状态栏菜单的 keyEquivalent 在菜单未打开时也能触发——若实测不生效再用 `NSEvent.addGlobalMonitorForEvents` 兜底）。
+
+**Popover Footer 左侧**新增一个状态点 + 文案：
+- `Takeover` 灰底（`.disabled` 视觉同 Idle）
+- `Gamepad Mode` 橙底
+- 点击文案 = 等价点击菜单项。
+- 订阅 `PassthroughCoordinator.stateChangedNotification` 与新 `userPausedDidChangeNotification` 实现双向同步。
+
+`PassthroughCoordinator` 在 `setUserPaused` 内部 post 新通知：
+```swift
+static let userPausedDidChangeNotification = Notification.Name("PassthroughCoordinatorUserPausedDidChange")
+```
+
+### C.4 数据模型影响
+
+- 不改 Core Data。
+- 不写 UserDefaults（瞬态）。
+- 与 `AgentMonitorSettings`、`ControllerData / AppConfig / KeyConfig / KeyMap` 完全独立。
+
+### C.5 本地化
+
+新增字符串（`Misc/{en,ja,zh-Hans}.lproj/Localizable.strings`）：
+
+| key | EN | JA | zh-Hans |
+| --- | --- | --- | --- |
+| `takeover.menu.useAsGamepad` | `Use Controllers as Gamepads` | `コントローラーをゲームパッドとして使用` | `把手柄作为游戏手柄使用` |
+| `takeover.menu.inGamepadMode` | `✓ Currently in Gamepad Mode` | `✓ ゲームパッドモード中` | `✓ 当前为游戏手柄模式` |
+| `takeover.popover.status.takeover` | `Takeover` | `接続中` | `接管中` |
+| `takeover.popover.status.passthrough` | `Gamepad Mode` | `ゲームパッドモード` | `游戏手柄模式` |
+
+### C.6 实施步骤
+
+1. `PassthroughCoordinator`：改造为 `static let shared`；加 `isUserPaused` / `setUserPaused(_:foregroundIsPassthroughApp:)` / `userPausedDidChangeNotification`；`requestMapping()` 首行加守卫。
+2. `AppDelegate`：
+   - `applicationDidFinishLaunching` 内创建 `PassthroughCoordinator` 后赋值给单例。
+   - 抽 `currentForegroundIsPassthroughApp() -> Bool`。
+   - `updateControllersMenu()` 在最顶插入 `Use Controllers as Gamepads` menu item（动态 title + `⌃⌥⌘P`），与既有 9999 tag 错开，使用新 tag（建议 9997）。
+   - 订阅 `userPausedDidChangeNotification` 刷新菜单 title。
+3. `GameController.setBackendHandlers`：四处事件回调追加 `if PassthroughCoordinator.shared?.isPaused == true { return }`。
+4. `AgentMonitorViewController`（计划 B 的 Popover）：Footer 左侧加状态点 + 文案，双向绑定。
+5. 本地化 4 条 × 3 语言。
+6. 回归：
+   - per-controller `Enable key mappings` 行为不变。
+   - 按 App 自动 passthrough 仍工作（用户未 Pause 时）。
+   - 用户级 Pause 期间切换前台 App 不会被 `requestMapping()` 冲掉。
+
+### C.7 验证点
+
+- 启动 AgentPad，连接 JoyCon → 默认 Takeover，键映射工作。
+- 菜单首项打勾 `Use Controllers as Gamepads` → 1s 内在 macOS 系统 *设置 → 蓝牙* / Steam Big Picture 中能枚举到 JoyCon；AgentPad 不再触发键盘事件。
+- 取消打勾 → AgentPad 重新 seize 成功，键映射恢复；若被游戏抢占 → 进入 `.reclaiming` 走原有 60s 重试窗口。
+- 切换前台到 passthrough App（如游戏） → 不影响用户级 Pause 状态；切回非 passthrough App 仍保持 Gamepad Mode（用户未手动取消）。
+- Xbox / DualSense 手柄场景：切换为 Gamepad Mode 后游戏继续收到输入；AgentPad 停发键事件。切回 Takeover → 键映射恢复。
+- 关闭 AgentPad 进程再重启 → 默认 Takeover（瞬态不持久化）。
+- 既有 per-controller `Enable key mappings` 单测 / 行为不变。
+- 快捷键 `⌃⌥⌘P` 在 AgentPad 处于前台/后台时均能触发切换（前台 100% 可，后台若 keyEquivalent 不触发则按风险节兜底）。
+
+### C.8 风险与待决项
+
+- **`NSStatusItem` 菜单的 keyEquivalent 后台触发**：状态栏 menu bar app 通常没有自己的「前台 window」，全局 keyEquivalent 在主菜单上能触发，但状态栏菜单 item 的 keyEquivalent 仅在菜单展开时生效。若需要真正的「后台全局热键」，需 `NSEvent.addGlobalMonitorForEvents` + AX 权限（已有）兜底。视实测决定是否加。
+- **GC 路径无法释放 seize（系统约束）**：[Apple Developer Forums - Virtual Controllers on Mac](https://developer.apple.com/forums/thread/812774) 中 Frameworks Engineer 明确：`You cannot take exclusive ownership of the source game controller device such that the OS game controller support won't see it too.` 因此 GC 手柄在 Takeover 模式下游戏**也**能收到事件（AgentPad 与游戏并行），这是系统设计的既定行为，不是本计划缺陷。Gamepad Mode 仅靠停止键鼠下发避免「双重输入」。
+- **macOS 15.4+ 后台收不到 GC 事件**：[Apple Developer Forums - macOS 15.4 Background Input Capture Broken](https://developer.apple.com/forums/thread/780929) 报告 GC 路径在 AgentPad 处于后台时不投递事件。这是 AgentPad 当前就存在的限制（不是本计划引入），影响：用户在游戏内按手柄键想触发键映射时，AgentPad 收不到事件——但本计划恰好让用户能主动切到 Gamepad Mode 让游戏直接收手柄输入，相当于规避了这条限制。
+- **JoyConSwift `setSeized` 全局生效（实现层约束）**：当前 patch 走 `IOHIDManagerOpen`，option 会扩散到所有匹配设备。所以一旦切到 Gamepad Mode，**所有** JoyCon 同时释放，无法只释放某一只。IOKit 本身支持 per-device seize（`IOHIDDeviceOpen` per `IOHIDDeviceRef`），未来若需要 per-device 控制要再 patch JoyConSwift。当前需求是「整体开关」，足够。
+- **重新 seize 被游戏抢占**：切回 Takeover 时若游戏仍持有设备，`setSeized(true)` 返回非 `kIOReturnSuccess`。复用 `PassthroughCoordinator.reclaiming` 的 60s 重试窗口；窗口结束仍失败 → 状态栏图标显示「Reclaiming…」（计划 B 已有），用户可断蓝牙重连释放占用。
