@@ -73,17 +73,17 @@ let buttonKeyColumnID = "buttonKey"
 class StickSpeedField: NSTextField {
     var config: KeyConfig
     var stick: JoyCon.Button
-    
+
     init(frame frameRect: NSRect, config: KeyConfig, stick: JoyCon.Button) {
         self.config = config
         self.stick = stick
         super.init(frame: frameRect)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func textDidEndEditing(_ notification: Notification) {
         if self.stick == .LStick {
             self.config.leftStick?.speed = self.floatValue
@@ -92,6 +92,57 @@ class StickSpeedField: NSTextField {
         }
     }
 }
+
+/// Speed 控件用 slider 替代 textField——textField 路径下 NSOutlineView 的 cell editor
+/// 不放权给嵌套 NSTextField 直接接键盘事件，编辑体验断掉。
+/// 范围 1–50：与 createStickConfig 默认 10.0 / GameController.stickMouseHandler 中
+/// `pos.x * speed` 的乘子语义匹配；超过 50 鼠标会瞬移半屏，没有实用价值。
+final class StickSpeedSlider: NSSlider {
+    var config: KeyConfig
+    var stick: JoyCon.Button
+
+    init(config: KeyConfig, stick: JoyCon.Button) {
+        self.config = config
+        self.stick = stick
+        super.init(frame: .zero)
+        // minValue=0 让用户可把鼠标静止；maxValue=30 是 stickMouseHandler 中
+        // `pos.x * speed` 乘子的实用上限（旧默认 10.0，>30 后单帧位移 30px 已经
+        // 远超屏幕滚动直觉，用户报告"速度很快"主要由更大的值引起）。
+        self.minValue = 0
+        self.maxValue = 30
+        self.isContinuous = true
+        self.target = self
+        self.action = #selector(handleChange(_:))
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func handleChange(_ sender: NSSlider) {
+        writeBack(value: Float(sender.doubleValue))
+    }
+
+    /// stickMouseView 会覆盖 action 改用本方法，以便拖动时实时刷新右侧数值 label。
+    @objc func handleChangeWithLabel(_ sender: NSSlider) {
+        let v = Float(sender.doubleValue)
+        writeBack(value: v)
+        if let label = objc_getAssociatedObject(sender, &stickSpeedLabelAssocKey) as? NSTextField {
+            label.stringValue = "\(Int(v.rounded()))"
+        }
+    }
+
+    private func writeBack(value: Float) {
+        if self.stick == .LStick {
+            self.config.leftStick?.speed = value
+        } else if self.stick == .RStick {
+            self.config.rightStick?.speed = value
+        }
+    }
+}
+
+/// Slider 旁边数值 label 的 associated object key。
+private var stickSpeedLabelAssocKey: UInt8 = 0
 
 extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyConfigSetDelegate {
     func outlineView(_ outlineView: NSOutlineView, numberOfChildrenOfItem item: Any?) -> Int {
@@ -343,14 +394,43 @@ extension ViewController: NSOutlineViewDelegate, NSOutlineViewDataSource, KeyCon
             guard let itemView = self.configTableView.makeView(withIdentifier: column.identifier, owner: self) as? NSTableCellView else {
                 return nil
             }
-                        
-            let field = StickSpeedField(frame: NSRect(origin: CGPoint.zero, size: itemView.frame.size), config: keyConfig, stick: stick)
-            field.floatValue = stickConfig.speed
-            field.isEditable = true
-            field.formatter = NumberFormatter()
-            field.alignment = .right
-            
-            return field
+
+            // Speed 用滑块代替文本框（NSOutlineView 嵌套 NSTextField 编辑路径不可靠）。
+            // 右侧加一个紧凑数值 label，拖动时实时刷新让用户感知当前速度。
+            // 清掉 prototype 自带的只读 label，避免遮挡 hit test。
+            itemView.textField?.removeFromSuperview()
+            itemView.textField = nil
+
+            let slider = StickSpeedSlider(config: keyConfig, stick: stick)
+            slider.translatesAutoresizingMaskIntoConstraints = false
+            slider.doubleValue = Double(stickConfig.speed)
+
+            let valueLabel = NSTextField(labelWithString: "\(Int(stickConfig.speed.rounded()))")
+            valueLabel.translatesAutoresizingMaskIntoConstraints = false
+            valueLabel.alignment = .right
+            valueLabel.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize - 1, weight: .regular)
+            valueLabel.textColor = .secondaryLabelColor
+
+            // 拖动时实时刷新 label：在 slider 的 action 之外多挂一个 target 走 NotificationCenter。
+            // 用简单方案——把 valueLabel 通过 associated object 或 closure 绑定到 slider
+            // 都比 NotificationCenter 干净，但 NSSlider 不支持 closure target；
+            // 这里用一个 small inline 类把 valueLabel 引用握住，slider 改值时刷新。
+            slider.action = #selector(StickSpeedSlider.handleChangeWithLabel(_:))
+            objc_setAssociatedObject(slider, &stickSpeedLabelAssocKey,
+                                     valueLabel, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+
+            itemView.addSubview(slider)
+            itemView.addSubview(valueLabel)
+            NSLayoutConstraint.activate([
+                slider.leadingAnchor.constraint(equalTo: itemView.leadingAnchor, constant: 2),
+                slider.trailingAnchor.constraint(equalTo: valueLabel.leadingAnchor, constant: -6),
+                slider.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                valueLabel.trailingAnchor.constraint(equalTo: itemView.trailingAnchor, constant: -4),
+                valueLabel.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                valueLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 24),
+            ])
+
+            return itemView
         }
         
         return nil

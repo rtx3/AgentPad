@@ -15,6 +15,7 @@ enum KeyCaptureMode: String {
     case simple
     case detailed
     case agent
+    case system
 }
 
 class AppSettings {

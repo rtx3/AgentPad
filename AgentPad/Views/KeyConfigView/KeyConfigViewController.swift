@@ -44,8 +44,17 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
     private var simpleCaptureField: KeyCaptureField!
     private var detailedContainerViews: [NSView] = []
 
+    /// Detail 模式 key 行的录入式控件（替代原 ComboBox 选择式）。
+    /// 与原 `keyAction` ComboBox 叠在同一 frame；ComboBox 自身 isHidden 隐藏。
+    /// 共用 `self.keyCode` 字段做写回，updateKeyMap 的 detail 分支无需改动。
+    private var detailCaptureField: KeyCaptureField?
+
     private var agentContainer: NSView!
     private var agentEditor: AgentMacroEditorView!
+
+    /// System mode 容器与下拉控件。整套 UI 同样在 installSimpleModeUI 末尾构造。
+    private var systemContainer: NSView!
+    private var systemPopUp: NSPopUpButton!
 
     private var currentMode: KeyCaptureMode = .simple
 
@@ -91,6 +100,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         self.keyAction.delegate = self
 
         self.installSimpleModeUI()
+        self.installDetailCaptureField()
         self.applyInitialMode(for: keyMap)
     }
 
@@ -110,7 +120,8 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         let segmented = NSSegmentedControl(labels: [
             NSLocalizedString("Simple", comment: "Key capture simple mode"),
             NSLocalizedString("Detailed", comment: "Key capture detailed mode"),
-            NSLocalizedString("Agent", comment: "Key capture agent mode")
+            NSLocalizedString("Agent", comment: "Key capture agent mode"),
+            NSLocalizedString("System", comment: "Key capture system action mode")
         ], trackingMode: .selectOne, target: self, action: #selector(didChangeMode(_:)))
         segmented.translatesAutoresizingMaskIntoConstraints = false
         segmented.selectedSegment = 0
@@ -147,6 +158,28 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         editor.translatesAutoresizingMaskIntoConstraints = false
         agentBox.addSubview(editor)
         self.agentEditor = editor
+
+        // 3.6 System action container
+        let systemBox = NSView()
+        systemBox.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(systemBox)
+        self.systemContainer = systemBox
+
+        let systemHelp = NSTextField(wrappingLabelWithString: NSLocalizedString(
+            "Choose a system action. Pressing the controller button will trigger it.",
+            comment: "System mode help"))
+        systemHelp.alignment = .center
+        systemHelp.translatesAutoresizingMaskIntoConstraints = false
+        systemBox.addSubview(systemHelp)
+
+        let popUp = NSPopUpButton(frame: .zero, pullsDown: false)
+        popUp.translatesAutoresizingMaskIntoConstraints = false
+        for action in SystemAction.allCases {
+            popUp.addItem(withTitle: action.displayName)
+            popUp.lastItem?.representedObject = action.rawValue
+        }
+        systemBox.addSubview(popUp)
+        self.systemPopUp = popUp
 
         // 4. 约束
         //
@@ -186,7 +219,59 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
             editor.leadingAnchor.constraint(equalTo: agentBox.leadingAnchor),
             editor.trailingAnchor.constraint(equalTo: agentBox.trailingAnchor),
             editor.bottomAnchor.constraint(equalTo: agentBox.bottomAnchor),
+
+            // System mode container occupies the same area as simple container.
+            // 与 simpleContainer 不同：popUp 没有强 intrinsic height；必须显式给
+            // bottomAnchor + heightAnchor，否则在某些 AutoLayout 路径下 popUp.frame.height
+            // 解出 0，点击下拉无反应。
+            systemBox.topAnchor.constraint(equalTo: self.titleLabel.bottomAnchor, constant: 12),
+            systemBox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            systemBox.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
+            systemBox.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -55),
+
+            systemHelp.topAnchor.constraint(equalTo: systemBox.topAnchor),
+            systemHelp.leadingAnchor.constraint(equalTo: systemBox.leadingAnchor),
+            systemHelp.trailingAnchor.constraint(equalTo: systemBox.trailingAnchor),
+
+            popUp.topAnchor.constraint(equalTo: systemHelp.bottomAnchor, constant: 14),
+            popUp.centerXAnchor.constraint(equalTo: systemBox.centerXAnchor),
+            popUp.widthAnchor.constraint(equalToConstant: 260),
+            popUp.heightAnchor.constraint(equalToConstant: 26),
         ])
+    }
+
+    // MARK: - Detail-mode key capture installation
+
+    /// 用 KeyCaptureField 叠在原 ComboBox 的位置上，把 detail 模式的"选键"改为"按键录入"。
+    /// 原 keyAction outlet 不动（保留 IB 连接与 self.setKeyCode 的字符串显示路径），
+    /// 仅 isHidden 隐藏视觉；用户切回 simple 模式时，detailedContainerViews 整体隐藏会顺带带走本控件。
+    private func installDetailCaptureField() {
+        guard let comboBox = self.keyAction else { return }
+        guard let parent = comboBox.superview else { return }
+
+        let capture = KeyCaptureField()
+        capture.delegate = self
+        capture.translatesAutoresizingMaskIntoConstraints = false
+        capture.placeholder = NSLocalizedString("Press a key…", comment: "Key capture placeholder")
+        parent.addSubview(capture, positioned: .above, relativeTo: comboBox)
+
+        NSLayoutConstraint.activate([
+            capture.leadingAnchor.constraint(equalTo: comboBox.leadingAnchor),
+            capture.trailingAnchor.constraint(equalTo: comboBox.trailingAnchor),
+            capture.topAnchor.constraint(equalTo: comboBox.topAnchor),
+            capture.bottomAnchor.constraint(equalTo: comboBox.bottomAnchor),
+        ])
+
+        // 用 KeyCaptureField 替代 ComboBox 后，原 ComboBox 不再可见。
+        // detailedContainerViews 在 installSimpleModeUI 已采集为"非保留视图"，
+        // 它会随 simple/agent 模式整体显隐；这里仅永久遮挡 ComboBox 视觉。
+        comboBox.isHidden = true
+
+        // 初始把已有 keyCode 同步进 capture field，避免打开 sheet 后控件显示占位符。
+        if self.keyCode >= 0 {
+            capture.keyCode = self.keyCode
+        }
+        self.detailCaptureField = capture
     }
 
     private func applyInitialMode(for keyMap: KeyMap) {
@@ -194,11 +279,13 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         let isMouse = keyMap.mouseButton >= 0
         let savedDefault = AppSettings.defaultKeyCaptureMode
 
-        // Existing agent payload locks the dialog into agent mode.
+        // Existing agent / system payload locks the dialog into the matching mode.
         let storedAction = keyMap.action ?? "keyboard"
         let mode: KeyCaptureMode
         if storedAction == "agent" {
             mode = .agent
+        } else if storedAction == "system" {
+            mode = .system
         } else if hasModifiers || isMouse {
             mode = .detailed
         } else {
@@ -206,6 +293,14 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         }
 
         self.agentEditor.steps = AgentMacroCodec.decode(keyMap.agentMacro)
+
+        // 把已存储的 SystemAction 选中到下拉里——仅在 storedAction == "system" 时
+        // agentMacro 字段才是 SystemAction.rawValue；其它情况下保持下拉默认选中第一项。
+        if storedAction == "system",
+           let stored = SystemActionCodec.decode(keyMap.agentMacro),
+           let idx = SystemAction.allCases.firstIndex(of: stored) {
+            self.systemPopUp.selectItem(at: idx)
+        }
 
         self.setMode(mode, persistAsDefault: false)
 
@@ -222,6 +317,7 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         case 0: mode = .simple
         case 1: mode = .detailed
         case 2: mode = .agent
+        case 3: mode = .system
         default: mode = .simple
         }
         self.setMode(mode, persistAsDefault: true)
@@ -233,13 +329,17 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
         case .simple: self.modeSegmented.selectedSegment = 0
         case .detailed: self.modeSegmented.selectedSegment = 1
         case .agent: self.modeSegmented.selectedSegment = 2
+        case .system: self.modeSegmented.selectedSegment = 3
         }
 
         let isSimple = (mode == .simple)
         let isAgent = (mode == .agent)
+        let isSystem = (mode == .system)
         self.simpleContainer.isHidden = !isSimple
         self.agentContainer.isHidden = !isAgent
-        self.detailedContainerViews.forEach { $0.isHidden = isSimple || isAgent }
+        self.systemContainer.isHidden = !isSystem
+        // detailed 容器是除 simple / agent / system 之外的情况。
+        self.detailedContainerViews.forEach { $0.isHidden = isSimple || isAgent || isSystem }
 
         if isSimple {
             // 进入简易模式：把 detailed 模式的修饰键 / 鼠标抹掉，仅保留 keyCode
@@ -248,6 +348,9 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
                 guard let field = self?.simpleCaptureField else { return }
                 self?.view.window?.makeFirstResponder(field)
             }
+        } else if mode == .detailed {
+            // 进入 detail：同步当前 keyCode 到 detail capture field（与 simple 共用 self.keyCode）。
+            self.detailCaptureField?.keyCode = self.keyCode
         }
 
         if persistAsDefault {
@@ -284,7 +387,23 @@ class KeyConfigViewController: NSViewController, NSComboBoxDelegate, KeyConfigCo
             return
         }
 
-        // Non-agent modes: persist keyboard action and preserve macro payload
+        if self.currentMode == .system {
+            // 取下拉当前选中项作为 SystemAction。
+            let selectedIdx = self.systemPopUp.indexOfSelectedItem
+            let actions = SystemAction.allCases
+            // 保护：如果下拉未选中或索引越界，回退到第一项（不返回禁用，让用户至少能看到 .moveToSpaceLeft 默认绑定）。
+            let action = (0..<actions.count).contains(selectedIdx) ? actions[selectedIdx] : actions[0]
+            keyMap.action = "system"
+            keyMap.agentMacro = SystemActionCodec.encode(action)
+            keyMap.modifiers = 0
+            keyMap.keyCode = -1
+            keyMap.mouseButton = -1
+            keyMap.isEnabled = true
+            self.delegate?.setKeyConfig(controller: self, keyMap: keyMap)
+            return
+        }
+
+        // Non-agent / non-system modes: persist keyboard action and preserve macro payload
         // so toggling back to agent keeps the previously edited steps.
         keyMap.action = "keyboard"
         keyMap.agentMacro = self.agentEditor.steps.isEmpty

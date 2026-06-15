@@ -32,7 +32,9 @@ class ViewController: NSViewController {
     }
     var selectedController: GameController? {
         didSet {
-            self.appTableView.reloadData()
+            // appTableView outlet 已在 hideAppListSection 中随 enclosingScrollView removeFromSuperview
+            // 被置 nil；用可选访问避免崩溃（IBOutlet weak ... ! 的强解包陷阱）。
+            self.appTableView?.reloadData()
             self.configTableView.reloadData()
             self.updateAppAddRemoveButtonState()
             self.updateSyncButtonState()
@@ -108,16 +110,19 @@ class ViewController: NSViewController {
     }
     
     func updateAppAddRemoveButtonState() {
+        // App 列表已被 hideAppListSection 物理移除；这两个 outlet 都可能为 nil。
+        // 用可选链全部静默跳过，逻辑保留不删（用户规则 9）。
+        guard let appAddRemoveButton = self.appAddRemoveButton else { return }
         if self.selectedController == nil {
-            self.appAddRemoveButton.setEnabled(false, forSegment: 0)
-            self.appAddRemoveButton.setEnabled(false, forSegment: 1)
-        } else if self.appTableView.selectedRow < 1 {
-            self.appAddRemoveButton.setEnabled(true, forSegment: 0)
-            self.appAddRemoveButton.setEnabled(false, forSegment: 1)
+            appAddRemoveButton.setEnabled(false, forSegment: 0)
+            appAddRemoveButton.setEnabled(false, forSegment: 1)
+        } else if (self.appTableView?.selectedRow ?? -1) < 1 {
+            appAddRemoveButton.setEnabled(true, forSegment: 0)
+            appAddRemoveButton.setEnabled(false, forSegment: 1)
         } else {
-            self.appAddRemoveButton.setEnabled(true, forSegment: 0)
-            self.appAddRemoveButton.setEnabled(true, forSegment: 1)
-        }        
+            appAddRemoveButton.setEnabled(true, forSegment: 0)
+            appAddRemoveButton.setEnabled(true, forSegment: 1)
+        }
     }
     
     func addApp() {
@@ -135,7 +140,7 @@ class ViewController: NSViewController {
             if response == .OK {
                 guard let url = panel.url else { return }
                 controller.addApp(url: url)
-                self?.appTableView.reloadData()
+                self?.appTableView?.reloadData()
             }
         }
     }
@@ -154,7 +159,7 @@ class ViewController: NSViewController {
         
         if result == .alertSecondButtonReturn {
             controller.removeApp(appConfig)
-            self.appTableView.reloadData()
+            self.appTableView?.reloadData()
             self.configTableView.reloadData()
         }
     }
@@ -353,16 +358,21 @@ class ViewController: NSViewController {
     // MARK: - Hide App list
 
     /// 隐藏 App 列表所在的左栏 + 加减按钮 + "Apps" 标题。
-    /// storyboard 完全不动；outlet 全部保留；旧 Core Data 数据保留。
-    /// 仅依赖运行时的 isHidden + splitView divider 位置归零。
+    /// storyboard 完全不动；旧 Core Data 数据保留。
+    ///
+    /// 实现策略：直接把 App scrollView 从 splitView 中 removeFromSuperview。
+    /// 之前试过 setPosition(0) + canCollapseSubview / shouldHideDividerAt delegate
+    /// 但 storyboard 的 splitView `arrangesAllSubviews="NO"` 且未显式声明 arrangedSubviews，
+    /// 导致 NSSplitView 的"hide subview 自动收回空间"行为不生效，用户仍能看到并拖动左栏。
+    /// 物理移除后 splitView 只剩 KeyMap scrollView 一个子视图，自然占满 splitView frame，
+    /// 也不再有 divider 可拖。appTableView weak outlet 释放后续访问代码均不会被实际触发
+    /// （addApp / removeApp 入口按钮已隐藏；togglePassthrough 依赖列表行点击）。
     private func hideAppListSection() {
-        // 1) App 表所在的 scrollView 整段隐藏。
+        // 1) App 表所在的 scrollView 物理移除——这是真正让左栏消失的关键。
         if let appScrollView = self.appTableView?.enclosingScrollView {
-            appScrollView.isHidden = true
-            // 把分隔条往最左推，让右栏（KeyMap）占满 splitView。
-            if let splitView = appScrollView.superview as? NSSplitView {
-                splitView.setPosition(0, ofDividerAt: 0)
-            }
+            let splitView = appScrollView.superview as? NSSplitView
+            appScrollView.removeFromSuperview()
+            splitView?.adjustSubviews()
         }
 
         // 2) "+/-" 加减按钮隐藏。

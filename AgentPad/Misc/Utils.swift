@@ -46,6 +46,10 @@ func convertKeyName(keyMap: KeyMap?) -> String {
         return String.localizedStringWithFormat(fmt, steps.count)
     }
 
+    if map.action == "system" {
+        return SystemActionCodec.decode(map.agentMacro)?.displayName ?? none
+    }
+
     let modifiers = convertModifierKeys(NSEvent.ModifierFlags(rawValue: UInt(map.modifiers)))
 
     if map.keyCode >= 0 {

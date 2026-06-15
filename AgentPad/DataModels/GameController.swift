@@ -8,6 +8,7 @@
 
 import JoyConSwift
 import InputMethodKit
+import QuartzCore
 
 extension JoyCon.BatteryStatus {
     static let stringMap: [JoyCon.BatteryStatus: String] = [
@@ -82,6 +83,15 @@ class GameController {
     var currentLStickConfig: [ControllerStickDirection:KeyMap] = [:]
     var currentRStickMode: StickType = .None
     var currentRStickConfig: [ControllerStickDirection:KeyMap] = [:]
+
+    /// 上一次 stickMouseHandler 实际发出鼠标事件的时间戳。
+    /// GC 蓝牙手柄 valueChangedHandler 是按硬件 polling rate（250–1000Hz）回调，
+    /// 不限频时 speed=1 也会出现"满推一秒飞过整屏"——通过节流到 ~120Hz，
+    /// speed 数值的语义变成"每帧 px 位移"，与显示直觉一致。
+    private var lastMouseMoveAt: TimeInterval = 0
+    /// 鼠标移动节流间隔（秒）。120Hz = 8.3ms；选 120 而非 60 是为兼顾高刷屏的
+    /// 跟手感，又能把 1000Hz polling 削到 1/8。
+    private let mouseMoveThrottleSec: TimeInterval = 1.0 / 120.0
 
     var isEnabled: Bool = true {
         didSet {
@@ -260,11 +270,19 @@ class GameController {
     func buttonPressHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
         if AgentMacroRunner.shared.inflight { return }
-        if (config.action ?? "keyboard") == "agent" {
+        let action = config.action ?? "keyboard"
+        if action == "agent" {
             let steps = AgentMacroCodec.decode(config.agentMacro)
             guard !steps.isEmpty else { return }
             DispatchQueue.main.async {
                 AgentMacroRunner.shared.run(steps: steps)
+            }
+            return
+        }
+        if action == "system" {
+            guard let sys = SystemActionCodec.decode(config.agentMacro) else { return }
+            DispatchQueue.main.async {
+                SystemActionRunner.shared.run(sys)
             }
             return
         }
@@ -334,7 +352,9 @@ class GameController {
     
     func buttonReleaseHandler(button: ControllerButton) {
         guard let config = self.currentConfig[button] else { return }
-        if (config.action ?? "keyboard") == "agent" { return }
+        let action = config.action ?? "keyboard"
+        if action == "agent" { return }
+        if action == "system" { return }
         self.buttonReleaseHandler(config: config)
     }
     
@@ -397,6 +417,14 @@ class GameController {
         if pos.x == 0 && pos.y == 0 {
             return
         }
+        // 节流：手柄 polling rate 高达 1000Hz，speed 数值会被乘上 polling 频率。
+        // 节到 120Hz 后 speed=1 ≈ 120px/s（满推），符合"每帧 px 位移"直觉。
+        let now = CACurrentMediaTime()
+        if now - self.lastMouseMoveAt < self.mouseMoveThrottleSec {
+            return
+        }
+        self.lastMouseMoveAt = now
+
         let mousePos = NSEvent.mouseLocation
         let newX = mousePos.x + pos.x * speed
         let newY = NSScreen.main!.frame.maxY - mousePos.y - pos.y * speed
@@ -527,30 +555,14 @@ class GameController {
     var isPassthroughActive: Bool = false
 
     /// `switchApp` 返回值：让上层（AppDelegate）知道该 app 是否选择透传。
+    ///
+    /// 当前形态下 App 列表 UI 已隐藏（见 ViewController.hideAppListSection），
+    /// 所有手柄统一只用 defaultConfig；遗留的 Core Data AppConfig 行不再被读取，
+    /// 避免它们的 stick.speed / keyMaps 在前台 App 切换瞬间覆盖用户在 default 行
+    /// 拖动的 speed slider 值（症状：每隔一段时间鼠标速度突然变快）。
     @discardableResult
     func switchApp(bundleID: String) -> Bool {
-        let appConfig = self.data.appConfigs?.first(where: {
-            guard let appConfig = $0 as? AppConfig else { return false }
-            return appConfig.app?.bundleID == bundleID
-        }) as? AppConfig
-
-        if appConfig?.passthrough == true {
-            self.isPassthroughActive = true
-            // 清空映射，避免在 seize 释放窗口期之间仍模拟键盘。
-            self.currentConfig = [:]
-            self.currentLStickConfig = [:]
-            self.currentRStickConfig = [:]
-            self.currentLStickMode = .None
-            self.currentRStickMode = .None
-            return true
-        }
-
         self.isPassthroughActive = false
-        if let keyConfig = appConfig?.config {
-            self.currentConfigData = keyConfig
-            return false
-        }
-
         guard let defaultConfig = self.data.defaultConfig else {
             fatalError("Failed to get defaultConfig")
         }
