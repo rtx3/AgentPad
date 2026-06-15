@@ -57,5 +57,17 @@
         sparkle:edSignature="x5KojWvxLuVVVxyALcz7sK+avXymIgWSdibpU912Iwska0xaO6GDsOw8bVxmUtPpzRYmLHoq7nAQDUlpkMmwAw==" length="10326893"
         type="application/octet-stream" />
     </item>
+    <item>
+      <title>Version 1.1.0</title>
+      <pubDate>Mon, 15 Jun 2026 07:16:36 +0000</pubDate>
+      <sparkle:version>92</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <sparkle:releaseNotesLink>https://github.com/rtx3/AgentPad/releases/tag/v1.1.0</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/rtx3/AgentPad/releases/download/v1.1.0/AgentPad-v1.1.0.dmg"
+        sparkle:edSignature="nHHpxrpL0o0563gPYPiJB19pYja2VckVGb/qu3CNxzLoa2jtqq2xW0FFhuCdPA5I6d83J4ChIvYGNAlO7L0qBA==" length="10333098"
+        type="application/octet-stream" />
+    </item>
   </channel>
 </rss>
