@@ -63,6 +63,28 @@
       <sparkle:version>92</sparkle:version>
       <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<h2 dir="auto">新功能</h2>
+<ul dir="auto">
+<li><strong>SystemAction</strong>: 手柄按钮可映射系统动作（Move to Space Left/Right、Mission Control、Launchpad、Notification Center、Show Desktop）</li>
+<li><strong>手柄接管实时开关</strong>（Takeover ⇄ Gamepad Mode）</li>
+</ul>
+<h2 dir="auto">体验改进</h2>
+<ul dir="auto">
+<li>隐藏 App 列表 UI，所有手柄统一使用 default 配置</li>
+<li>KeyConfig 弹窗：Detail 模式 key 改为录入式；新增 System tab</li>
+<li>摇杆模拟鼠标：120Hz 节流避免高 polling rate 设备速度过快；speed 改为滑块输入</li>
+</ul>
+<h2 dir="auto">修复</h2>
+<ul dir="auto">
+<li>首次配置 KeyMap 后手柄无响应</li>
+<li>splitView 左栏仍可被拖出</li>
+<li>Simple 模式录入方向键 + 修饰键的写回路径</li>
+<li>switchApp 残留 AppConfig 数据导致 stick speed 间歇性被覆盖</li>
+</ul>
+<hr>
+<p dir="auto">Download the DMG and drag AgentPad to /Applications. On first launch: right-click → Open. Grant Accessibility permission when prompted.</p>
+      ]]></description>
       <sparkle:releaseNotesLink>https://github.com/rtx3/AgentPad/releases/tag/v1.1.0</sparkle:releaseNotesLink>
       <enclosure
         url="https://github.com/rtx3/AgentPad/releases/download/v1.1.0/AgentPad-v1.1.0.dmg"

@@ -47,6 +47,29 @@ if [ -z "${SPARKLE_SIG_LINE}" ]; then
 fi
 echo "[appcast] Signed ${DMG}: ${SPARKLE_SIG_LINE}"
 
+# 拉 GitHub release body（markdown），转成 GFM HTML 注入 <description>。
+# 之前 appcast 只填 <sparkle:releaseNotesLink> 指向 release HTML 页面，
+# Sparkle 的 WKWebView 把整个 GitHub 导航壳子一起渲染进了更新弹窗。
+# 优先用 <description>——Sparkle 文档指出 description 比 releaseNotesLink 优先。
+RELEASE_BODY_MD=$(gh release view "${VERSION}" --json body --jq .body 2>/dev/null || echo "")
+if [ -z "${RELEASE_BODY_MD}" ]; then
+  echo "[appcast] warn: gh release view returned empty body; description will be empty"
+  RELEASE_BODY_HTML=""
+else
+  # GitHub /markdown endpoint 渲染 GFM。用 jq 构造 JSON body——
+  # 直接把 markdown 文本作为 stdin 给 `gh api --input -` 会被当作 raw body
+  # 提交，导致 GitHub 返回 400 Problems parsing JSON。
+  RELEASE_BODY_HTML=$(jq -n \
+      --arg text "${RELEASE_BODY_MD}" \
+      --arg ctx "rtx3/AgentPad" \
+      '{text:$text, mode:"gfm", context:$ctx}' \
+    | gh api -X POST /markdown --input - 2>/dev/null || echo "")
+  if [ -z "${RELEASE_BODY_HTML}" ]; then
+    echo "[appcast] warn: gh api /markdown rendering failed; falling back to raw markdown"
+    RELEASE_BODY_HTML="<pre>${RELEASE_BODY_MD}</pre>"
+  fi
+fi
+
 # Build number is read from the exported .app to match what users will run.
 APP="./build/Export/AgentPad.app"
 if [ ! -d "${APP}" ]; then
@@ -62,6 +85,7 @@ MIN_SYSTEM_VERSION="10.14"
 
 export VERSION SHORT_VERSION BUILD_NUMBER PUB_DATE
 export DOWNLOAD_URL RELEASE_NOTES_URL MIN_SYSTEM_VERSION SPARKLE_SIG_LINE
+export RELEASE_BODY_HTML
 
 python3 - <<'PYTHON'
 import os
@@ -76,6 +100,17 @@ if title_marker in content:
     print(f"[appcast] already contains version {short}, skipping injection")
     raise SystemExit(0)
 
+# CDATA 内不能含 `]]>`，否则会提前关闭节。用 ]]]]><![CDATA[> 兜底分割。
+body_html = os.environ.get("RELEASE_BODY_HTML", "").replace("]]>", "]]]]><![CDATA[>")
+
+description_block = ""
+if body_html:
+    description_block = (
+        "      <description><![CDATA[\n"
+        f"{body_html}\n"
+        "      ]]></description>\n"
+    )
+
 new_item = (
     "    <item>\n"
     f"      <title>Version {short}</title>\n"
@@ -83,6 +118,7 @@ new_item = (
     f"      <sparkle:version>{os.environ['BUILD_NUMBER']}</sparkle:version>\n"
     f"      <sparkle:shortVersionString>{short}</sparkle:shortVersionString>\n"
     f"      <sparkle:minimumSystemVersion>{os.environ['MIN_SYSTEM_VERSION']}</sparkle:minimumSystemVersion>\n"
+    f"{description_block}"
     f"      <sparkle:releaseNotesLink>{os.environ['RELEASE_NOTES_URL']}</sparkle:releaseNotesLink>\n"
     "      <enclosure\n"
     f"        url=\"{os.environ['DOWNLOAD_URL']}\"\n"
