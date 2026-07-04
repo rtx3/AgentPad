@@ -57,6 +57,8 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        self.preferredContentSize = NSSize(width: 520, height: 560)
+
         if self.controllerCollectionView == nil { return }
         
         self.controllerCollectionView.delegate = self
@@ -79,6 +81,10 @@ class ViewController: NSViewController {
         // 旧的 per-App 配置 / passthrough 复选框 / Sync from Default 按钮 / passthrough overlay
         // 在新形态下都没有意义。所有手柄统一只用各自的 defaultConfig。
         self.hideAppListSection()
+
+        // storyboard 那一行旧按钮在 hideAppListSection 后的约束塌掉、又是 transparent 样式，
+        // 直接新建两个程序化按钮挂在根 view 左下角，与 storyboard 解耦。
+        self.installImportExportButtons()
 
         NotificationCenter.default.addObserver(self, selector: #selector(controllerAdded), name: .controllerAdded, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(controllerRemoved), name: .controllerRemoved, object: nil)
@@ -278,26 +284,128 @@ class ViewController: NSViewController {
     }
     
     // MARK: - Import
-    
+
     @IBAction func importKeyMappings(_ sender: NSButton) {
-    }
-    
-    // MARK: - Export
-    
-    @IBAction func exportKeyMappngs(_ sender: NSButton) {
-        return
-        /*
         guard let dataManager = self.appDelegate?.dataManager else { return }
+        guard let controllerData = self.selectedControllerData,
+              let controller = self.selectedController else {
+            self.runNoControllerAlert()
+            return
+        }
+
+        let openPanel = NSOpenPanel()
+        openPanel.message = NSLocalizedString("Choose a key mapping file to import", comment: "Import open panel message")
+        openPanel.allowedFileTypes = ["json", "jkmap"]
+        openPanel.allowsMultipleSelection = false
+        openPanel.canChooseDirectories = false
+
+        openPanel.beginSheetModal(for: self.view.window!) { response in
+            guard response == .OK, let url = openPanel.url else { return }
+            self.performImport(url: url, controllerData: controllerData, controller: controller, dataManager: dataManager)
+        }
+    }
+
+    private func performImport(url: URL, controllerData: ControllerData, controller: GameController, dataManager: DataManager) {
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            self.runErrorAlert(title: NSLocalizedString("Failed to read file", comment: "Import error title"), error: error)
+            return
+        }
+
+        // 第一遍 decode：仅校验 kind 是否一致；不一致先弹 warning 让用户确认。
+        // 不一致也可继续——宽松模式，丢弃多余键。
+        do {
+            let preview = try KeyConfigCodec.decode(data)
+            let targetKind = controllerData.type ?? "unknown"
+            if preview.kind != targetKind {
+                let alert = NSAlert()
+                alert.messageText = NSLocalizedString("Controller type does not match", comment: "Import kind mismatch alert title")
+                let fmt = NSLocalizedString("This file was exported from a %@ controller, but the selected controller is %@. Keys that do not exist on the target controller will be ignored. Continue?", comment: "Import kind mismatch alert body")
+                alert.informativeText = String(format: fmt, preview.kind, targetKind)
+                alert.addButton(withTitle: NSLocalizedString("Import", comment: "Import button"))
+                alert.addButton(withTitle: NSLocalizedString("Cancel", comment: "Cancel button"))
+                alert.alertStyle = .warning
+                if alert.runModal() != .alertFirstButtonReturn { return }
+            }
+        } catch {
+            self.runErrorAlert(title: NSLocalizedString("Invalid key mapping file", comment: "Import decode error title"), error: error)
+            return
+        }
+
+        // 第二遍：真正写入。
+        let summary: DataManager.ImportSummary
+        do {
+            summary = try dataManager.importDefaultConfig(data, into: controllerData)
+        } catch {
+            self.runErrorAlert(title: NSLocalizedString("Failed to import key mappings", comment: "Import write error title"), error: error)
+            return
+        }
+
+        _ = dataManager.save()
+        controller.updateKeyMap()
+        self.configTableView?.reloadData()
+
+        let info = String(
+            format: NSLocalizedString("Imported %d key mapping(s). Skipped %d.", comment: "Import success info"),
+            summary.applied,
+            summary.skippedButtons.count
+        )
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("Import completed", comment: "Import success alert title")
+        alert.informativeText = info
+        alert.alertStyle = .informational
+        alert.runModal()
+    }
+
+    // MARK: - Export
+
+    @IBAction func exportKeyMappngs(_ sender: NSButton) {
+        guard let dataManager = self.appDelegate?.dataManager else { return }
+        guard let controllerData = self.selectedControllerData else {
+            self.runNoControllerAlert()
+            return
+        }
+
+        let data: Data
+        do {
+            data = try dataManager.exportDefaultConfig(of: controllerData)
+        } catch {
+            self.runErrorAlert(title: NSLocalizedString("Failed to export key mappings", comment: "Export encode error title"), error: error)
+            return
+        }
 
         let savePanel = NSSavePanel()
         savePanel.message = NSLocalizedString("Save key mapping data", comment: "Save key mapping data")
-        savePanel.allowedFileTypes = ["jkmap"]
-        
-        savePanel.begin { response in
-            guard response == .OK else { return }
-            guard let filePath = savePanel.url?.absoluteString.removingPercentEncoding else { return }
+        savePanel.allowedFileTypes = ["json"]
+        let kindHint = controllerData.type ?? "controller"
+        savePanel.nameFieldStringValue = "agentpad-\(kindHint)-mapping.json"
+
+        savePanel.beginSheetModal(for: self.view.window!) { response in
+            guard response == .OK, let url = savePanel.url else { return }
+            do {
+                try data.write(to: url, options: .atomic)
+            } catch {
+                self.runErrorAlert(title: NSLocalizedString("Failed to save file", comment: "Export write error title"), error: error)
+            }
         }
-        */
+    }
+
+    private func runNoControllerAlert() {
+        let alert = NSAlert()
+        alert.messageText = NSLocalizedString("No controller selected", comment: "No controller selected alert title")
+        alert.informativeText = NSLocalizedString("Select a controller before importing or exporting.", comment: "No controller selected alert body")
+        alert.alertStyle = .warning
+        alert.runModal()
+    }
+
+    private func runErrorAlert(title: String, error: Error) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .warning
+        alert.runModal()
     }
     
     // MARK: - Options
@@ -367,6 +475,41 @@ class ViewController: NSViewController {
     /// 物理移除后 splitView 只剩 KeyMap scrollView 一个子视图，自然占满 splitView frame，
     /// 也不再有 divider 可拖。appTableView weak outlet 释放后续访问代码均不会被实际触发
     /// （addApp / removeApp 入口按钮已隐藏；togglePassthrough 依赖列表行点击）。
+    /// storyboard 里 Import / Export 按钮的 leading 都靠 appAddRemoveButton(+/-)，
+    /// 后者 isHidden=true 后整条约束链塌、按钮被推出窗口；transparent=YES 又让它们在
+    /// 暗色模式下完全不可见。这里不再去搬旧按钮，直接新建两个完全程序化的按钮、
+    /// 用硬约束钉在窗口左下角，与 storyboard 解耦。
+    private func installImportExportButtons() {
+        let root: NSView = self.view
+
+        let importBtn = NSButton(
+            title: NSLocalizedString("Import", comment: "Import key mappings button"),
+            target: self,
+            action: #selector(self.importKeyMappings(_:))
+        )
+        importBtn.bezelStyle = .rounded
+        importBtn.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(importBtn)
+
+        let exportBtn = NSButton(
+            title: NSLocalizedString("Export", comment: "Export key mappings button"),
+            target: self,
+            action: #selector(self.exportKeyMappngs(_:))
+        )
+        exportBtn.bezelStyle = .rounded
+        exportBtn.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(exportBtn)
+
+        NSLayoutConstraint.activate([
+            importBtn.leadingAnchor.constraint(equalTo: root.leadingAnchor, constant: 20),
+            importBtn.bottomAnchor.constraint(equalTo: root.bottomAnchor, constant: -16),
+            importBtn.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
+            exportBtn.leadingAnchor.constraint(equalTo: importBtn.trailingAnchor, constant: 12),
+            exportBtn.centerYAnchor.constraint(equalTo: importBtn.centerYAnchor),
+            exportBtn.widthAnchor.constraint(greaterThanOrEqualToConstant: 80),
+        ])
+    }
+
     private func hideAppListSection() {
         // 1) App 表所在的 scrollView 物理移除——这是真正让左栏消失的关键。
         if let appScrollView = self.appTableView?.enclosingScrollView {

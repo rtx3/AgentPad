@@ -10,6 +10,7 @@
 		49B4DBC043C8057C97E15A25 /* Pods_AgentPad.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */; };
 		DD0389E82497D911009090BE /* MetaKeyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0389E72497D911009090BE /* MetaKeyState.swift */; };
 		DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302D24272D7A0091B3C6 /* DataManager.swift */; };
+		DD05303300000001 /* KeyConfigCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303400000001 /* KeyConfigCodec.swift */; };
 		DD05303324272D7A0091B3C6 /* GameController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05302E24272D7A0091B3C6 /* GameController.swift */; };
 		DD05303424272D7A0091B3C6 /* AgentPad.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DD05302F24272D7A0091B3C6 /* AgentPad.xcdatamodeld */; };
 		DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */; };
@@ -66,6 +67,7 @@
 		DDAC3B4024151C350022FF32 /* AppNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAC3B3F24151C350022FF32 /* AppNotifications.swift */; };
 		DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001000000001 /* StatusBarIconRenderer.swift */; };
 		DDAD002100000001 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001100000001 /* StatusBarController.swift */; };
+		DDAD002B00000001 /* GamepadModeToggleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001B00000001 /* GamepadModeToggleView.swift */; };
 		DDAD002200000001 /* AgentRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001200000001 /* AgentRowView.swift */; };
 		DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001300000001 /* AgentMonitorEmptyView.swift */; };
 		DDAD002400000001 /* AgentMonitorErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDAD001400000001 /* AgentMonitorErrorView.swift */; };
@@ -118,6 +120,7 @@
 		CE31F0D394686FDB5574F498 /* Pods_AgentPad.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_AgentPad.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DD0389E72497D911009090BE /* MetaKeyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaKeyState.swift; sourceTree = "<group>"; };
 		DD05302D24272D7A0091B3C6 /* DataManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
+		DD05303400000001 /* KeyConfigCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyConfigCodec.swift; sourceTree = "<group>"; };
 		DD05302E24272D7A0091B3C6 /* GameController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameController.swift; sourceTree = "<group>"; };
 		DD05303024272D7A0091B3C6 /* AgentPad.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = AgentPad.xcdatamodel; sourceTree = "<group>"; };
 		DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameControllerIcon.swift; sourceTree = "<group>"; };
@@ -185,6 +188,7 @@
 		DDAC3B3F24151C350022FF32 /* AppNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppNotifications.swift; sourceTree = "<group>"; };
 		DDAD001000000001 /* StatusBarIconRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarIconRenderer.swift; sourceTree = "<group>"; };
 		DDAD001100000001 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		DDAD001B00000001 /* GamepadModeToggleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadModeToggleView.swift; sourceTree = "<group>"; };
 		DDAD001200000001 /* AgentRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentRowView.swift; sourceTree = "<group>"; };
 		DDAD001300000001 /* AgentMonitorEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorEmptyView.swift; sourceTree = "<group>"; };
 		DDAD001400000001 /* AgentMonitorErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMonitorErrorView.swift; sourceTree = "<group>"; };
@@ -256,6 +260,7 @@
 			children = (
 				DD05302F24272D7A0091B3C6 /* AgentPad.xcdatamodeld */,
 				DD05302D24272D7A0091B3C6 /* DataManager.swift */,
+				DD05303400000001 /* KeyConfigCodec.swift */,
 				DD05302E24272D7A0091B3C6 /* GameController.swift */,
 				DD05303124272D7A0091B3C6 /* GameControllerIcon.swift */,
 				DD0389E72497D911009090BE /* MetaKeyState.swift */,
@@ -477,6 +482,7 @@
 			children = (
 				DDAD001000000001 /* StatusBarIconRenderer.swift */,
 				DDAD001100000001 /* StatusBarController.swift */,
+				DDAD001B00000001 /* GamepadModeToggleView.swift */,
 				DDAD001A00000001 /* AgentMenuRowView.swift */,
 			);
 			path = StatusBar;
@@ -741,6 +747,7 @@
 				DDAB001700000001 /* AgentMonitor.swift in Sources */,
 				DDAD002000000001 /* StatusBarIconRenderer.swift in Sources */,
 				DDAD002100000001 /* StatusBarController.swift in Sources */,
+				DDAD002B00000001 /* GamepadModeToggleView.swift in Sources */,
 				DDAD002A00000001 /* AgentMenuRowView.swift in Sources */,
 				DDAD002200000001 /* AgentRowView.swift in Sources */,
 				DDAD002300000001 /* AgentMonitorEmptyView.swift in Sources */,
@@ -755,6 +762,7 @@
 				DD05305824272DAA0091B3C6 /* ButtonNameCellView.swift in Sources */,
 				DD05305A24272DAA0091B3C6 /* AppCellView.swift in Sources */,
 				DD05303224272D7A0091B3C6 /* DataManager.swift in Sources */,
+				DD05303300000001 /* KeyConfigCodec.swift in Sources */,
 				DD05303A24272D920091B3C6 /* Utils.swift in Sources */,
 				DDB20B30000000000000B030 /* ControllerButtonNames.swift in Sources */,
 				DD05303524272D7A0091B3C6 /* GameControllerIcon.swift in Sources */,
@@ -906,7 +914,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -962,7 +970,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

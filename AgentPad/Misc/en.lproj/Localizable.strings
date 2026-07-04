@@ -256,7 +256,6 @@
 "settings.agentMonitor.patterns.hint" = "case-insensitive substring";
 "settings.agentMonitor.sessionRoot.title" = "Session root";
 "settings.agentMonitor.interval" = "Polling interval";
-"settings.agentMonitor.showCount" = "Show count in menu bar";
 "settings.agentMonitor.showStatusBadge" = "Show status badge in menu bar";
 "settings.agentMonitor.launchAtLogin" = "Launch at login";
 "settings.agentMonitor.autoUpdate" = "Automatically check for updates";

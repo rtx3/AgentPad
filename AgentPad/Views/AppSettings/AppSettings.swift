@@ -130,7 +130,6 @@ extension AppSettings {
         private static let pollIntervalKey = "agent.monitor.pollIntervalSec"
         private static let pollFailureThresholdKey = "agent.monitor.pollFailureThreshold"
         private static let stalenessThresholdKey = "agent.monitor.stalenessThresholdSec"
-        private static let showCountKey = "agent.monitor.showCountInMenuBar"
         private static let enablePTYKey = "agent.monitor.enablePTYProbe"
         private static let showStatusBadgeKey = "agent.monitor.showStatusBadge"
 
@@ -188,16 +187,6 @@ extension AppSettings {
             }
             set {
                 UserDefaults.standard.set(newValue, forKey: stalenessThresholdKey)
-            }
-        }
-
-        static var showCountInMenuBar: Bool {
-            get {
-                if UserDefaults.standard.object(forKey: showCountKey) == nil { return true }
-                return UserDefaults.standard.bool(forKey: showCountKey)
-            }
-            set {
-                UserDefaults.standard.set(newValue, forKey: showCountKey)
             }
         }
 

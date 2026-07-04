@@ -43,22 +43,17 @@ class ControllerViewItem: NSCollectionViewItem {
     
     func showMenu(_ event: NSEvent) {
         let menu = NSMenu(title: "ControllerMenu")
-        
-        // Enable key mappings menu
-        let enableTitle = NSLocalizedString("Enable key mappings", comment: "Enable key mappings")
-        let enableMenu = NSMenuItem(title: enableTitle, action: Selector(("enableKeyMappings")), keyEquivalent: "")
-        enableMenu.target = self
-        enableMenu.state = (self.controller?.isEnabled ?? false) ? .on : .off
-        menu.addItem(enableMenu)
 
-        // Disconnect menu
-        let disconnectTitle = NSLocalizedString("Disconnect", comment: "Disconnect")
-        let disconnectMenu = NSMenuItem(title: disconnectTitle, action: Selector(("disconnect")), keyEquivalent: "")
-        if self.controller?.controller != nil {
+        // Disconnect menu (JoyCon only — GC-backed controllers are managed by
+        // the system; GCControllerBackend.disconnect() is a no-op so exposing
+        // it would give the user a menu item that silently does nothing).
+        if self.controller?.backend is JoyConBackend {
+            let disconnectTitle = NSLocalizedString("Disconnect", comment: "Disconnect")
+            let disconnectMenu = NSMenuItem(title: disconnectTitle, action: Selector(("disconnect")), keyEquivalent: "")
             disconnectMenu.target = self
+            menu.addItem(disconnectMenu)
         }
-        menu.addItem(disconnectMenu)
-        
+
         /*
         // Separator
         menu.addItem(NSMenuItem.separator())
@@ -87,11 +82,6 @@ class ControllerViewItem: NSCollectionViewItem {
 
         let pos = event.cgEvent?.unflippedLocation ?? CGPoint(x: 0, y: 0)
         menu.popUp(positioning: nil, at: pos, in: nil)
-    }
-    
-    @objc func enableKeyMappings() {
-        guard let controller = self.controller else { return }
-        controller.isEnabled = !controller.isEnabled
     }
     
     @objc func disconnect() {

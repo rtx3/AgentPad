@@ -15,7 +15,7 @@ final class StatusBarController: NSObject {
     weak var legacyMenu: NSMenu?
 
     private var lastEvent: AgentMonitorEvent = .empty
-    /// AgentMonitorSettings 变更通知（影响 showCount / showBadge）。
+    /// AgentMonitorSettings 变更通知（影响 showBadge）。
     private var settingsObserver: Any?
 
     /// Settings 入口保留为可调用闭包，留给将来菜单或快捷键复用。

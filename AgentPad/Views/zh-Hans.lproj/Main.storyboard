@@ -1021,7 +1021,7 @@
                                     <action selector="importKeyMappings:" target="XfG-lQ-9wD" id="VBt-zW-7s9"/>
                                 </connections>
                             </button>
-                            <button hidden="YES" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="UtW-Z2-Xvh">
+                            <button hidden="NO" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="UtW-Z2-Xvh">
                                 <rect key="frame" x="271" y="13" width="92" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="21" id="C0z-kg-KoQ"/>

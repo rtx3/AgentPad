@@ -256,7 +256,6 @@
 "settings.agentMonitor.patterns.hint" = "不区分大小写的子串";
 "settings.agentMonitor.sessionRoot.title" = "会话根目录";
 "settings.agentMonitor.interval" = "轮询间隔";
-"settings.agentMonitor.showCount" = "在菜单栏显示计数";
 "settings.agentMonitor.showStatusBadge" = "在菜单栏显示状态徽章";
 "settings.agentMonitor.launchAtLogin" = "登录时启动";
 "settings.agentMonitor.autoUpdate" = "自动检查更新";

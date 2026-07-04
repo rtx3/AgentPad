@@ -126,15 +126,34 @@ class GameController {
         self.currentConfigData = defaultConfig
 
         let storedType = data.type ?? ""
-        let type = JoyCon.ControllerType(rawValue: storedType)
-        self.type = type ?? JoyCon.ControllerType(rawValue: "unknown")!
-        // Try ControllerKind raw value first (new GC backends), then fall back
-        // to a JoyCon-derived kind. Empty / unknown rows land on .unknown.
+        // Type / kind resolution order:
+        //   1. If the row was persisted by the GC-backed path (Xbox / DualSense /
+        //      …), `data.type` is a ControllerKind rawValue. Resolve `kind`
+        //      directly and bridge to the legacy `JoyCon.ControllerType` using
+        //      the same mapping that `setBackendHandlers` applies when a
+        //      backend later attaches. Without this bridge, GC rows fell back
+        //      to `.unknown` whenever the controller was not currently
+        //      connected, which caused the KeyMap outline view to render zero
+        //      rows even though the persisted `defaultConfig` had entries.
+        //   2. Otherwise treat `data.type` as a JoyCon rawValue (legacy rows).
+        //   3. Empty / unrecognised → `.unknown`.
         if let k = ControllerKind(rawValue: storedType) {
             self.kind = k
-        } else if let jc = type {
+            switch k {
+            case .joyConL:
+                self.type = .JoyConL
+            case .joyConR:
+                self.type = .JoyConR
+            case .proController, .dualShock4, .dualSense, .xbox, .mfi, .generic:
+                self.type = .ProController
+            case .snesController, .famicomController1, .famicomController2, .unknown:
+                self.type = JoyCon.ControllerType(rawValue: "unknown")!
+            }
+        } else if let jc = JoyCon.ControllerType(rawValue: storedType) {
+            self.type = jc
             self.kind = JoyConBackend.kind(from: jc)
         } else {
+            self.type = JoyCon.ControllerType(rawValue: "unknown")!
             self.kind = .unknown
         }
 
@@ -199,14 +218,17 @@ class GameController {
         }
 
         backend.buttonPressHandler = { [weak self] button in
+            if PassthroughCoordinator.shared?.isPaused == true { return }
             self?.buttonPressHandler(button: button)
         }
         backend.buttonReleaseHandler = { [weak self] button in
             if !(self?.isEnabled ?? false) { return }
+            if PassthroughCoordinator.shared?.isPaused == true { return }
             self?.buttonReleaseHandler(button: button)
         }
         backend.stickHandler = { [weak self] (stick, newDir, oldDir) in
             if !(self?.isEnabled ?? false) { return }
+            if PassthroughCoordinator.shared?.isPaused == true { return }
             switch stick {
             case .left:
                 self?.leftStickHandler(newDirection: newDir, oldDirection: oldDir)
@@ -216,6 +238,7 @@ class GameController {
         }
         backend.stickPosHandler = { [weak self] (stick, pos) in
             if !(self?.isEnabled ?? false) { return }
+            if PassthroughCoordinator.shared?.isPaused == true { return }
             switch stick {
             case .left:
                 self?.leftStickPosHandler(pos: pos)
@@ -261,6 +284,18 @@ class GameController {
                     self.data.rightGripColor = try? NSKeyedArchiver.archivedData(withRootObject: nsRightGripColor, requiringSecureCoding: false)
                     self.rightGripColor = nsRightGripColor
                 }
+            }
+        } else {
+            // 非 JoyCon 后端（GC: Xbox / DualSense / MFi / generic）没有色彩 API。
+            // 若历史记录里 bodyColor/buttonColor 是 nil（在 createControllerData(kind:)
+            // 补默认色之前建的行），下次 save 会触发 "Multiple validation errors occurred."。
+            // 这里做一次性自愈：仅当字段缺失时填默认灰，已有值不动。
+            let defaultColor = NSColor(red: 55.0 / 255, green: 55.0 / 255, blue: 55.0 / 255, alpha: 1.0)
+            if self.data.bodyColor == nil {
+                self.data.bodyColor = try? NSKeyedArchiver.archivedData(withRootObject: defaultColor, requiringSecureCoding: false)
+            }
+            if self.data.buttonColor == nil {
+                self.data.buttonColor = try? NSKeyedArchiver.archivedData(withRootObject: defaultColor, requiringSecureCoding: false)
             }
         }
 

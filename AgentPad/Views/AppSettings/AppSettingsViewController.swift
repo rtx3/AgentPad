@@ -7,6 +7,7 @@
 //
 
 import AppKit
+import Sparkle
 
 class AppSettingsViewController: NSViewController {
     @IBOutlet weak var disconnectTime: NSPopUpButton!
@@ -18,7 +19,12 @@ class AppSettingsViewController: NSViewController {
     private let languagePopup = NSPopUpButton()
     private let accessibilityStatusBadge = NSTextField(labelWithString: "")
     private let accessibilitySettingsButton = NSButton(title: "", target: nil, action: nil)
+    private let accessibilitySubtitleLabel = NSTextField(labelWithString: "")
     private var accessibilityStatusTimer: Timer?
+
+    private let showStatusBadgeCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+    private let launchAtLoginCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
+    private let autoUpdateCheckbox = NSButton(checkboxWithTitle: "", target: nil, action: nil)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,12 +35,18 @@ class AppSettingsViewController: NSViewController {
         self.notifyBatteryCharge.state = AppSettings.notifyBatteryCharge ? .on : .off
         self.notifyBatteryFull.state = AppSettings.notifyBatteryFull ? .on : .off
         self.launchOnLogin.state = AppSettings.launchOnLogin ? .on : .off
-        // launchOnLogin lives in Agent Monitor tab now; storyboard outlet kept
-        // to avoid breaking the connection, but hide it from the General tab.
+        // The storyboard's Launch at Login checkbox is hidden — the General
+        // tab renders its own checkbox via installMenuBarAndSystemRows().
+        // The storyboard outlet is kept so installLanguageRow() can still
+        // anchor against its bottomAnchor without touching three .storyboard
+        // files.
         self.launchOnLogin.isHidden = true
 
         self.installLanguageRow()
         self.installAccessibilityStatusRow()
+        self.installMenuBarAndSystemRows()
+
+        self.preferredContentSize = NSSize(width: 480, height: 500)
     }
 
     override func viewWillAppear() {
@@ -154,10 +166,14 @@ class AppSettingsViewController: NSViewController {
         let titleLabel = NSTextField(labelWithString: NSLocalizedString("Accessibility access", comment: "Accessibility status title"))
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        let subtitleLabel = NSTextField(labelWithString: NSLocalizedString("Required for keyboard / mouse mapping", comment: "Accessibility status subtitle"))
-        subtitleLabel.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
-        subtitleLabel.textColor = .secondaryLabelColor
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        accessibilitySubtitleLabel.stringValue = NSLocalizedString("Required for keyboard / mouse mapping", comment: "Accessibility status subtitle")
+        accessibilitySubtitleLabel.font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        accessibilitySubtitleLabel.textColor = .secondaryLabelColor
+        accessibilitySubtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        accessibilitySubtitleLabel.isBezeled = false
+        accessibilitySubtitleLabel.drawsBackground = false
+        accessibilitySubtitleLabel.isEditable = false
+        accessibilitySubtitleLabel.isSelectable = false
 
         accessibilityStatusBadge.translatesAutoresizingMaskIntoConstraints = false
         accessibilityStatusBadge.alignment = .right
@@ -169,7 +185,7 @@ class AppSettingsViewController: NSViewController {
         accessibilitySettingsButton.action = #selector(didPushAccessibilitySettings(_:))
 
         view.addSubview(titleLabel)
-        view.addSubview(subtitleLabel)
+        view.addSubview(accessibilitySubtitleLabel)
         view.addSubview(accessibilityStatusBadge)
         view.addSubview(accessibilitySettingsButton)
 
@@ -177,9 +193,9 @@ class AppSettingsViewController: NSViewController {
             titleLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
             titleLabel.topAnchor.constraint(equalTo: self.languagePopup.bottomAnchor, constant: 20),
 
-            subtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
-            subtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: accessibilityStatusBadge.leadingAnchor, constant: -12),
+            accessibilitySubtitleLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            accessibilitySubtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
+            accessibilitySubtitleLabel.trailingAnchor.constraint(lessThanOrEqualTo: accessibilityStatusBadge.leadingAnchor, constant: -12),
 
             accessibilitySettingsButton.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -20),
             accessibilitySettingsButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
@@ -189,12 +205,67 @@ class AppSettingsViewController: NSViewController {
             accessibilityStatusBadge.widthAnchor.constraint(greaterThanOrEqualToConstant: 70),
         ])
 
-        let minimumHeight: CGFloat = 360
-        if self.view.frame.height < minimumHeight {
-            self.view.setFrameSize(NSSize(width: self.view.frame.width, height: minimumHeight))
-        }
-
         self.refreshAccessibilityStatus()
+    }
+
+    /// Hosts the three settings that previously lived under the Agent Monitor
+    /// tab: menu-bar status badge and system integration (Launch at Login /
+    /// auto-update). Anchored beneath the Accessibility subtitle so it slots
+    /// below the existing General rows.
+    private func installMenuBarAndSystemRows() {
+        showStatusBadgeCheckbox.title = NSLocalizedString("settings.agentMonitor.showStatusBadge", comment: "")
+        showStatusBadgeCheckbox.target = self
+        showStatusBadgeCheckbox.action = #selector(didChangeShowStatusBadge(_:))
+        showStatusBadgeCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        showStatusBadgeCheckbox.state = AppSettings.AgentMonitor.showStatusBadge ? .on : .off
+
+        launchAtLoginCheckbox.title = NSLocalizedString("settings.agentMonitor.launchAtLogin", comment: "")
+        launchAtLoginCheckbox.target = self
+        launchAtLoginCheckbox.action = #selector(didChangeLaunchAtLoginCheckbox(_:))
+        launchAtLoginCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        launchAtLoginCheckbox.state = AppSettings.launchOnLogin ? .on : .off
+
+        autoUpdateCheckbox.title = NSLocalizedString("settings.agentMonitor.autoUpdate", comment: "")
+        autoUpdateCheckbox.target = self
+        autoUpdateCheckbox.action = #selector(didChangeAutoUpdate(_:))
+        autoUpdateCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        autoUpdateCheckbox.state = (self.sparkleUpdater?.automaticallyChecksForUpdates ?? true) ? .on : .off
+
+        view.addSubview(showStatusBadgeCheckbox)
+        view.addSubview(launchAtLoginCheckbox)
+        view.addSubview(autoUpdateCheckbox)
+
+        NSLayoutConstraint.activate([
+            showStatusBadgeCheckbox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            showStatusBadgeCheckbox.topAnchor.constraint(equalTo: accessibilitySubtitleLabel.bottomAnchor, constant: 20),
+
+            launchAtLoginCheckbox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            launchAtLoginCheckbox.topAnchor.constraint(equalTo: showStatusBadgeCheckbox.bottomAnchor, constant: 8),
+
+            autoUpdateCheckbox.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 20),
+            autoUpdateCheckbox.topAnchor.constraint(equalTo: launchAtLoginCheckbox.bottomAnchor, constant: 8),
+        ])
+    }
+
+    @objc private func didChangeShowStatusBadge(_ sender: NSButton) {
+        AppSettings.AgentMonitor.showStatusBadge = (sender.state == .on)
+        AppSettings.AgentMonitor.postSettingsDidChange()
+    }
+
+    @objc private func didChangeLaunchAtLoginCheckbox(_ sender: NSButton) {
+        AppSettings.launchOnLogin = (sender.state == .on)
+    }
+
+    @objc private func didChangeAutoUpdate(_ sender: NSButton) {
+        // Sparkle persists this to UserDefaults under SUEnableAutomaticChecks,
+        // overriding the Info.plist default.
+        self.sparkleUpdater?.automaticallyChecksForUpdates = (sender.state == .on)
+    }
+
+    /// Reach into AppDelegate's Sparkle controller, same path the Agent
+    /// Monitor tab previously used.
+    private var sparkleUpdater: SPUUpdater? {
+        return (NSApp.delegate as? AppDelegate)?.updaterController?.updater
     }
 
     private func refreshAccessibilityStatus() {

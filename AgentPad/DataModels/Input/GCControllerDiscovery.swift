@@ -8,11 +8,15 @@
 //  JoyConBackend remains the single source of truth for those devices
 //  (matches the conflict-resolution decision in plan 2 §2.4.3).
 //
-//  GCController identifiers are not part of the public API; we assign a
-//  per-(productCategory, vendor) sequence number on first connect and keep
-//  the same backend instance for the lifetime of the GCController object,
-//  so reconnects of the same physical controller in a single session reuse
-//  the same backend identity.
+//  GameController.framework does not expose a stable hardware serial, so the
+//  backend identifier is derived from `productCategory` + `vendorName` only.
+//  This is intentionally coarse-grained: two physical controllers of the same
+//  model will share the same identifier (and therefore the same persisted
+//  KeyConfig). The previous "per-(category, vendor) sequence number" scheme
+//  was reset every process launch and produced a fresh row in Core Data each
+//  time the same controller reconnected, leaving ghost entries in the
+//  Controllers list. DataManager.migrateGCSerialIDsV1() collapses those
+//  legacy rows on first launch after the upgrade.
 //
 
 import Foundation
@@ -22,7 +26,6 @@ import GameController
 final class GCControllerDiscovery: ControllerBackendDiscovery {
 
     private var backends: [ObjectIdentifier: GCControllerBackend] = [:]
-    private var categorySequence: [String: Int] = [:]
     private var observers: [NSObjectProtocol] = []
     private var started: Bool = false
 
@@ -85,7 +88,7 @@ final class GCControllerDiscovery: ControllerBackendDiscovery {
         let key = ObjectIdentifier(controller)
         if backends[key] != nil { return }
 
-        let stableID = nextStableID(for: controller)
+        let stableID = Self.stableID(for: controller)
         let backend = GCControllerBackend(gcController: controller, stableID: stableID)
         backends[key] = backend
         connectHandler?(backend)
@@ -98,11 +101,14 @@ final class GCControllerDiscovery: ControllerBackendDiscovery {
         backends.removeValue(forKey: key)
     }
 
-    private func nextStableID(for controller: GCController) -> String {
-        let category = controller.productCategory
-        let next = (categorySequence[category] ?? 0) + 1
-        categorySequence[category] = next
+    /// Derive a cross-process-stable identifier from the controller's
+    /// productCategory and vendorName. Used as the trailing portion of
+    /// `GCControllerBackend.identifier` (which prefixes "gc::"). Two physical
+    /// controllers of the same model/vendor will collide; this is the best
+    /// fingerprint GameController.framework offers.
+    static func stableID(for controller: GCController) -> String {
+        let category = controller.productCategory.replacingOccurrences(of: " ", with: "_")
         let vendor = controller.vendorName?.replacingOccurrences(of: " ", with: "_") ?? "unknown"
-        return "\(category.replacingOccurrences(of: " ", with: "_"))::\(vendor)::\(next)"
+        return "\(category)::\(vendor)"
     }
 }

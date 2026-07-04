@@ -111,6 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
             // 否则 manager.runLoop 还未赋值，setSeized 会立即 kIOReturnNotReady。
             strongSelf.passthroughCoordinator = PassthroughCoordinator(manager: strongSelf.manager)
             NotificationCenter.default.addObserver(strongSelf, selector: #selector(strongSelf.passthroughStateChanged), name: PassthroughCoordinator.stateChangedNotification, object: nil)
+            NotificationCenter.default.addObserver(strongSelf, selector: #selector(strongSelf.userPausedDidChange), name: PassthroughCoordinator.userPausedDidChangeNotification, object: nil)
 
             NSWorkspace.shared.notificationCenter.addObserver(strongSelf, selector: #selector(strongSelf.didActivateApp), name: NSWorkspace.didActivateApplicationNotification, object: nil)
 
@@ -231,26 +232,47 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
         // 先移除所有标记为手柄状态行的 menuItem（tag = 9999）
         menu.items.removeAll { $0.tag == 9999 }
+        // 移除 Gamepad Mode toggle（tag = 9997），稍后按是否有连接重新插入。
+        menu.items.removeAll { $0.tag == 9997 }
 
         // 找到 "Settings" 的索引（假设它的 action 是 openSettings）
         guard let settingsIndex = menu.items.firstIndex(where: { $0.action == #selector(openSettings(_:)) }) else {
             return
         }
 
-        // 如果有已连接的手柄，插入状态行
-        let connectedControllers = self.controllers.filter { $0.controller?.isConnected ?? false }
+        // 过滤已连接的手柄：用 backend 是否存在判定，兼容 GC 后端（Xbox / DualSense）。
+        // 之前用 controller.controller?.isConnected 只能识别 JoyConBackend，GC 手柄被漏掉。
+        let connectedControllers = self.controllers.filter { $0.backend != nil }
 
+        var insertIndex = settingsIndex
         if connectedControllers.isEmpty {
-            // 无手柄：插入 "No controllers connected" 占位行
+            // 无手柄：仅插入 "No controllers connected" 占位行，不显示 Gamepad Mode toggle
+            // （toggle 在没有任何手柄时切换没有意义，且系统手柄菜单同样无内容）。
             let item = NSMenuItem()
             item.title = NSLocalizedString("No controllers connected", comment: "No controllers connected")
             item.isEnabled = false
             item.tag = 9999
-            menu.insertItem(item, at: settingsIndex)
-            menu.insertItem(NSMenuItem.separator(), at: settingsIndex)
+            menu.insertItem(item, at: insertIndex)
+            insertIndex += 1
+            menu.insertItem(NSMenuItem.separator(), at: insertIndex)
         } else {
-            // 有手柄：每个手柄一行
-            var insertIndex = settingsIndex
+            // 有手柄：先插入 Gamepad Mode toggle（NSSwitch 总开关）紧贴第一行之前，
+            // 再插入每个手柄一行。NSMenuItem.view 装载自定义 NSView，点击 NSSwitch
+            // 即可触发切换；不再走 NSMenuItem.state 的勾选样式，让总开关一眼可辨。
+            let isUserPaused = self.passthroughCoordinator?.isUserPaused ?? false
+            let toggleTitle = NSLocalizedString("Gamepad Mode", comment: "Status bar menu toggle title — global pause for controller takeover")
+            let toggleView = GamepadModeToggleView(frame: NSRect(x: 0, y: 0, width: 260, height: 28))
+            toggleView.setTitle(toggleTitle)
+            toggleView.setOn(isUserPaused)
+            toggleView.onToggle = { [weak self] _ in
+                self?.toggleUserPaused(nil)
+            }
+            let toggleItem = NSMenuItem()
+            toggleItem.view = toggleView
+            toggleItem.tag = 9997
+            menu.insertItem(toggleItem, at: insertIndex)
+            insertIndex += 1
+
             for controller in connectedControllers {
                 let item = makeControllerStatusItem(for: controller)
                 menu.insertItem(item, at: insertIndex)
@@ -356,6 +378,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, UNUserNoti
 
     @objc func passthroughStateChanged(_ notification: NSNotification) {
         self.updateControllersMenu()
+    }
+
+    /// `setUserPaused` 调用后由 PassthroughCoordinator post；刷新状态栏菜单 toggle 勾选。
+    @objc func userPausedDidChange(_ notification: NSNotification) {
+        self.updateControllersMenu()
+    }
+
+    /// 状态栏菜单与 Settings 手柄右键菜单共用的 Gamepad Mode 切换入口。
+    /// 求值「当前前台 App 是否为 passthrough App」交给 coordinator 用于切回 Takeover 的边界判定。
+    @objc func toggleUserPaused(_ sender: Any?) {
+        let coordinator = self.passthroughCoordinator ?? PassthroughCoordinator.shared
+        guard let coordinator = coordinator else { return }
+        let next = !coordinator.isUserPaused
+        coordinator.setUserPaused(next, foregroundIsPassthroughApp: self.currentForegroundIsPassthroughApp())
+    }
+
+    /// 复用 didActivateApp 的求值逻辑：遍历 controllers 调 switchApp(bundleID:)
+    /// 看是否有任一手柄命中 passthrough 配置。仅供 toggleUserPaused 在切回 Takeover
+    /// 时判断要不要立刻 requestMapping，自身不修改 controller 状态。
+    private func currentForegroundIsPassthroughApp() -> Bool {
+        guard let app = NSWorkspace.shared.frontmostApplication,
+              let bundleID = app.bundleIdentifier else { return false }
+        var any = false
+        self.controllers.forEach { controller in
+            if controller.switchApp(bundleID: bundleID) {
+                any = true
+            }
+        }
+        return any
     }
     
     // MARK: - UNUserNotificationCenterDelegate
