@@ -91,5 +91,63 @@
         sparkle:edSignature="nHHpxrpL0o0563gPYPiJB19pYja2VckVGb/qu3CNxzLoa2jtqq2xW0FFhuCdPA5I6d83J4ChIvYGNAlO7L0qBA==" length="10333098"
         type="application/octet-stream" />
     </item>
+    <item>
+      <title>Version 1.2.0</title>
+      <pubDate>Sat, 04 Jul 2026 14:43:09 +0000</pubDate>
+      <sparkle:version>95</sparkle:version>
+      <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<h2 dir="auto">v1.2.0</h2>
+<h3 dir="auto">Added</h3>
+<ul dir="auto">
+<li><strong>Gamepad Mode global toggle</strong>: A new NSSwitch at the top of the status bar<br>
+menu lets you flip between "Takeover" (key remapping active) and<br>
+"Gamepad Mode" (controller passes straight through to games) in one click.</li>
+<li><strong>Import / export key mappings</strong>: In Settings → Controllers you can now<br>
+export a controller's default key map to JSON, or import one from a file.<br>
+Cross-model imports (e.g. SNES layout into an Xbox) run in a lenient mode<br>
+that silently drops buttons the target controller does not have.</li>
+<li><strong>Vector icons for extended gamepads</strong>: Xbox, DualSense and generic<br>
+extended gamepads no longer fall back to the placeholder image — they now<br>
+render as vector artwork with per-family colours (Xbox dark, DualSense<br>
+white, generic mid-grey).</li>
+</ul>
+<h3 dir="auto">Fixed</h3>
+<ul dir="auto">
+<li><strong>No more ghost Xbox controllers</strong>: Reconnecting the same Xbox / DualSense<br>
+used to create a fresh ControllerData row each time, and the Controllers<br>
+list piled them up. The identifier is now derived from<br>
+`(product category, vendor)` and is stable across sessions. A one-shot<br>
+migration merges any legacy duplicates, keeping the row with the most<br>
+configured key mappings.</li>
+<li><strong>Key map table renders when Xbox is disconnected</strong>: Selecting a<br>
+disconnected Xbox in Settings → Controllers now shows its saved mappings<br>
+instead of an empty table.</li>
+<li><strong>Settings window resizes with the selected tab</strong>: Switching from Agent<br>
+Monitor to Controllers no longer clips the button list.</li>
+<li><strong>Status bar menu recognises non-JoyCon controllers</strong>: The connected<br>
+controller rows now include Xbox / DualSense, not just Joy-Cons.</li>
+</ul>
+<h3 dir="auto">Improved</h3>
+<ul dir="auto">
+<li><strong>Menu bar and system options consolidated in the General tab</strong>: Launch at<br>
+Login, automatic update checks, and the status badge toggle moved out of<br>
+the Agent Monitor tab.</li>
+<li><strong>Removed the dead "Show count in menu bar" toggle</strong>, which never had an<br>
+effect.</li>
+<li><strong>Trimmed the per-controller right-click menu</strong>: The redundant<br>
+"Use as Gamepad" (replaced by the global switch) and the half-working<br>
+"Enable key mappings" (only gated release/stick events) are gone.<br>
+"Disconnect" is hidden for system-managed controllers where it was a<br>
+no-op anyway.</li>
+</ul>
+      ]]></description>
+      <sparkle:releaseNotesLink>https://github.com/rtx3/AgentPad/releases/tag/v1.2.0</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/rtx3/AgentPad/releases/download/v1.2.0/AgentPad-v1.2.0.dmg"
+        sparkle:edSignature="GJQEcUY9bxkMdcNdv34ZC+HG7gziBa/5XSTOdGcVzF0dIYJZ5W0KaP6TWYjGEz2EMeyLUzGgfDCxU7Rfj7pCDA==" length="6487766"
+        type="application/octet-stream" />
+    </item>
   </channel>
 </rss>
