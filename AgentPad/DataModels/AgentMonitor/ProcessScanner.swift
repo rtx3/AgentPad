@@ -63,22 +63,7 @@ enum ProcessScanner {
     /// 用 `sysctl KERN_PROCARGS2` 读取用户态 argv 区域。
     /// 跨用户进程或受 SIP 保护的进程可能返回 nil（EPERM）。
     static func argv0Basename(of pid: pid_t) -> String? {
-        var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
-        var size: Int = 0
-
-        // 先探需要的 buffer 大小。
-        let probe = mib.withUnsafeMutableBufferPointer { mibPtr -> Int32 in
-            sysctl(mibPtr.baseAddress, 3, nil, &size, nil, 0)
-        }
-        guard probe == 0, size >= MemoryLayout<Int32>.size else { return nil }
-
-        var buffer = [UInt8](repeating: 0, count: size)
-        let fill = buffer.withUnsafeMutableBufferPointer { bufPtr -> Int32 in
-            mib.withUnsafeMutableBufferPointer { mibPtr -> Int32 in
-                sysctl(mibPtr.baseAddress, 3, bufPtr.baseAddress, &size, nil, 0)
-            }
-        }
-        guard fill == 0, size >= MemoryLayout<Int32>.size else { return nil }
+        guard let (buffer, size) = procArgs2Buffer(of: pid) else { return nil }
 
         // Layout (KERN_PROCARGS2):
         //   [argc: Int32][exec_path NUL][NUL padding ...][argv[0] NUL][argv[1] NUL]...
@@ -102,6 +87,62 @@ enum ProcessScanner {
             return head.isEmpty ? nil : head
         }
         return lastComp
+    }
+
+    /// 读取 `sysctl KERN_PROCARGS2` 原始 buffer。
+    /// 跨用户进程或受 SIP 保护的进程可能返回 nil（EPERM）。
+    private static func procArgs2Buffer(of pid: pid_t) -> (buffer: [UInt8], size: Int)? {
+        var mib: [Int32] = [CTL_KERN, KERN_PROCARGS2, pid]
+        var size: Int = 0
+
+        // 先探需要的 buffer 大小。
+        let probe = mib.withUnsafeMutableBufferPointer { mibPtr -> Int32 in
+            sysctl(mibPtr.baseAddress, 3, nil, &size, nil, 0)
+        }
+        guard probe == 0, size >= MemoryLayout<Int32>.size else { return nil }
+
+        var buffer = [UInt8](repeating: 0, count: size)
+        let fill = buffer.withUnsafeMutableBufferPointer { bufPtr -> Int32 in
+            mib.withUnsafeMutableBufferPointer { mibPtr -> Int32 in
+                sysctl(mibPtr.baseAddress, 3, bufPtr.baseAddress, &size, nil, 0)
+            }
+        }
+        guard fill == 0, size >= MemoryLayout<Int32>.size else { return nil }
+        return (buffer, size)
+    }
+
+    /// 完整 argv 列表（不含 argv[0]），即命令行参数。
+    /// 用于识别 Claude Code 基础设施进程（`claude daemon run` / `claude bg-spare` 等），
+    /// 这类进程的进程名与真实会话完全相同，只有 argv 可区分。
+    static func argvArguments(of pid: pid_t) -> [String]? {
+        guard let (buffer, size) = procArgs2Buffer(of: pid) else { return nil }
+
+        var argc = Int32(0)
+        withUnsafeMutableBytes(of: &argc) { dst in
+            dst.copyBytes(from: buffer[0..<MemoryLayout<Int32>.size])
+        }
+        guard argc > 0 else { return nil }
+
+        var i = MemoryLayout<Int32>.size
+        // 跳过 exec_path 到首个 NUL
+        while i < size, buffer[i] != 0 { i += 1 }
+        // 跳过对齐 padding（连续 NUL）
+        while i < size, buffer[i] == 0 { i += 1 }
+
+        var args: [String] = []
+        args.reserveCapacity(Int(argc))
+        while i < size, args.count < Int(argc) {
+            let start = i
+            while i < size, buffer[i] != 0 { i += 1 }
+            guard i > start else { break }
+            if let s = String(data: Data(buffer[start..<i]), encoding: .utf8) {
+                args.append(s)
+            }
+            // process.title 改写可能使 argv[0] 变短并留下连续 NUL，一并跳过。
+            while i < size, buffer[i] == 0 { i += 1 }
+        }
+        guard !args.isEmpty else { return nil }
+        return Array(args.dropFirst())
     }
 
     static func executablePath(of pid: pid_t) -> String? {
@@ -209,6 +250,12 @@ enum ProcessScanner {
                 NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) cwd=\(cwd) → REJECTED non-working cwd")
                 continue
             }
+            // 排除 Claude Code 自身的基础设施进程（daemon / 预热 spare / PTY host）：
+            // 进程名与真实会话相同（都是 "claude"），只能靠 argv 区分。
+            if let args = argvArguments(of: pid), isInfrastructureArgs(args) {
+                NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) argv=\(args.prefix(2).joined(separator: " ")) → REJECTED infrastructure process")
+                continue
+            }
             results.append(snap)
         }
         NSLog("[agent.monitor.diag] scan: PIDs=\(pids.count) candidates(name-substr)=\(diagCandidateCount) accepted=\(results.count)")
@@ -246,6 +293,19 @@ enum ProcessScanner {
         return nil
     }
 
+    /// Claude Code 基础设施进程的 argv 标记：
+    /// - `claude daemon run`：后台守护进程
+    /// - `claude bg-spare ...`：daemon 预热的备用进程（等待被新会话认领）
+    /// - `claude bg-pty-host ...` / `claude --bg-pty-host ...`：PTY 宿主进程
+    /// 这些进程不是用户会话，不应出现在监控列表。
+    private static let infrastructureSubcommands: Set<String> = ["daemon", "bg-spare", "bg-pty-host"]
+    private static let infrastructureFlags: Set<String> = ["--bg-spare", "--bg-pty-host"]
+
+    static func isInfrastructureArgs(_ args: [String]) -> Bool {
+        guard let first = args.first else { return false }
+        return infrastructureSubcommands.contains(first) || infrastructureFlags.contains(first)
+    }
+
     /// 判定为「桌面 GUI app 的可执行体」：路径在 `/Applications/Xxx.app/` 下。
     /// 用户安装的 CLI 工具一般在 `/usr/local/bin` / `~/.bun/bin` / homebrew prefix，
     /// 不会误伤。
@@ -254,10 +314,10 @@ enum ProcessScanner {
     }
 
     /// cwd 必须是用户工作目录：非空、不是根，也不在系统路径下。
-    /// 用于排除桌面 GUI 主进程（cwd 常为 "/"）。
+    /// 用于排除桌面 GUI 主进程（cwd 常为 "/"）与临时目录里的基础设施进程。
     static func isWorkingCWD(_ cwd: String) -> Bool {
         guard !cwd.isEmpty, cwd != "/" else { return false }
-        let systemPrefixes = ["/System/", "/Library/", "/Applications/", "/private/var/"]
+        let systemPrefixes = ["/System/", "/Library/", "/Applications/", "/private/var/", "/private/tmp/", "/tmp/"]
         for prefix in systemPrefixes {
             if cwd.hasPrefix(prefix) { return false }
         }

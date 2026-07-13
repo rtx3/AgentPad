@@ -75,6 +75,34 @@ final class ProcessScannerTests: XCTestCase {
         XCTAssertFalse(ProcessScanner.isWorkingCWD("/Applications/Claude.app"))
         XCTAssertFalse(ProcessScanner.isWorkingCWD("/Library/Containers"))
         XCTAssertFalse(ProcessScanner.isWorkingCWD("/private/var/folders/xxx"))
+        // Claude Code daemon 预热的 spare 进程 cwd 在 /private/tmp 下
+        XCTAssertFalse(ProcessScanner.isWorkingCWD("/private/tmp/cc-daemon-501/d78168b1/spare"))
+        XCTAssertFalse(ProcessScanner.isWorkingCWD("/tmp/cc-daemon-501/spare"))
+    }
+
+    func testIsInfrastructureArgs() {
+        // Claude Code 基础设施进程应被识别
+        XCTAssertTrue(ProcessScanner.isInfrastructureArgs(
+            ["daemon", "run", "--json-path", "/Users/mac/.claude/daemon.json"]))
+        XCTAssertTrue(ProcessScanner.isInfrastructureArgs(
+            ["bg-spare", "--bg-spare", "/tmp/cc-daemon-501/x/spare/a.claim.sock"]))
+        XCTAssertTrue(ProcessScanner.isInfrastructureArgs(
+            ["bg-pty-host", "--bg-pty-host", "/tmp/cc-daemon-501/x/spare/a.pty.sock"]))
+        XCTAssertTrue(ProcessScanner.isInfrastructureArgs(
+            ["--bg-pty-host", "/tmp/cc-daemon-501/x/pty/b"]))
+        XCTAssertTrue(ProcessScanner.isInfrastructureArgs(
+            ["--bg-spare", "/tmp/cc-daemon-501/x/spare/a.claim.sock"]))
+        // 真实会话不应被误伤
+        XCTAssertFalse(ProcessScanner.isInfrastructureArgs([]))
+        XCTAssertFalse(ProcessScanner.isInfrastructureArgs(["--resume", "0421bc24-469f"]))
+        XCTAssertFalse(ProcessScanner.isInfrastructureArgs(["--session-id", "73b0d7e4", "--fork-session"]))
+        XCTAssertFalse(ProcessScanner.isInfrastructureArgs(["-p", "hello"]))
+    }
+
+    func testArgvArgumentsOfSelf() {
+        // xctest 进程自身的 argv 应可读取（可能为空参数列表，但不应崩溃）
+        let args = ProcessScanner.argvArguments(of: getpid())
+        XCTAssertNotNil(args)
     }
 
     func testScanFiltersByPatterns() throws {
