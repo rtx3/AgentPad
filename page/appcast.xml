@@ -164,5 +164,20 @@ no-op anyway.</li>
         sparkle:edSignature="KJWeV1eqtlVI2vMMNeY9VSI3AaVWuEQrd0XHpLgFB0wsOJ4KU0qTpiFr/0yxFgwxkFNB/5qsIs5NRpN/YgpeDQ==" length="6490185"
         type="application/octet-stream" />
     </item>
+    <item>
+      <title>Version 1.2.2</title>
+      <pubDate>Tue, 14 Jul 2026 06:11:57 +0000</pubDate>
+      <sparkle:version>99</sparkle:version>
+      <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>10.14</sparkle:minimumSystemVersion>
+      <description><![CDATA[
+<p dir="auto">Download the DMG and drag AgentPad to /Applications. On first launch: right-click → Open. Grant Accessibility permission when prompted.</p>
+      ]]></description>
+      <sparkle:releaseNotesLink>https://github.com/rtx3/AgentPad/releases/tag/v1.2.2</sparkle:releaseNotesLink>
+      <enclosure
+        url="https://github.com/rtx3/AgentPad/releases/download/v1.2.2/AgentPad-v1.2.2.dmg"
+        sparkle:edSignature="AGSBa/IiqBUBcPK7+GapO5fN5ou3VkOYruGniD5CbtRVYpf3O+rCs+HWMib807waBlrcXyXIJT3dhZYWimHoCw==" length="6508784"
+        type="application/octet-stream" />
+    </item>
   </channel>
 </rss>
