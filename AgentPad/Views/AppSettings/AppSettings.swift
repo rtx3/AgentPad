@@ -118,7 +118,7 @@ extension AppSettings {
             "claude": "~/.claude/projects",
             "codex": "~/.codex/sessions"
         ]
-        static let defaultPollIntervalSec: Int = 3
+        static let defaultPollIntervalSec: Int = 10
         static let defaultPollFailureThreshold: Int = 3
         static let allowedPollIntervalsSec: [Int] = [1, 3, 5, 10, 30]
         /// 末条 record 距 now 超过此阈值时，视为"死会话残留"→ classify 强制降级 idle。
@@ -132,6 +132,7 @@ extension AppSettings {
         private static let stalenessThresholdKey = "agent.monitor.stalenessThresholdSec"
         private static let enablePTYKey = "agent.monitor.enablePTYProbe"
         private static let showStatusBadgeKey = "agent.monitor.showStatusBadge"
+        private static let verboseLogKey = "agent.monitor.verboseLog"
 
         /// 设置任一字段变更后调用 `postSettingsDidChange()`，AgentMonitor 收到后会 `restart()`。
         static let settingsDidChangeNotification = Notification.Name("AppSettings.AgentMonitor.settingsDidChange")
@@ -207,6 +208,18 @@ extension AppSettings {
             }
             set {
                 UserDefaults.standard.set(newValue, forKey: showStatusBadgeKey)
+            }
+        }
+
+        /// tick 级诊断日志开关。默认关闭：每 tick 多行 NSLog 是持续功耗源
+        /// （unified logging 写入 + 唤醒）。仅 UserDefaults 可调，无 UI 暴露：
+        /// `defaults write com.rtx3.agentpad agent.monitor.verboseLog -bool true`
+        static var verboseLog: Bool {
+            get {
+                return UserDefaults.standard.bool(forKey: verboseLogKey)
+            }
+            set {
+                UserDefaults.standard.set(newValue, forKey: verboseLogKey)
             }
         }
     }

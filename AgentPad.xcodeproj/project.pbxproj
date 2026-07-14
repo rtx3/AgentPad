@@ -1116,6 +1116,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
+					"$(SRCROOT)/Pods/Sparkle",
 					/System/Library/PrivateFrameworks,
 				);
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1143,6 +1144,7 @@
 					"$(inherited)",
 					"$(BUILT_PRODUCTS_DIR)",
 					"$(BUILT_PRODUCTS_DIR)/JoyConSwift",
+					"$(SRCROOT)/Pods/Sparkle",
 					/System/Library/PrivateFrameworks,
 				);
 				GENERATE_INFOPLIST_FILE = YES;

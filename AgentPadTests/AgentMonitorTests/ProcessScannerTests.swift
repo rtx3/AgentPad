@@ -129,4 +129,64 @@ final class ProcessScannerTests: XCTestCase {
         XCTAssertNotNil(snap)
         XCTAssertEqual(snap?.name, "custom-name-xyz")
     }
+
+    // MARK: - PIDNegativeCache
+
+    func testNegativeCacheMarkAndHit() {
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let startedAt = Date(timeIntervalSinceNow: -60).timeIntervalSince1970
+        XCTAssertFalse(cache.isRejected(pid: 12345, startedAt: startedAt))
+        cache.markRejected(pid: 12345, startedAt: startedAt, now: Date())
+        XCTAssertTrue(cache.isRejected(pid: 12345, startedAt: startedAt))
+    }
+
+    func testNegativeCacheSkipsYoungProcess() {
+        // 进程年龄 < minAgeSec 时不缓存：Node CLI 启动后才设置 process.title，
+        // 过早缓存会把尚未改名的 claude 进程永久判为不命中。
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let startedAt = Date(timeIntervalSinceNow: -3).timeIntervalSince1970
+        cache.markRejected(pid: 12345, startedAt: startedAt, now: Date())
+        XCTAssertFalse(cache.isRejected(pid: 12345, startedAt: startedAt))
+        XCTAssertEqual(cache.count, 0)
+    }
+
+    func testNegativeCachePIDReuseInvalidates() {
+        // PID 复用：同 pid 不同 startedAt 不应命中缓存。
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let oldStart = Date(timeIntervalSinceNow: -3600).timeIntervalSince1970
+        cache.markRejected(pid: 500, startedAt: oldStart, now: Date())
+        let newStart = Date(timeIntervalSinceNow: -60).timeIntervalSince1970
+        XCTAssertFalse(cache.isRejected(pid: 500, startedAt: newStart))
+    }
+
+    func testNegativeCacheCompactRemovesDeadPIDs() {
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let startedAt = Date(timeIntervalSinceNow: -60).timeIntervalSince1970
+        cache.markRejected(pid: 100, startedAt: startedAt, now: Date())
+        cache.markRejected(pid: 200, startedAt: startedAt, now: Date())
+        XCTAssertEqual(cache.count, 2)
+        cache.compact(keepingAlive: [100])
+        XCTAssertEqual(cache.count, 1)
+        XCTAssertTrue(cache.isRejected(pid: 100, startedAt: startedAt))
+        XCTAssertFalse(cache.isRejected(pid: 200, startedAt: startedAt))
+    }
+
+    func testNegativeCacheRemoveAll() {
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let startedAt = Date(timeIntervalSinceNow: -60).timeIntervalSince1970
+        cache.markRejected(pid: 100, startedAt: startedAt, now: Date())
+        cache.removeAll()
+        XCTAssertEqual(cache.count, 0)
+        XCTAssertFalse(cache.isRejected(pid: 100, startedAt: startedAt))
+    }
+
+    func testScanWithNegativeCachePopulatesAndStaysConsistent() throws {
+        // 第一轮扫描填充负缓存；第二轮结果应与第一轮一致（缓存不改变语义）。
+        let cache = PIDNegativeCache(minAgeSec: 10)
+        let first = try ProcessScanner.scan(matching: ["xx-no-such-process-xx"], negativeCache: cache)
+        XCTAssertTrue(first.isEmpty)
+        XCTAssertGreaterThan(cache.count, 0)
+        let second = try ProcessScanner.scan(matching: ["xx-no-such-process-xx"], negativeCache: cache)
+        XCTAssertTrue(second.isEmpty)
+    }
 }

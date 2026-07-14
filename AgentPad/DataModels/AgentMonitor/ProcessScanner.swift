@@ -23,6 +23,47 @@ enum ProcessScannerError: Error {
     case enumerationFailed(errno: Int32)
 }
 
+/// `ProcessScanner.scan` 的负缓存：记录「按名字判定不命中 patterns」的进程。
+/// key = (pid, startedAt)：PID 复用时 startedAt 必然不同，天然防误命中。
+///
+/// 动机：全表扫描每 tick 对每个 PID 做 proc_name + 2×sysctl(KERN_PROCARGS2)；
+/// 系统上绝大多数进程永远不会命中 patterns，缓存后这些 PID 每 tick 只余
+/// 1 次 proc_pidinfo。
+///
+/// 注意：
+/// - argv[0]（process.title）可在运行期改写。Node CLI（Claude Code 等）在启动
+///   后立刻设置 title，用 minAgeSec 兜底——进程太年轻时不缓存，避开该窗口。
+/// - patterns 变更后必须 `removeAll()`（AgentMonitor.restart 已处理）。
+/// - 非线程安全；调用方保证在同一串行队列上使用（AgentMonitor.queue）。
+final class PIDNegativeCache {
+    private var rejectedStartedAt: [pid_t: TimeInterval] = [:]
+    private let minAgeSec: TimeInterval
+
+    init(minAgeSec: TimeInterval = 10) {
+        self.minAgeSec = minAgeSec
+    }
+
+    func isRejected(pid: pid_t, startedAt: TimeInterval) -> Bool {
+        return rejectedStartedAt[pid] == startedAt
+    }
+
+    func markRejected(pid: pid_t, startedAt: TimeInterval, now: Date) {
+        guard now.timeIntervalSince1970 - startedAt >= minAgeSec else { return }
+        rejectedStartedAt[pid] = startedAt
+    }
+
+    /// 移除已退出进程的条目，防止长期运行下无界增长。
+    func compact(keepingAlive alive: Set<pid_t>) {
+        rejectedStartedAt = rejectedStartedAt.filter { alive.contains($0.key) }
+    }
+
+    func removeAll() {
+        rejectedStartedAt.removeAll()
+    }
+
+    var count: Int { rejectedStartedAt.count }
+}
+
 enum ProcessScanner {
     /// `<libproc.h>` 的 `PROC_PIDPATHINFO_MAXSIZE = 4 * PATH_MAX = 4096`。
     /// C 宏不被 Swift 自动导入，这里硬编码同值。
@@ -196,20 +237,40 @@ enum ProcessScanner {
     /// 匹配规则见 `matchedPattern(name:patterns:)`。
     /// cwd 过滤：取不到 cwd 时仍保留进程（CLI 工具受 SIP/权限限制可能读不到 cwd）；
     /// 仅当 cwd 明确是 "/" 或系统路径时才拒绝（用于剔除桌面 GUI 主进程）。
-    static func scan(matching patterns: [String]) throws -> [ProcessSnapshot] {
+    /// `negativeCache` 非 nil 时跳过已知不命中的 (pid, startedAt)，
+    /// 并在本轮结束后回收已退出进程的条目。
+    static func scan(matching patterns: [String],
+                     negativeCache: PIDNegativeCache? = nil) throws -> [ProcessSnapshot] {
         guard !patterns.isEmpty else { return [] }
         let pids = try listAllPIDs()
+        let now = Date()
         var results: [ProcessSnapshot] = []
         results.reserveCapacity(min(pids.count, 32))
         var diagCandidateCount = 0
         for pid in pids {
+            // 负缓存：以 (pid, startedAt) 为键。startedAt 来自 1 次 proc_pidinfo，
+            // 比双路取名（proc_name + 2×sysctl）便宜得多。
+            var cachedStartedAt: TimeInterval? = nil
+            if let cache = negativeCache {
+                guard let info = bsdInfo(of: pid) else { continue }
+                let startedAt = TimeInterval(info.pbi_start_tvsec)
+                    + TimeInterval(info.pbi_start_tvusec) / 1_000_000.0
+                if cache.isRejected(pid: pid, startedAt: startedAt) { continue }
+                cachedStartedAt = startedAt
+            }
+
             // 双路取名：
             // - nProc：kernel `p_comm`（不可修改）。原生 binary 直接对得上。
             // - nArgv：argv[0] basename（含 process.title 修改）。Node.js CLI 等用得上。
             let nProc = name(of: pid)
             let nArgv = argv0Basename(of: pid)
             let candidates = [nProc, nArgv].compactMap { $0 }
-            guard !candidates.isEmpty else { continue }
+            guard !candidates.isEmpty else {
+                if let cache = negativeCache, let s = cachedStartedAt {
+                    cache.markRejected(pid: pid, startedAt: s, now: now)
+                }
+                continue
+            }
 
             // 诊断 isCandidate：任一名字含 pattern 子串。
             let isCandidate = candidates.contains { nm in
@@ -230,35 +291,41 @@ enum ProcessScanner {
             }
             guard let nm = displayName, let pattern = matchedPat else {
                 if isCandidate {
-                    NSLog("[agent.monitor.diag] pid=\(pid) procName=\"\(nProc ?? "<nil>")\" argv0=\"\(nArgv ?? "<nil>")\" → REJECTED by matchedPattern")
+                    MonitorLog.log("[agent.monitor.diag] pid=\(pid) procName=\"\(nProc ?? "<nil>")\" argv0=\"\(nArgv ?? "<nil>")\" → REJECTED by matchedPattern")
+                }
+                // 仅缓存「名字不命中」的判定。名字命中但后续 cwd / exe / argv
+                // 过滤被拒的不缓存——那些属性运行期可变（如 cd 后 cwd 变化）。
+                if let cache = negativeCache, let s = cachedStartedAt {
+                    cache.markRejected(pid: pid, startedAt: s, now: now)
                 }
                 continue
             }
             guard let snap = snapshot(of: pid, nameOverride: nm) else {
-                NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) → snapshot() FAILED")
+                MonitorLog.log("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) → snapshot() FAILED")
                 continue
             }
             // 排除桌面 GUI app 子进程：可执行文件在 /Applications/*.app/ 下。
             // 用于抓 Codex.app / Claude.app 这类没有 Helper 标记的桌面子进程。
             if let exe = snap.executablePath, isDesktopAppExecutable(exe) {
-                NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) exe=\(exe) → REJECTED desktop app in /Applications")
+                MonitorLog.log("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) exe=\(exe) → REJECTED desktop app in /Applications")
                 continue
             }
             // cwd nil 是常见情况（CLI 跑在不同 sandbox 域），不拒绝；
             // 只在能读到 cwd 且确为 "/" / 系统路径时拒绝。
             if let cwd = snap.cwd, !isWorkingCWD(cwd) {
-                NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) cwd=\(cwd) → REJECTED non-working cwd")
+                MonitorLog.log("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) cwd=\(cwd) → REJECTED non-working cwd")
                 continue
             }
             // 排除 Claude Code 自身的基础设施进程（daemon / 预热 spare / PTY host）：
             // 进程名与真实会话相同（都是 "claude"），只能靠 argv 区分。
             if let args = argvArguments(of: pid), isInfrastructureArgs(args) {
-                NSLog("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) argv=\(args.prefix(2).joined(separator: " ")) → REJECTED infrastructure process")
+                MonitorLog.log("[agent.monitor.diag] pid=\(pid) name=\"\(nm)\" pattern=\(pattern) argv=\(args.prefix(2).joined(separator: " ")) → REJECTED infrastructure process")
                 continue
             }
             results.append(snap)
         }
-        NSLog("[agent.monitor.diag] scan: PIDs=\(pids.count) candidates(name-substr)=\(diagCandidateCount) accepted=\(results.count)")
+        negativeCache?.compact(keepingAlive: Set(pids))
+        MonitorLog.log("[agent.monitor.diag] scan: PIDs=\(pids.count) candidates(name-substr)=\(diagCandidateCount) accepted=\(results.count) negCache=\(negativeCache?.count ?? 0)")
         return results
     }
 

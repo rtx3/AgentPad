@@ -13,6 +13,19 @@
 import Foundation
 import AppKit
 
+/// tick 级诊断日志门控。默认静默：每 tick 多行 NSLog 会造成持续的
+/// unified logging 写入（功耗源之一）。错误路径不走这里，仍无条件 NSLog。
+/// `@autoclosure` 保证关闭时不构造插值字符串。
+enum MonitorLog {
+    static var verbose: Bool { AppSettings.AgentMonitor.verboseLog }
+
+    @inline(__always)
+    static func log(_ message: @autoclosure () -> String) {
+        guard verbose else { return }
+        NSLog(message())
+    }
+}
+
 final class AgentMonitor {
     /// 主线程回调；订阅方在 main queue 中安全更新 UI。
     /// 仅在 self.queue 上读写；setter 见 `setEventHandler(_:)`。
@@ -30,14 +43,18 @@ final class AgentMonitor {
     /// 不再以 pid 为单位：同 cwd 多进程共享同一 context（同 session 文件）。
     private var jsonlContexts: [String: JSONLProbeContext] = [:]
 
+    /// 进程扫描负缓存。仅在 self.queue 上使用；patterns 变更（restart）时清空。
+    private let pidNegativeCache = PIDNegativeCache()
+
     /// 各 pattern 对应的 SessionLocator。当前仅 Claude Code / Codex 有实现。
+    /// 均包了一层 FSEvents 缓存：root 无变更的 tick 跳过目录枚举。
     private let locators: [String: SessionLocator]
 
     init(intervalSec: Int = AppSettings.AgentMonitor.pollIntervalSec) {
         self.intervalSec = intervalSec
         self.locators = [
-            "claude": ClaudeCodeSessionLocator(),
-            "codex": CodexSessionLocator()
+            "claude": CachingSessionLocator(wrapping: ClaudeCodeSessionLocator()),
+            "codex": CachingSessionLocator(wrapping: CodexSessionLocator())
         ]
         NotificationCenter.default.addObserver(
             self,
@@ -81,6 +98,12 @@ final class AgentMonitor {
             self.intervalSec = interval
             self.timer?.cancel()
             self.timer = nil
+            // patterns 可能已变化，负缓存的「不命中」判定随之失效。
+            self.pidNegativeCache.removeAll()
+            // sessionRoots 可能已变化，locator 缓存与 watcher 一并重建。
+            for loc in self.locators.values {
+                (loc as? CachingSessionLocator)?.reset()
+            }
             self.scheduleTimer()
             self.tickLocked()
         }
@@ -97,9 +120,10 @@ final class AgentMonitor {
 
     private func scheduleTimer() {
         let t = DispatchSource.makeTimerSource(queue: queue)
+        // leeway 取间隔的 10%：允许系统把唤醒与其他定时器合并，降低功耗。
         t.schedule(deadline: .now() + .seconds(intervalSec),
                    repeating: .seconds(intervalSec),
-                   leeway: .milliseconds(200))
+                   leeway: .milliseconds(intervalSec * 100))
         t.setEventHandler { [weak self] in
             self?.tickLocked()
         }
@@ -129,11 +153,11 @@ final class AgentMonitor {
             let staleness = TimeInterval(AppSettings.AgentMonitor.stalenessThresholdSec)
             let axTrusted = AccessibilityPermission.isTrusted()
 
-            let snapshots = try ProcessScanner.scan(matching: patterns)
+            let snapshots = try ProcessScanner.scan(matching: patterns, negativeCache: pidNegativeCache)
 
-            NSLog("[agent.monitor] tick patterns=\(patterns) matched=\(snapshots.count) axTrusted=\(axTrusted) enablePTY=\(enablePTY)")
+            MonitorLog.log("[agent.monitor] tick patterns=\(patterns) matched=\(snapshots.count) axTrusted=\(axTrusted) enablePTY=\(enablePTY)")
             for s in snapshots {
-                NSLog("[agent.monitor]   snap pid=\(s.pid) name=\(s.name) cwd=\(s.cwd ?? "<nil>")")
+                MonitorLog.log("[agent.monitor]   snap pid=\(s.pid) name=\(s.name) cwd=\(s.cwd ?? "<nil>")")
             }
 
             // 按 (cwd, pattern) 分组；保留 first-seen 顺序便于日志可读。
@@ -173,7 +197,7 @@ final class AgentMonitor {
                                            staleness: staleness,
                                            prev: prevByKey[key])
                 projects.append(project)
-                NSLog("[agent.monitor]   result project=\(key) state=\(project.state) source=\(project.source) detail=\(project.detail) instances=\(project.instanceCount)")
+                MonitorLog.log("[agent.monitor]   result project=\(key) state=\(project.state) source=\(project.source) detail=\(project.detail) instances=\(project.instanceCount)")
             }
             projects.sort { lhs, rhs in
                 if lhs.state != rhs.state { return lhs.state > rhs.state }
@@ -215,7 +239,7 @@ final class AgentMonitor {
         let root = sessionRoots[kindLower] ?? sessionRoots[pattern]
         let loc = self.locator(for: pattern)
         let url = (loc != nil) ? loc!.locate(pid: primary.pid, cwd: cwd, sessionRoot: root ?? "") : nil
-        NSLog("[agent.monitor]     jsonl group=\(key) pattern=\(pattern) root=\(root ?? "<nil>") urlFound=\(url?.lastPathComponent ?? "<nil>")")
+        MonitorLog.log("[agent.monitor]     jsonl group=\(key) pattern=\(pattern) root=\(root ?? "<nil>") urlFound=\(url?.lastPathComponent ?? "<nil>")")
 
         if let url = url, root != nil {
             let ctx = jsonlContexts[key] ?? JSONLProbeContext(pid: primary.pid, cwd: cwd)
@@ -228,12 +252,14 @@ final class AgentMonitor {
             // 首次 bind 后只读到装饰行的边界情况下生效。
             let classifyRecord = ctx.lastStateSignalRecord ?? ctx.lastRecord
             let classifyWriteAt = ctx.lastStateSignalAt ?? ctx.lastWriteAt
-            let lastType = ctx.lastRecord?.type ?? "<nil>"
-            let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
-            let lastStop = ctx.lastRecord?.stopReason ?? "<nil>"
-            let lastTool = ctx.lastRecord?.toolUseName ?? "<nil>"
-            let signalType = ctx.lastStateSignalRecord?.type ?? "<nil>"
-            NSLog("[agent.monitor]     jsonl tick group=\(key) lastType=\(lastType) signalType=\(signalType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
+            if MonitorLog.verbose {
+                let lastType = ctx.lastRecord?.type ?? "<nil>"
+                let lastPayload = ctx.lastRecord?.payloadType ?? "<nil>"
+                let lastStop = ctx.lastRecord?.stopReason ?? "<nil>"
+                let lastTool = ctx.lastRecord?.toolUseName ?? "<nil>"
+                let signalType = ctx.lastStateSignalRecord?.type ?? "<nil>"
+                MonitorLog.log("[agent.monitor]     jsonl tick group=\(key) lastType=\(lastType) signalType=\(signalType) payload=\(lastPayload) stop=\(lastStop) tool=\(lastTool)")
+            }
             let cls = Self.classifyByPattern(
                 pattern: pattern,
                 record: classifyRecord,
@@ -252,7 +278,7 @@ final class AgentMonitor {
                    enablePTY,
                    let pty = PTYStateProbe.probe(forAgentPID: primary.pid),
                    pty.state == .querying {
-                    NSLog("[agent.monitor]     pty-override group=\(key) jstate=\(cls.state) → pty=querying snippet=\(pty.snippet)")
+                    MonitorLog.log("[agent.monitor]     pty-override group=\(key) jstate=\(cls.state) → pty=querying snippet=\(pty.snippet)")
                     return AgentProject(
                         id: key,
                         cwd: cwd,
@@ -293,14 +319,14 @@ final class AgentMonitor {
                                           earliestStartedAt: earliest,
                                           staleness: staleness,
                                           now: Date()) {
-                NSLog("[agent.monitor]     carryover group=\(key) prevState=\(carry.state) reason=jsonl-classify-nil")
+                MonitorLog.log("[agent.monitor]     carryover group=\(key) prevState=\(carry.state) reason=jsonl-classify-nil")
                 return carry
             }
         }
         // 2. PTY 兜底：用最近启动的 pid 做 host 查找（更可能对应用户当前活跃窗口）。
         if enablePTY {
             let pty = PTYStateProbe.probe(forAgentPID: primary.pid)
-            NSLog("[agent.monitor]     pty group=\(key) pid=\(primary.pid) hit=\(pty != nil) snippet=\(pty?.snippet ?? "<nil>")")
+            MonitorLog.log("[agent.monitor]     pty group=\(key) pid=\(primary.pid) hit=\(pty != nil) snippet=\(pty?.snippet ?? "<nil>")")
             if let pty = pty {
                 return AgentProject(
                     id: key,
